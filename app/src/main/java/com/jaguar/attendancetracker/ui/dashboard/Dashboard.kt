@@ -49,10 +49,11 @@ import com.jaguar.attendancetracker.ui.theme.AppTypography
 fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",
@@ -107,7 +108,8 @@ fun Dashboard(
             }
 
             is DashboardState.Success -> {
-                val subjects: List<Subject> = (uiState as DashboardState.Success).subjects.sortedBy { it.isEnded }
+                val subjects: List<Subject> =
+                    (uiState as DashboardState.Success).subjects.sortedBy { it.isEnded }
                 val subjectsBySemester = remember(subjects) {
                     subjects.groupBy { it.semester }.toSortedMap(compareByDescending { it })
                 }
@@ -154,7 +156,7 @@ fun Dashboard(
                                             }
                                         },
                                         onEdit = { viewModel.editSubject(it) },
-                                        onCancelSchedule = {viewModel.cancelScheduling(it)},
+                                        onCancelSchedule = { viewModel.cancelScheduling(it) },
                                         onDelete = { viewModel.deleteSubject(it) })
                                 }
                             }
@@ -180,12 +182,13 @@ fun Dashboard(
                         ) {
                             Icon(Icons.Outlined.Add, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Add Subject",
+                            Text(
+                                "Add Subject",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
                                 fontSize = AppTypography.labelMedium.fontSize,
                                 fontWeight = AppTypography.labelMedium.fontWeight,
                                 fontFamily = AppTypography.labelMedium.fontFamily,
-                                )
+                            )
                         }
                     }
                 }

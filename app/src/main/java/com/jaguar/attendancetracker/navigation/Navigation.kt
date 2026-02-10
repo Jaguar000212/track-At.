@@ -14,7 +14,11 @@ import com.jaguar.attendancetracker.ui.subject.Subject
 
 @Composable
 fun Navigation(navController: NavHostController, modifier: Modifier) {
-    NavHost(navController = navController, startDestination = Destinations.DAYVIEW.route, modifier = modifier) {
+    NavHost(
+        navController = navController,
+        startDestination = Destinations.DAYVIEW.route,
+        modifier = modifier
+    ) {
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }

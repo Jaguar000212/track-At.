@@ -35,7 +35,8 @@ fun Drawer(
             Spacer(Modifier.padding(8.dp))
 
             Destinations.entries.filter { it.showInDrawer }.forEach {
-                NavigationDrawerItem(label = {
+                NavigationDrawerItem(
+                    label = {
                     Text(
                         it.label,
                         fontStyle = AppTypography.labelMedium.fontStyle,
@@ -53,7 +54,8 @@ fun Drawer(
                         drawerState.close()
                     }
                 }, selected = currentRoute == it.route, icon = { Icon(it.icon!!, "") },
-                    modifier = Modifier.padding(horizontal = 8.dp))
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
             }
         }
     }, drawerState = drawerState, modifier = modifier, content = content)
