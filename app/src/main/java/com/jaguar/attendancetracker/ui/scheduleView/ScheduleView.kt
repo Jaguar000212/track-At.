@@ -48,10 +48,11 @@ import java.time.DayOfWeek
 fun DayHeader(
     day: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
