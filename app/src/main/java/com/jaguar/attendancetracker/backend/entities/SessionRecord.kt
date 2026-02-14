@@ -23,6 +23,7 @@ data class SessionRecord(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
 
     val subjectId: UUID,
+    val orderNo: Int = 0,
     val dayOfWeek: Int,
     val startDate: LocalDate
 )

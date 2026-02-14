@@ -1,8 +1,10 @@
 package com.jaguar.attendancetracker.backend.entities
 
 import androidx.room.Embedded
+import androidx.room.Relation
 
 data class AttendanceWithSubject(
-    @Embedded(prefix = "a_") val record: AttendanceRecord,
-    @Embedded(prefix = "s_") val subject: Subject
+    @Embedded val record: AttendanceRecord,
+
+    @Relation(parentColumn = "subjectId", entityColumn = "id") val subject: Subject
 )

@@ -34,31 +34,7 @@ interface AttendanceRecordDao {
     @Query("SELECT * FROM attendancerecords WHERE date = :date")
     suspend fun getAttendanceRecordByDate(date: LocalDate): List<AttendanceRecord>
 
-    @Query(
-        """
-        SELECT 
-            AR.id as a_id,
-            AR.subjectId as a_subjectId,
-            AR.date as a_date,
-            AR.sessionId as a_sessionId,
-            AR.status as a_status,
-            AR.classType as a_classType,
-            S.id AS s_id,
-            S.name AS s_name,
-            S.semester AS s_semester,
-            S.startDate AS s_startDate,
-            S.isEnded AS s_isEnded,
-            S.color AS s_color,
-            S.professor AS s_professor,
-            S.roomNo AS s_roomNo,
-            S.notes AS s_notes,
-            S.totalClasses AS s_totalClasses,
-            S.attendedClasses AS s_attendedClasses,
-            S.minAttendance AS s_minAttendance
-        FROM AttendanceRecords as AR INNER JOIN Subjects AS S ON AR.subjectId = s.id 
-        WHERE date = :date
-        """
-    )
+    @Query("SELECT * FROM AttendanceRecords WHERE date = :date")
     fun getAttendanceWithSubjects(date: LocalDate): Flow<List<AttendanceWithSubject>>
 
     @Query("SELECT count(*) FROM AttendanceRecords WHERE subjectId = :subjectId AND status IN ('PRESENT', 'ABSENT')")
