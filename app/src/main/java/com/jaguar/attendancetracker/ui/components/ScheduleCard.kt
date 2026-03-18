@@ -41,18 +41,15 @@ fun ScheduleCard(
     sessionRecord: SessionRecord,
     subject: Subject,
     onDelete: (sessionRecord: SessionRecord) -> Unit,
-    interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
 ) {
     var showDeleteAlert by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     Card(
-        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        onClick = {}
+            .padding(horizontal = 8.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

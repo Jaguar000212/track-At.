@@ -49,6 +49,7 @@ import kotlin.math.absoluteValue
 @Composable
 fun SubjectCard(
     subject: Subject,
+    modifier: Modifier = Modifier,
     onClick: (subject: Subject) -> Unit,
     onEdit: (subject: Subject) -> Unit,
     onCancelSchedule: (subject: Subject) -> Unit,
@@ -63,7 +64,7 @@ fun SubjectCard(
     val required = subject.requiredToMakeUp()
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
             .clickable(onClick = { onClick(subject) }),

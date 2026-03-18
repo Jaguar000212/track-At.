@@ -44,6 +44,7 @@ import kotlin.math.absoluteValue
 fun SessionCard(
     record: AttendanceRecord,
     subject: Subject,
+    modifier: Modifier = Modifier,
     onPresent: () -> Unit,
     onAbsent: () -> Unit,
     onCancel: () -> Unit,
@@ -55,7 +56,7 @@ fun SessionCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         colors = CardDefaults.cardColors()
