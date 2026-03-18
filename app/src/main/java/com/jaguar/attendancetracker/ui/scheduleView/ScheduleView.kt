@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -16,6 +17,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -65,9 +68,6 @@ import com.jaguar.attendancetracker.ui.theme.AppTypography
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.DayOfWeek
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun DayHeader(
@@ -78,10 +78,11 @@ fun DayHeader(
         label = "ArrowRotation"
     )
 
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
@@ -157,7 +158,8 @@ fun ScheduleView(
                     var isEditMode by remember { mutableStateOf(false) }
 
                     val shakeRotation = if (isEditMode) {
-                        val infiniteTransition = rememberInfiniteTransition(label = "shake_transition")
+                        val infiniteTransition =
+                            rememberInfiniteTransition(label = "shake_transition")
                         infiniteTransition.animateFloat(
                             initialValue = -2f,
                             targetValue = 2f,
@@ -179,7 +181,7 @@ fun ScheduleView(
 
                     var sessions: List<SessionRecord> by remember { mutableStateOf(emptyList()) }
                     LaunchedEffect(targetState) {
-                         sessions = targetState.sessionRecords.map { it.session }
+                        sessions = targetState.sessionRecords.map { it.session }
                     }
                     val reorderableLazyColumnState =
                         rememberReorderableLazyListState(listState) { from, to ->
@@ -223,7 +225,9 @@ fun ScheduleView(
                                 sessionsByDay.toSortedMap().forEach { (day, daySessions) ->
                                     item(key = "header_$day") {
                                         DayHeader(
-                                            day = day, expanded = expandedDays[day] == true, onToggle = {
+                                            day = day,
+                                            expanded = expandedDays[day] == true,
+                                            onToggle = {
                                                 expandedDays[day] = !(expandedDays[day] ?: true)
                                             })
                                     }
@@ -264,7 +268,9 @@ fun ScheduleView(
                                                                     detectTapGestures(
                                                                         onLongPress = {
                                                                             isEditMode = true
-                                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                            haptic.performHapticFeedback(
+                                                                                HapticFeedbackType.LongPress
+                                                                            )
                                                                         },
                                                                         onTap = {}
                                                                     )
@@ -282,7 +288,8 @@ fun ScheduleView(
                                                             .semantics {
                                                                 customActions = listOf(
                                                                     CustomAccessibilityAction(
-                                                                        label = "Move Up", action = {
+                                                                        label = "Move Up",
+                                                                        action = {
                                                                             val globalIndex =
                                                                                 sessions.indexOfFirst { it.id == session.id }
                                                                             if (globalIndex > 0) {
@@ -291,7 +298,9 @@ fun ScheduleView(
                                                                                         .apply {
                                                                                             add(
                                                                                                 globalIndex - 1,
-                                                                                                removeAt(globalIndex)
+                                                                                                removeAt(
+                                                                                                    globalIndex
+                                                                                                )
                                                                                             )
                                                                                         }
                                                                                 true
@@ -300,7 +309,8 @@ fun ScheduleView(
                                                                             }
                                                                         }),
                                                                     CustomAccessibilityAction(
-                                                                        label = "Move Down", action = {
+                                                                        label = "Move Down",
+                                                                        action = {
                                                                             val globalIndex =
                                                                                 sessions.indexOfFirst { it.id == session.id }
                                                                             if (globalIndex != -1 && globalIndex < sessions.size - 1) {
@@ -309,7 +319,9 @@ fun ScheduleView(
                                                                                         .apply {
                                                                                             add(
                                                                                                 globalIndex + 1,
-                                                                                                removeAt(globalIndex)
+                                                                                                removeAt(
+                                                                                                    globalIndex
+                                                                                                )
                                                                                             )
                                                                                         }
                                                                                 true

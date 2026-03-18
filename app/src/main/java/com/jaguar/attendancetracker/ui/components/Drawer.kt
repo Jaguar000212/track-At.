@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,24 +39,26 @@ fun Drawer(
             Destinations.entries.filter { it.showInDrawer }.forEach {
                 NavigationDrawerItem(
                     label = {
-                    Text(
-                        it.label,
-                        fontStyle = AppTypography.labelMedium.fontStyle,
-                        fontSize = AppTypography.labelMedium.fontSize,
-                        fontWeight = AppTypography.labelMedium.fontWeight,
-                        fontFamily = AppTypography.labelMedium.fontFamily,
-                    )
-                }, onClick = {
-                    navController.navigate(it.route) {
-                        popUpTo(Destinations.DAYVIEW.route) {
-                            inclusive = false
+                        Text(
+                            it.label,
+                            fontStyle = AppTypography.labelMedium.fontStyle,
+                            fontSize = AppTypography.labelMedium.fontSize,
+                            fontWeight = AppTypography.labelMedium.fontWeight,
+                            fontFamily = AppTypography.labelMedium.fontFamily,
+                        )
+                    }, onClick = {
+                        navController.navigate(it.route) {
+                            popUpTo(Destinations.DAYVIEW.route) {
+                                inclusive = false
+                            }
                         }
-                    }
-                    scope.launch {
-                        drawerState.close()
-                    }
-                }, selected = currentRoute == it.route, icon = { Icon(it.icon!!, "") },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                        scope.launch {
+                            drawerState.close()
+                        }
+                    }, selected = currentRoute == it.route, icon = {
+                        if (it.icon is Int) Icon(painterResource(it.icon), "")
+                        else Icon(it.icon as ImageVector, "")
+                    }, modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
