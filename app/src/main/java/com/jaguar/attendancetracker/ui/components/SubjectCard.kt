@@ -99,6 +99,13 @@ fun SubjectCard(
                     fontWeight = AppTypography.labelMedium.fontWeight,
                     fontFamily = AppTypography.labelMedium.fontFamily,
                 )
+                Text(
+                    "Present: ${subject.attendedClasses} | Absent: ${subject.totalClasses - subject.attendedClasses}",
+                    fontStyle = AppTypography.labelSmall.fontStyle,
+                    fontSize = AppTypography.labelSmall.fontSize,
+                    fontWeight = AppTypography.labelSmall.fontWeight,
+                    fontFamily = AppTypography.labelSmall.fontFamily,
+                )
                 Row(modifier = Modifier.padding(top = 8.dp)) {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
