@@ -28,6 +28,10 @@ class ScheduleRepository @Inject constructor(
         sessionRecordDao.insert(sessionRecord)
     }
 
+    suspend fun updateSessionOrder(sessions: List<SessionRecord>) {
+        sessionRecordDao.updateAll(sessions)
+    }
+
     suspend fun deleteSession(sessionRecord: SessionRecord) {
         sessionRecordDao.delete(sessionRecord)
     }

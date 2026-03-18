@@ -18,6 +18,9 @@ interface SessionRecordDao {
     @Update
     suspend fun update(record: SessionRecord)
 
+    @Update
+    suspend fun updateAll(records: List<SessionRecord>)
+
     @Delete
     suspend fun delete(record: SessionRecord)
 
@@ -33,6 +36,6 @@ interface SessionRecordDao {
     @Query("SELECT * FROM SessionRecords WHERE dayOfWeek = :day")
     suspend fun getSessionsByDay(day: Int): List<SessionRecord>
 
-    @Query("SELECT * FROM SessionRecords")
+    @Query("SELECT * FROM SessionRecords ORDER BY dayOfWeek, orderNo")
     fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>>
 }

@@ -95,6 +95,7 @@ fun Subject(
                             fontSize = AppTypography.displaySmall.fontSize,
                             fontWeight = AppTypography.displaySmall.fontWeight,
                             fontFamily = AppTypography.displaySmall.fontFamily,
+                            lineHeight = AppTypography.displaySmall.lineHeight,
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
                                 .padding(8.dp)

@@ -27,6 +27,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -124,14 +125,20 @@ fun ScheduleView(
                 }
 
                 var sessions: List<SessionRecord> by remember { mutableStateOf(emptyList()) }
-                sessions = (uiState as ScheduleState.Success).sessionRecords.map { it.session }
+                LaunchedEffect(uiState) {
+                    if (uiState is ScheduleState.Success) {
+                        sessions = (uiState as ScheduleState.Success).sessionRecords.map { it.session }
+                    }
+                }
                 val reorderableLazyColumnState =
                     rememberReorderableLazyListState(listState) { from, to ->
-                        sessions = sessions.toMutableList().apply {
-                            val fromIndex = indexOfFirst { it.id == from.key }
-                            val toIndex = indexOfFirst { it.id == to.key }
+                        val fromIndex = sessions.indexOfFirst { it.id == from.key }
+                        val toIndex = sessions.indexOfFirst { it.id == to.key }
 
-                            add(toIndex, removeAt(fromIndex))
+                        if (fromIndex != -1 && toIndex != -1) {
+                            sessions = sessions.toMutableList().apply {
+                                add(toIndex, removeAt(fromIndex))
+                            }
                         }
 
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
@@ -171,7 +178,7 @@ fun ScheduleView(
                             if (expandedDays[day] == true) {
                                 itemsIndexed(
                                     items = daySessions,
-                                    key = { _, session -> session.id }) { idx, session ->
+                                    key = { _, session -> session.id }) { _, session ->
                                     ReorderableItem(reorderableLazyColumnState, session.id) {
                                         val interactionSource =
                                             remember { MutableInteractionSource() }
@@ -186,15 +193,20 @@ fun ScheduleView(
                                                     customActions = listOf(
                                                         CustomAccessibilityAction(
                                                             label = "Move Up", action = {
-                                                                if (idx > 0) {
+                                                                val globalIndex =
+                                                                    sessions.indexOfFirst { it.id == session.id }
+                                                                if (globalIndex > 0) {
                                                                     sessions =
                                                                         sessions.toMutableList()
                                                                             .apply {
                                                                                 add(
-                                                                                    idx - 1,
-                                                                                    removeAt(idx)
+                                                                                    globalIndex - 1,
+                                                                                    removeAt(globalIndex)
                                                                                 )
                                                                             }
+                                                                    val updated =
+                                                                        sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                                    viewModel.updateSessionOrder(updated)
                                                                     true
                                                                 } else {
                                                                     false
@@ -202,15 +214,20 @@ fun ScheduleView(
                                                             }),
                                                         CustomAccessibilityAction(
                                                             label = "Move Down", action = {
-                                                                if (idx < sessions.size - 1) {
+                                                                val globalIndex =
+                                                                    sessions.indexOfFirst { it.id == session.id }
+                                                                if (globalIndex != -1 && globalIndex < sessions.size - 1) {
                                                                     sessions =
                                                                         sessions.toMutableList()
                                                                             .apply {
                                                                                 add(
-                                                                                    idx + 1,
-                                                                                    removeAt(idx)
+                                                                                    globalIndex + 1,
+                                                                                    removeAt(globalIndex)
                                                                                 )
                                                                             }
+                                                                    val updated =
+                                                                        sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                                    viewModel.updateSessionOrder(updated)
                                                                     true
                                                                 } else {
                                                                     false
@@ -228,6 +245,9 @@ fun ScheduleView(
                                                         haptic.performHapticFeedback(
                                                             HapticFeedbackType.GestureEnd
                                                         )
+                                                        val updated =
+                                                            sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                        viewModel.updateSessionOrder(updated)
                                                     },
                                                     interactionSource = interactionSource,
                                                 )
