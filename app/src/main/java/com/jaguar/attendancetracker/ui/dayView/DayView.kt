@@ -1,9 +1,14 @@
 package com.jaguar.attendancetracker.ui.dayView
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -109,27 +114,41 @@ fun DayView(
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, null)
             }
 
-            Column(
-                verticalArrangement = Arrangement.SpaceAround,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(8.dp)
-            ) {
-                TextButton(onClick = { showDatePicker = true }) {
+            AnimatedContent(
+                targetState = currentDate,
+                transitionSpec = {
+                    if (targetState.isAfter(initialState)) {
+                        slideInHorizontally { width -> width } + fadeIn() togetherWith
+                                slideOutHorizontally { width -> -width } + fadeOut()
+                    } else {
+                        slideInHorizontally { width -> -width } + fadeIn() togetherWith
+                                slideOutHorizontally { width -> width } + fadeOut()
+                    }.using(SizeTransform(clip = false))
+                }, label = "DateAnimation"
+            ) { targetDate ->
+                Column(
+                    verticalArrangement = Arrangement.SpaceAround,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    TextButton(onClick = { showDatePicker = true }) {
+                        Text(
+                            targetDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
+                                ?: "Today",
+                            fontStyle = AppTypography.titleLarge.fontStyle,
+                            fontSize = AppTypography.titleLarge.fontSize,
+                            fontWeight = AppTypography.titleLarge.fontWeight,
+                            fontFamily = AppTypography.titleLarge.fontFamily,
+                        )
+                    }
                     Text(
-                        currentDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy")) ?: "Today",
-                        fontStyle = AppTypography.titleLarge.fontStyle,
-                        fontSize = AppTypography.titleLarge.fontSize,
-                        fontWeight = AppTypography.titleLarge.fontWeight,
-                        fontFamily = AppTypography.titleLarge.fontFamily,
+                        targetDate.dayOfWeek?.name ?: "MONDAY",
+                        fontStyle = AppTypography.titleSmall.fontStyle,
+                        fontSize = AppTypography.titleSmall.fontSize,
+                        fontWeight = AppTypography.titleSmall.fontWeight,
+                        fontFamily = AppTypography.titleSmall.fontFamily,
                     )
                 }
-                Text(
-                    currentDate.dayOfWeek?.name ?: "MONDAY",
-                    fontStyle = AppTypography.titleSmall.fontStyle,
-                    fontSize = AppTypography.titleSmall.fontSize,
-                    fontWeight = AppTypography.titleSmall.fontWeight,
-                    fontFamily = AppTypography.titleSmall.fontFamily,
-                )
             }
 
             IconButton(
@@ -242,14 +261,20 @@ fun DayView(
                                 }
                                 HorizontalDivider(Modifier.padding(8.dp))
                             }
-                            items(dayRecords) {
-                                SessionCard(record = it.record, subject = it.subject, onPresent = {
-                                    viewModel.markPresent(it)
-                                }, onAbsent = {
-                                    viewModel.markAbsent(it)
-                                }, onCancel = {
-                                    viewModel.markCancelled(it)
-                                })
+                            items(dayRecords, key = { it.record.id }) {
+                                SessionCard(
+                                    modifier = Modifier.animateItem(),
+                                    record = it.record,
+                                    subject = it.subject,
+                                    onPresent = {
+                                        viewModel.markPresent(it)
+                                    },
+                                    onAbsent = {
+                                        viewModel.markAbsent(it)
+                                    },
+                                    onCancel = {
+                                        viewModel.markCancelled(it)
+                                    })
                             }
                         }
                     }

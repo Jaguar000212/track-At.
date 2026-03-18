@@ -1,6 +1,7 @@
 package com.jaguar.attendancetracker.ui.dashboard
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +51,7 @@ import com.jaguar.attendancetracker.ui.theme.AppTypography
 fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
+    val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,8 +68,8 @@ fun SemesterHeader(
         )
 
         Icon(
-            imageVector = if (expanded) Icons.Default.KeyboardArrowUp
-            else Icons.Default.KeyboardArrowDown, contentDescription = null
+            imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null,
+            modifier = Modifier.rotate(rotationState.value)
         )
     }
 }
@@ -147,6 +150,7 @@ fun Dashboard(
                                 items(
                                     items = semesterSubjects, key = { it.id }) { subject ->
                                     SubjectCard(
+                                        modifier = Modifier.animateItem(),
                                         subject = subject,
                                         onClick = {
                                             navController.navigate("${Destinations.SUBJECT.route}/${it.id}") {
