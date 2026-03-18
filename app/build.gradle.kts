@@ -16,8 +16,8 @@ android {
         applicationId = "com.jaguar.attendancetracker"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "2.5"
+        versionCode = 3
+        versionName = "3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

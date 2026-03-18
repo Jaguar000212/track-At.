@@ -26,6 +26,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -115,9 +116,17 @@ fun Dashboard(
                 val subjectsBySemester = remember(subjects) {
                     subjects.groupBy { it.semester }.toSortedMap(compareByDescending { it })
                 }
-                val expandedSemesters = remember(subjectsBySemester) {
+                val expandedSemesters = remember {
                     mutableStateMapOf<Int, Boolean>().apply {
                         subjectsBySemester.keys.forEach { put(it, true) }
+                    }
+                }
+
+                LaunchedEffect(subjectsBySemester) {
+                    subjectsBySemester.keys.forEach { key ->
+                        if (!expandedSemesters.containsKey(key)) {
+                            expandedSemesters[key] = true
+                        }
                     }
                 }
                 if (subjects.isEmpty()) {

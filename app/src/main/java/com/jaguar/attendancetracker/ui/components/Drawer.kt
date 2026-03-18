@@ -46,19 +46,26 @@ fun Drawer(
                             fontWeight = AppTypography.labelMedium.fontWeight,
                             fontFamily = AppTypography.labelMedium.fontFamily,
                         )
-                    }, onClick = {
+                    },
+                    onClick = {
                         navController.navigate(it.route) {
                             popUpTo(Destinations.DAYVIEW.route) {
+                                saveState = true
                                 inclusive = false
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                         scope.launch {
                             drawerState.close()
                         }
-                    }, selected = currentRoute == it.route, icon = {
+                    },
+                    selected = currentRoute == it.route,
+                    icon = {
                         if (it.icon is Int) Icon(painterResource(it.icon), "")
                         else Icon(it.icon as ImageVector, "")
-                    }, modifier = Modifier.padding(horizontal = 8.dp)
+                    },
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }

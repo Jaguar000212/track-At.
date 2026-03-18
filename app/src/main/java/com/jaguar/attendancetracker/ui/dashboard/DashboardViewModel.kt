@@ -31,7 +31,7 @@ class DashboardViewModel @Inject constructor(
         }.catch {
             emit(DashboardState.Error(it.message ?: "Unknown error"))
         }.stateIn(
-            viewModelScope, SharingStarted.Eagerly, DashboardState.Loading
+            viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardState.Loading
         )
 
     fun newSubject(): Subject {
