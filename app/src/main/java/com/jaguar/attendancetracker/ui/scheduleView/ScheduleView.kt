@@ -6,6 +6,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -26,6 +27,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -34,6 +36,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,17 +50,18 @@ import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.ui.components.AddSessionBottomSheet
 import com.jaguar.attendancetracker.ui.components.ScheduleCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.DayOfWeek
 
 @Composable
 fun DayHeader(
     day: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onToggle() }
+        .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
@@ -75,6 +84,7 @@ fun ScheduleView(
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val haptic = LocalHapticFeedback.current
     val listState = rememberLazyListState()
     val isAtTop by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 }
@@ -110,13 +120,30 @@ fun ScheduleView(
 
                 val subjects: List<Subject> =
                     (uiState as ScheduleState.Success).sessionRecords.map { it.subject }
+                val subjectMap = remember(subjects) {
+                    subjects.associateBy { it.id }
+                }
 
                 var sessions: List<SessionRecord> by remember { mutableStateOf(emptyList()) }
-                sessions = (uiState as ScheduleState.Success).sessionRecords.map { it.session }
-
-                val scheduledSubjects = remember(subjects, sessions) {
-                    subjects.filter { it.id in sessions.map { session -> session.subjectId } }
+                LaunchedEffect(uiState) {
+                    if (uiState is ScheduleState.Success) {
+                        sessions = (uiState as ScheduleState.Success).sessionRecords.map { it.session }
+                    }
                 }
+                val reorderableLazyColumnState =
+                    rememberReorderableLazyListState(listState) { from, to ->
+                        val fromIndex = sessions.indexOfFirst { it.id == from.key }
+                        val toIndex = sessions.indexOfFirst { it.id == to.key }
+
+                        if (fromIndex != -1 && toIndex != -1) {
+                            sessions = sessions.toMutableList().apply {
+                                add(toIndex, removeAt(fromIndex))
+                            }
+                        }
+
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    }
+
                 val sessionsByDay = remember(sessions) {
                     sessions.groupBy { it.dayOfWeek }
                 }
@@ -149,14 +176,85 @@ fun ScheduleView(
                             }
 
                             if (expandedDays[day] == true) {
-                                items(
-                                    items = daySessions, key = { it.id }) { session ->
-                                    ScheduleCard(
-                                        sessionRecord = session,
-                                        subject = scheduledSubjects.first { it.id == session.subjectId },
-                                        onDelete = {
-                                            viewModel.deleteSession(it)
-                                        })
+                                itemsIndexed(
+                                    items = daySessions,
+                                    key = { _, session -> session.id }) { _, session ->
+                                    ReorderableItem(reorderableLazyColumnState, session.id) {
+                                        val interactionSource =
+                                            remember { MutableInteractionSource() }
+                                        ScheduleCard(
+                                            sessionRecord = session,
+                                            subject = subjectMap[session.subjectId]!!,
+                                            onDelete = {
+                                                viewModel.deleteSession(it)
+                                            },
+                                            modifier = Modifier
+                                                .semantics {
+                                                    customActions = listOf(
+                                                        CustomAccessibilityAction(
+                                                            label = "Move Up", action = {
+                                                                val globalIndex =
+                                                                    sessions.indexOfFirst { it.id == session.id }
+                                                                if (globalIndex > 0) {
+                                                                    sessions =
+                                                                        sessions.toMutableList()
+                                                                            .apply {
+                                                                                add(
+                                                                                    globalIndex - 1,
+                                                                                    removeAt(globalIndex)
+                                                                                )
+                                                                            }
+                                                                    val updated =
+                                                                        sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                                    viewModel.updateSessionOrder(updated)
+                                                                    true
+                                                                } else {
+                                                                    false
+                                                                }
+                                                            }),
+                                                        CustomAccessibilityAction(
+                                                            label = "Move Down", action = {
+                                                                val globalIndex =
+                                                                    sessions.indexOfFirst { it.id == session.id }
+                                                                if (globalIndex != -1 && globalIndex < sessions.size - 1) {
+                                                                    sessions =
+                                                                        sessions.toMutableList()
+                                                                            .apply {
+                                                                                add(
+                                                                                    globalIndex + 1,
+                                                                                    removeAt(globalIndex)
+                                                                                )
+                                                                            }
+                                                                    val updated =
+                                                                        sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                                    viewModel.updateSessionOrder(updated)
+                                                                    true
+                                                                } else {
+                                                                    false
+                                                                }
+                                                            }),
+                                                    )
+                                                }
+                                                .draggableHandle(
+                                                    onDragStarted = {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                    },
+                                                    onDragStopped = {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.GestureEnd
+                                                        )
+                                                        val updated =
+                                                            sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
+                                                        viewModel.updateSessionOrder(updated)
+                                                    },
+                                                    interactionSource = interactionSource,
+                                                )
+                                                .clearAndSetSemantics { },
+                                            interactionSource = interactionSource
+                                        )
+                                    }
                                 }
                             }
                         }

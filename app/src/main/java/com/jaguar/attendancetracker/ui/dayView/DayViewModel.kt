@@ -61,7 +61,7 @@ class DayViewModel @Inject constructor(
     private suspend fun ensureAttendanceRecordsExist(date: LocalDate) {
         val dayOfWeek = date.dayOfWeek.value
 
-        val sessions = scheduleRepo.getSessionsByDay(dayOfWeek)
+        val sessions = scheduleRepo.getSessionsByDay(dayOfWeek).sortedBy { it.orderNo }
         val existingRecords = attendanceRepo.getAttendanceRecordsByDate(date)
         val recordedSessionIds = existingRecords.map { it.sessionId }.toSet()
 

@@ -3,6 +3,7 @@ package com.jaguar.attendancetracker.dependencies
 import android.content.Context
 import androidx.room.Room
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
+import com.jaguar.attendancetracker.backend.migrations.Migration8TO9
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,7 +20,7 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): AttendanceDatabase = Room.databaseBuilder(
         context, AttendanceDatabase::class.java, "AttendanceDB"
-    ).fallbackToDestructiveMigration(
-        true
+    ).addMigrations(
+        Migration8TO9
     ).build()
 }

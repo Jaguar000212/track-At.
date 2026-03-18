@@ -41,6 +41,10 @@ class ScheduleViewModel @Inject constructor(
         viewModelScope.launch { scheduleRepo.addSession(sessionRecord) }
     }
 
+    fun updateSessionOrder(sessions: List<SessionRecord>) {
+        viewModelScope.launch { scheduleRepo.updateSessionOrder(sessions) }
+    }
+
     fun deleteSession(sessionRecord: SessionRecord) {
         viewModelScope.launch { scheduleRepo.deleteSession(sessionRecord) }
     }

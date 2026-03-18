@@ -1,5 +1,7 @@
 package com.jaguar.attendancetracker.ui.components
 
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -38,15 +40,19 @@ import com.jaguar.attendancetracker.ui.theme.AppTypography
 fun ScheduleCard(
     sessionRecord: SessionRecord,
     subject: Subject,
-    onDelete: (sessionRecord: SessionRecord) -> Unit
+    onDelete: (sessionRecord: SessionRecord) -> Unit,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier = Modifier,
 ) {
     var showDeleteAlert by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     Card(
-        modifier = Modifier
+        interactionSource = interactionSource,
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp),
+        onClick = {}
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
