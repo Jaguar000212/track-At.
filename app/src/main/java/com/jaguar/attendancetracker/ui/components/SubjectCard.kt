@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.StatusColor
 import com.jaguar.attendancetracker.backend.enums.SubjectColor
@@ -147,7 +148,7 @@ fun SubjectCard(
                             }
                         }) {
                             Icon(
-                                Icons.Outlined.Warning,
+                                painterResource(R.drawable.pause),
                                 "",
                                 tint = Color(StatusColor.WARNING.color(isDark))
                             )
