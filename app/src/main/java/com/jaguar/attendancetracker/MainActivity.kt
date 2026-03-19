@@ -10,9 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.rememberNavController
+import com.jaguar.attendancetracker.navigation.Destinations
 import com.jaguar.attendancetracker.navigation.Navigation
 import com.jaguar.attendancetracker.ui.components.Drawer
 import com.jaguar.attendancetracker.ui.components.Header
@@ -40,6 +42,17 @@ class MainActivity : ComponentActivity() {
                     topBar = { Header(drawerState = drawerState) { Text(stringResource(R.string.app_name)) } }) { innerPadding ->
                     Navigation(navController, Modifier.padding(innerPadding))
                 }
+            }
+        }
+        LaunchedEffect(Unit) {
+            val subId = intent.extras?.getString("subjectId")
+            if (subId != null) {
+                navController.navigate("${Destinations.SUBJECT.route}/$subId") {
+                    popUpTo(Destinations.DASHBOARD.route) {
+                        inclusive = false
+                    }
+                }
+                intent.removeExtra("subjectId")
             }
         }
     }
