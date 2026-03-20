@@ -39,7 +39,11 @@ class MainActivity : ComponentActivity() {
             Drawer(drawerState, navController) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(), topBar = {
-                        Header(drawerState = drawerState, navController = navController) { Text(stringResource(R.string.app_name)) }
+                        Header(drawerState = drawerState, navController = navController) {
+                            Text(
+                                stringResource(R.string.app_name)
+                            )
+                        }
                     }) { innerPadding ->
                     Navigation(navController, Modifier.padding(innerPadding))
                 }

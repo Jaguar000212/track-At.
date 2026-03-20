@@ -82,8 +82,8 @@ private fun SessionItem(item: AttendanceWithSubject) {
     Column(
         verticalAlignment = Alignment.CenterVertically,
         modifier = GlanceModifier.fillMaxWidth().padding(vertical = 4.dp).clickable(
-                actionStartActivity<MainActivity>()
-            )
+            actionStartActivity<MainActivity>()
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically, modifier = GlanceModifier.fillMaxWidth()

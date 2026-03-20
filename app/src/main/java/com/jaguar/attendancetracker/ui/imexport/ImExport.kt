@@ -175,7 +175,8 @@ fun ImExport(
         }
         if (isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.5f)), contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
