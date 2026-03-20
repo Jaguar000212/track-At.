@@ -19,3 +19,16 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --- GSON & DATA EXPORT RULES ---
+
+# Keep specific data classes used for Export/Import serialization
+-keep class com.jaguar.attendancetracker.ui.imexport.BackupData { *; }
+-keep class com.jaguar.attendancetracker.backend.entities.** { *; }
+-keep class com.jaguar.attendancetracker.backend.enums.** { *; }
+
+# Required for Gson to handle Generic Types (e.g. List<Subject>)
+-keepattributes Signature
+
+# Keep annotations (like @SerializedName, if you use them later)
+-keepattributes *Annotation*
