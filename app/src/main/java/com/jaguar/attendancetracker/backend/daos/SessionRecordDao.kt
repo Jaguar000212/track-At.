@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.SessionsWithSubject
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,9 @@ import java.util.UUID
 
 @Dao
 interface SessionRecordDao {
+    @Upsert
+    suspend fun upsertAll(records: List<SessionRecord>)
+
     @Insert
     suspend fun insert(record: SessionRecord)
 

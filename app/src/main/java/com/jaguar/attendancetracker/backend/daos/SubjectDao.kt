@@ -5,12 +5,16 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.jaguar.attendancetracker.backend.entities.Subject
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 @Dao
 interface SubjectDao {
+    @Upsert
+    suspend fun upsertAll(subjects: List<Subject>)
+
     @Insert
     suspend fun insert(subject: Subject)
 

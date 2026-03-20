@@ -17,5 +17,6 @@ enum class Destinations(
     SCHEDULE("Schedule View", R.drawable.schedule_view, "/scheduleview"),
 
     SUBJECT("Subject", Icons.AutoMirrored.Outlined.List, "/subject", false),
-    SETTINGS("Settings", Icons.Outlined.Settings, "/settings", false)
+    SETTINGS("Settings", Icons.Outlined.Settings, "/settings", false),
+    IMEXPORT("Import-Export", Icons.Outlined.Settings, "/imexport", false)
 }

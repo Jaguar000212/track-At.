@@ -7,14 +7,27 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.navigation.Destinations
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Header(drawerState: DrawerState, title: @Composable () -> Unit) {
+fun Header(drawerState: DrawerState, navController: NavController, title: @Composable () -> Unit) {
     val scope = rememberCoroutineScope()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
     CenterAlignedTopAppBar(title = title, navigationIcon = {
         IconButton({
             scope.launch {
@@ -25,6 +38,21 @@ fun Header(drawerState: DrawerState, title: @Composable () -> Unit) {
             Icon(Icons.Outlined.Menu, "")
         }
     }, actions = {
-//        Icon(Icons.Outlined.Settings, "", Modifier.padding(16.dp)) TODO
+        if (navBackStackEntry?.destination?.route == Destinations.DASHBOARD.route)
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                tooltip = { PlainTooltip { Text("Import/Export data.") } },
+                state = rememberTooltipState()
+            ) {
+                IconButton({
+                    navController.navigate(Destinations.IMEXPORT.route) {
+                        popUpTo(Destinations.DASHBOARD.route) {
+                            inclusive = false
+                        }
+                    }
+                }) {
+                    Icon(painterResource(R.drawable.import_export), "")
+                }
+            }
     })
 }
