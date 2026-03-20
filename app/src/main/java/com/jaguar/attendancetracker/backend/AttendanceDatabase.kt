@@ -14,7 +14,7 @@ import com.jaguar.attendancetracker.backend.typeConverters.DateTimeConverter
 @TypeConverters(DateTimeConverter::class)
 @Database(
     entities = [AttendanceRecord::class, SessionRecord::class, Subject::class],
-    version = 9,
+    version = DB_VERSION,
     exportSchema = false
 )
 abstract class AttendanceDatabase : RoomDatabase() {
