@@ -17,6 +17,9 @@ a sleek UI with robust functionality to keep you on top of your schedule. 🚀
 - **🗓️ Day View**: A focused view of your daily schedule to manage attendance record-by-record.
 - **🌗 Dark & Light Mode**: Seamlessly adapts to your system theme for a comfortable viewing
   experience day or night.
+- **☁️ Import-Export**: Backup your data before you loose it, or simply share it with your mates to spare them the trouble of setting up the app.
+
+
 
 ## 🛠️ Tech Stack
 
@@ -38,6 +41,7 @@ This project leverages the latest in Modern Android Development (MAD):
   <img src="screenshots/schedule.jpg" width="40%" alt="Schedule View" />
   <img src="screenshots/day-view.jpg" width="40%" alt="Statistics" />
   <img src="screenshots/subject.jpg" width="40%" alt="Statistics" />
+  <img src="screenshots/iExport.jpg" width="40%" alt="Import-Export Screen" />
 </p>
 
 ## 📲 Installation
