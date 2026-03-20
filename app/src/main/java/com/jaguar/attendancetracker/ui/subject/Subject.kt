@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -74,7 +75,7 @@ fun Subject(
                         Box(
                             Modifier
                                 .fillMaxWidth()
-                                .fillParentMaxHeight(0.15f)
+                                .defaultMinSize(minHeight = 120.dp)
                                 .background(
                                     color = Color(
                                         SubjectColor.valueOf(subject.color).color(isDark)
