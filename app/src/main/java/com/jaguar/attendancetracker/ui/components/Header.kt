@@ -1,6 +1,8 @@
 package com.jaguar.attendancetracker.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerState
@@ -46,7 +48,7 @@ fun Header(drawerState: DrawerState, navController: NavController, title: @Compo
             ) {
                 IconButton({
                     navController.navigate(Destinations.IMEXPORT.route) {
-                        popUpTo(Destinations.DASHBOARD.route) {
+                        popUpTo(Destinations.DAYVIEW.route) {
                             inclusive = false
                         }
                     }
@@ -54,5 +56,22 @@ fun Header(drawerState: DrawerState, navController: NavController, title: @Compo
                     Icon(painterResource(R.drawable.import_export), "")
                 }
             }
+        if (navBackStackEntry?.destination?.route != Destinations.HELP.route) {
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                tooltip = { PlainTooltip { Text("Get to know the app.") } },
+                state = rememberTooltipState()
+            ) {
+                IconButton({
+                    navController.navigate(Destinations.HELP.route) {
+                        popUpTo(Destinations.DAYVIEW.route) {
+                            inclusive = false
+                        }
+                    }
+                }) {
+                    Icon(Icons.Outlined.Info, "")
+                }
+            }
+        }
     })
 }
