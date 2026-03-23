@@ -21,8 +21,17 @@ fun HelpSubject() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Subject View", style = AppTypography.titleLarge)
+        Text(text = "Subject Details", style = AppTypography.titleLarge)
         Text(text = "keeps you updated.", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "This page shows you the details for a specific subject. You can see how many classes you attended and how many you missed.",
+            style = AppTypography.bodyMedium
+        )
+        Text(
+            text = "You can also view the attendance records for that subject.",
+            style = AppTypography.bodyMedium
+        )
     }
 }
