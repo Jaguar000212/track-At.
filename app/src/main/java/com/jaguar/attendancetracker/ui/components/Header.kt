@@ -47,9 +47,7 @@ fun Header(drawerState: DrawerState, navController: NavController, title: @Compo
             ) {
                 IconButton({
                     navController.navigate(Destinations.IMEXPORT.route) {
-                        popUpTo(Destinations.DAYVIEW.route) {
-                            inclusive = false
-                        }
+                        launchSingleTop = true
                     }
                 }) {
                     Icon(painterResource(R.drawable.import_export), "")
