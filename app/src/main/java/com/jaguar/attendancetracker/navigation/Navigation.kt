@@ -4,7 +4,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -26,30 +28,25 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
         startDestination = Destinations.DAYVIEW.route,
         modifier = modifier,
         enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = tween(300)
+            slideInVertically(
+                initialOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(300)
             ) + fadeIn(animationSpec = tween(300))
         },
         exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = tween(300)
+            slideOutVertically(
+                targetOffsetY = { fullHeight -> -fullHeight }, animationSpec = tween(300)
             ) + fadeOut(animationSpec = tween(300))
         },
         popEnterTransition = {
             slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = tween(300)
+                initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(300)
             ) + fadeIn(animationSpec = tween(300))
         },
         popExitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = tween(300)
+                targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(300)
             ) + fadeOut(animationSpec = tween(300))
-        }
-    ) {
+        }) {
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }
