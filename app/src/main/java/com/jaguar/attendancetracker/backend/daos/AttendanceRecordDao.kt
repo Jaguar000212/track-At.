@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
@@ -38,6 +39,7 @@ interface AttendanceRecordDao {
     @Query("SELECT * FROM attendancerecords WHERE date = :date")
     suspend fun getAttendanceRecordByDate(date: LocalDate): List<AttendanceRecord>
 
+    @Transaction
     @Query("SELECT * FROM AttendanceRecords WHERE date = :date")
     fun getAttendanceWithSubjects(date: LocalDate): Flow<List<AttendanceWithSubject>>
 

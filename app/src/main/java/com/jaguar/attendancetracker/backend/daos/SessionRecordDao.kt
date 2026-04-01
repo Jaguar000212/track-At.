@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
@@ -40,6 +41,7 @@ interface SessionRecordDao {
     @Query("SELECT * FROM SessionRecords WHERE dayOfWeek = :day")
     suspend fun getSessionsByDay(day: Int): List<SessionRecord>
 
+    @Transaction
     @Query("SELECT * FROM SessionRecords ORDER BY dayOfWeek, orderNo")
     fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>>
 }
