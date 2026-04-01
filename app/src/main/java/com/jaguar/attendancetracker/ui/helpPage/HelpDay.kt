@@ -30,7 +30,7 @@ fun HelpDay() {
             style = AppTypography.bodyMedium
         )
         Text(
-            text = "Click on the date and chose the date on the calendar to check the classes. You can use the arrow buttons to move a day forward or backward.",
+            text = "Click on the date and choose the date on the calendar to check the classes. You can use the arrow buttons to move a day forward or backward.",
             style = AppTypography.bodyMedium
         )
         Text(

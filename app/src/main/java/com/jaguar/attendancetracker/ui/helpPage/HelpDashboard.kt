@@ -42,7 +42,7 @@ fun HelpDashboard() {
             text = "- Start Date: Marks the start date of the subject, from when the scheduling should start.",
             style = AppTypography.bodyMedium
         )
-        Text(text = "Rest of the fields are self explanatory.", style = AppTypography.bodyMedium)
+        Text(text = "Rest of the fields are self-explanatory.", style = AppTypography.bodyMedium)
 
         Spacer(modifier = Modifier.height(8.dp))
 

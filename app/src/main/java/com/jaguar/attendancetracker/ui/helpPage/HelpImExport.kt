@@ -35,9 +35,9 @@ fun HelpImExport() {
             text = "Select the data you want to backup, then click \"Export\".",
             style = AppTypography.bodyMedium
         )
-        Text(text = "Choose the save location, and its done.")
+        Text(text = "Choose the save location, and it's done.", style = AppTypography.bodyMedium)
         Text(
-            text = "You can choose to import only subjects and schedule, share it with a friend, and they can use it import the schedule and set up their app.",
+            text = "You can choose to import only subjects and schedule, share it with a friend, and they can use it to import the schedule and set up their app.",
             style = AppTypography.bodyMedium
         )
         Spacer(modifier = Modifier.height(8.dp))

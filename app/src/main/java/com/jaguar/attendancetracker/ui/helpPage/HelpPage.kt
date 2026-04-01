@@ -39,7 +39,6 @@ fun HelpPage() {
             3 -> HelpDay()
             4 -> HelpSubject()
             5 -> HelpImExport()
-            else -> pageNo = 0
         }
 
         if (pageNo != 0) SmallFloatingActionButton(

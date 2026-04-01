@@ -72,7 +72,7 @@ fun SessionCard(
                 .fillMaxWidth()
         ) {
             Column(modifier = Modifier.align(Alignment.TopStart)) {
-                FlowRow (horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         subject.name,
                         fontStyle = AppTypography.titleLarge.fontStyle,
