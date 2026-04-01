@@ -18,5 +18,6 @@ enum class Destinations(
 
     SUBJECT("Subject", Icons.AutoMirrored.Outlined.List, "/subject", false),
     SETTINGS("Settings", Icons.Outlined.Settings, "/settings", false),
-    IMEXPORT("Import-Export", Icons.Outlined.Settings, "/imexport", false)
+    IMEXPORT("Import-Export", Icons.Outlined.Settings, "/imexport", false),
+    HELP("Help", Icons.Outlined.Settings, "/help", false)
 }
