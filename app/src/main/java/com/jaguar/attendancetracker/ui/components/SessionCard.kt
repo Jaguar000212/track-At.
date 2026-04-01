@@ -5,6 +5,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -71,7 +72,7 @@ fun SessionCard(
                 .fillMaxWidth()
         ) {
             Column(modifier = Modifier.align(Alignment.TopStart)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow (horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         subject.name,
                         fontStyle = AppTypography.titleLarge.fontStyle,
@@ -87,9 +88,7 @@ fun SessionCard(
                         fontFamily = AppTypography.labelSmall.fontFamily,
                         modifier = Modifier
                             .align(Alignment.Bottom)
-                            .clip(
-                                CircleShape
-                            )
+                            .clip(CircleShape)
                             .background(Color.Gray)
                             .padding(horizontal = 4.dp)
                     )
