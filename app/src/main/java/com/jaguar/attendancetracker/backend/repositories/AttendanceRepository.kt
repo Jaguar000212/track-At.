@@ -58,8 +58,8 @@ class AttendanceRepository @Inject constructor(
         if (recordWithSubject.record.classType == ClassType.REGULAR) {
             val record = recordWithSubject.record.copy(status = AttendanceStatus.CANCELLED)
             attendanceRecordDao.update(record)
-            updateSubjectStats(record.subjectId)
         } else attendanceRecordDao.delete(recordWithSubject.record)
+        updateSubjectStats(recordWithSubject.record.subjectId)
     }
 
     suspend fun getSubjectAttendanceRecords(
