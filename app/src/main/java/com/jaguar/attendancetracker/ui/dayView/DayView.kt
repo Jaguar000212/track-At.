@@ -133,12 +133,12 @@ fun DayView(
                         Text(
                             targetDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
                                 ?: "Today",
-                            fontStyle = AppTypography.titleLarge.fontStyle,
+                            style = AppTypography.titleLarge,
                         )
                     }
                     Text(
                         targetDate.dayOfWeek?.name ?: "MONDAY",
-                        fontStyle = AppTypography.titleSmall.fontStyle,
+                        style = AppTypography.titleSmall,
                     )
                 }
             }
@@ -156,12 +156,12 @@ fun DayView(
                 is DayState.Error -> {
                     Text(
                         "Something went wrong :(",
-                        fontStyle = AppTypography.bodyMedium.fontStyle,
+                        style = AppTypography.bodyMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
                     Text(
                         (uiState as DayState.Error).message,
-                        fontStyle = AppTypography.bodyMedium.fontStyle,
+                        style = AppTypography.bodyMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -171,7 +171,7 @@ fun DayView(
                     val dayRecords = (uiState as DayState.Success).dayRecords
                     if (dayRecords.isEmpty()) Text(
                         "No session for today.",
-                        fontStyle = AppTypography.bodyMedium.fontStyle,
+                        style = AppTypography.bodyMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
                     else {
@@ -190,7 +190,7 @@ fun DayView(
                                         label = {
                                             Text(
                                                 "Present",
-                                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                                style = AppTypography.labelMedium,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Check, "") },
@@ -206,7 +206,7 @@ fun DayView(
                                         label = {
                                             Text(
                                                 "Absent",
-                                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                                style = AppTypography.labelMedium,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Close, "") },
@@ -222,7 +222,7 @@ fun DayView(
                                         label = {
                                             Text(
                                                 "Cancel",
-                                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                                style = AppTypography.labelMedium,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Delete, "") },
@@ -271,7 +271,7 @@ fun DayView(
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     "Extra Class",
-                                    fontStyle = AppTypography.labelMedium.fontStyle,
+                                    style = AppTypography.labelMedium,
                                 )
                             }
                         }
@@ -283,18 +283,18 @@ fun DayView(
                             AlertDialog(onDismissRequest = { showAddClassDialog = false }, title = {
                                 Text(
                                     "No Subjects Available",
-                                    fontStyle = AppTypography.titleMedium.fontStyle,
+                                    style = AppTypography.titleMedium,
                                 )
                             }, text = {
                                 Text(
                                     "Please add a subject before adding a class.",
-                                    fontStyle = AppTypography.bodyMedium.fontStyle,
+                                    style = AppTypography.bodyMedium,
                                 )
                             }, confirmButton = {
                                 TextButton({ showAddClassDialog = false }) {
                                     Text(
                                         "OK",
-                                        fontStyle = AppTypography.labelMedium.fontStyle,
+                                        style = AppTypography.labelMedium,
                                     )
                                 }
                             })
@@ -309,7 +309,7 @@ fun DayView(
                                     TextButton({ showAddClassDialog = false }) {
                                         Text(
                                             "No",
-                                            fontStyle = AppTypography.labelMedium.fontStyle,
+                                            style = AppTypography.labelMedium,
                                         )
                                     }
                                 },
@@ -328,7 +328,7 @@ fun DayView(
                                     }) {
                                         Text(
                                             "Yes",
-                                            fontStyle = AppTypography.labelMedium.fontStyle,
+                                            style = AppTypography.labelMedium,
                                         )
                                     }
                                 },
@@ -336,7 +336,7 @@ fun DayView(
                                 title = {
                                     Text(
                                         "Select Subject",
-                                        fontStyle = AppTypography.titleMedium.fontStyle,
+                                        style = AppTypography.titleMedium,
                                     )
                                 },
                                 text = {
@@ -353,7 +353,7 @@ fun DayView(
                                             label = {
                                                 Text(
                                                     "Subject",
-                                                    fontStyle = AppTypography.titleSmall.fontStyle,
+                                                    style = AppTypography.titleSmall,
                                                 )
                                             },
                                             trailingIcon = {
@@ -371,7 +371,7 @@ fun DayView(
                                                 DropdownMenuItem({
                                                     Text(
                                                         subject.name,
-                                                        fontStyle = AppTypography.labelLarge.fontStyle,
+                                                        style = AppTypography.labelLarge,
                                                     )
                                                 }, onClick = {
                                                     subjectId = subject.id
@@ -397,14 +397,14 @@ fun DayView(
                                 }) {
                                 Text(
                                     "OK",
-                                    fontStyle = AppTypography.labelMedium.fontStyle,
+                                    style = AppTypography.labelMedium,
                                 )
                             }
                         }, dismissButton = {
                             TextButton(onClick = { showDatePicker = false }) {
                                 Text(
                                     "Cancel",
-                                    fontStyle = AppTypography.labelMedium.fontStyle,
+                                    style = AppTypography.labelMedium,
                                 )
                             }
                         }) {

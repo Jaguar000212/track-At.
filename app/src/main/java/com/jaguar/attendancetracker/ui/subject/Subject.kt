@@ -46,12 +46,12 @@ fun Subject(
             is SubjectState.Error -> {
                 Text(
                     "Something went wrong :(",
-                    fontStyle = AppTypography.bodyMedium.fontStyle,
+                    style = AppTypography.bodyMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 Text(
                     (uiState as SubjectState.Error).message,
-                    fontStyle = AppTypography.bodyMedium.fontStyle,
+                    style = AppTypography.bodyMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -78,7 +78,7 @@ fun Subject(
                         ) {
                             Text(
                                 subject.name,
-                                fontStyle = AppTypography.displaySmall.fontStyle,
+                                style = AppTypography.displaySmall,
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
                                     .padding(8.dp)
@@ -87,7 +87,7 @@ fun Subject(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "Subject Details",
-                            fontStyle = AppTypography.titleLarge.fontStyle,
+                            style = AppTypography.titleLarge,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
                         Spacer(Modifier.height(16.dp))
@@ -99,11 +99,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Current Attendance Percent",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 "%.1f%%".format(currentPercent),
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                                 color = Color(
                                     when {
                                         currentPercent > subject.minAttendance -> StatusColor.GOOD.color(
@@ -127,11 +127,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Required Attendance Percent",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 "${subject.minAttendance}.0%",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                         Spacer(Modifier.height(8.dp))
@@ -143,11 +143,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Total Classes",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 "${subject.totalClasses}",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                         Row(
@@ -158,11 +158,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Attended Classes",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 "${subject.attendedClasses}",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                         Row(
@@ -173,11 +173,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Total Absents",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 "${subject.totalClasses - subject.attendedClasses}",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                                 color = Color(StatusColor.ALERT.color(isDark))
                             )
                         }
@@ -190,11 +190,11 @@ fun Subject(
                         ) {
                             Text(
                                 "Professor",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 subject.professor,
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                         if (subject.roomNo != null) Row(
@@ -205,17 +205,17 @@ fun Subject(
                         ) {
                             Text(
                                 "Room Number",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 subject.roomNo,
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
                             "Attendance Record",
-                            fontStyle = AppTypography.titleLarge.fontStyle,
+                            style = AppTypography.titleLarge,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
                         Spacer(Modifier.height(8.dp))
@@ -224,7 +224,7 @@ fun Subject(
                         item {
                             Text(
                                 "No records available!",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -270,7 +270,7 @@ fun Subject(
 fun RowScope.HeaderCell(text: String) {
     Text(
         text = text,
-        fontStyle = AppTypography.titleMedium.fontStyle,
+        style = AppTypography.titleMedium,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .weight(1f)
@@ -282,7 +282,7 @@ fun RowScope.HeaderCell(text: String) {
 fun RowScope.Cell(text: String, isDark: Boolean) {
     Text(
         text = text,
-        fontStyle = AppTypography.bodyMedium.fontStyle,
+        style = AppTypography.bodyMedium,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .weight(1f)

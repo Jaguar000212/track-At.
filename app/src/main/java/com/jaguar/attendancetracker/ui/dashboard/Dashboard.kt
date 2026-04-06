@@ -60,7 +60,7 @@ fun SemesterHeader(
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",
-            fontStyle = AppTypography.titleSmall.fontStyle,
+            style = AppTypography.titleSmall,
             modifier = Modifier.weight(0.5f)
         )
 
@@ -92,12 +92,12 @@ fun Dashboard(
             is DashboardState.Error -> {
                 Text(
                     "Something went wrong :(",
-                    fontStyle = AppTypography.bodyMedium.fontStyle,
+                    style = AppTypography.bodyMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 Text(
                     (uiState as DashboardState.Error).message,
-                    fontStyle = AppTypography.bodyMedium.fontStyle,
+                    style = AppTypography.bodyMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -124,7 +124,7 @@ fun Dashboard(
                 if (subjects.isEmpty()) {
                     Text(
                         "No subjects yet.",
-                        fontStyle = AppTypography.bodyMedium.fontStyle,
+                        style = AppTypography.bodyMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
@@ -184,7 +184,7 @@ fun Dashboard(
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 "Add Subject",
-                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                style = AppTypography.labelMedium,
                             )
                         }
                     }

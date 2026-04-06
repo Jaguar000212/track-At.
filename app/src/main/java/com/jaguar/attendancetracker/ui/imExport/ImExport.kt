@@ -143,10 +143,7 @@ fun ImExport(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Export Data",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
+                    style = AppTypography.labelMedium
                 )
             }
 
@@ -166,10 +163,7 @@ fun ImExport(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Import Data",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
+                    style = AppTypography.labelMedium
                 )
             }
         }

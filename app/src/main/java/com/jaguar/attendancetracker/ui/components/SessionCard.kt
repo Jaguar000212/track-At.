@@ -75,11 +75,11 @@ fun SessionCard(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         subject.name,
-                        fontStyle = AppTypography.titleLarge.fontStyle,
+                        style = AppTypography.titleLarge,
                     )
                     if (record.classType == ClassType.EXTRA) Text(
                         "EXTRA",
-                        fontStyle = AppTypography.labelSmall.fontStyle,
+                        style = AppTypography.labelSmall,
                         modifier = Modifier
                             .align(Alignment.Bottom)
                             .clip(CircleShape)
@@ -93,15 +93,15 @@ fun SessionCard(
                         required > 0 -> "All set, you can skip $required classes."
                         else -> "Below minimum, can't skip any class, ${required.absoluteValue} needed."
                     },
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
                 if (subject.roomNo != null) Text(
                     "Room No: ${subject.roomNo}",
-                    fontStyle = AppTypography.labelSmall.fontStyle,
+                    style = AppTypography.labelSmall,
                 )
                 if (subject.professor != null) Text(
                     "Professor: ${subject.professor}",
-                    fontStyle = AppTypography.labelSmall.fontStyle,
+                    style = AppTypography.labelSmall,
                 )
 
                 Row(modifier = Modifier.padding(top = 8.dp)) {

@@ -49,7 +49,7 @@ fun AddSessionBottomSheet(
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
                     "New Session",
-                    fontStyle = AppTypography.titleLarge.fontStyle,
+                    style = AppTypography.titleLarge,
                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
                 )
                 HorizontalDivider(modifier = Modifier.padding(8.dp))
@@ -69,7 +69,7 @@ fun AddSessionBottomSheet(
                         label = {
                             Text(
                                 "Subject",
-                                fontStyle = AppTypography.titleSmall.fontStyle,
+                                style = AppTypography.titleSmall,
                             )
                         },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectSelectionMenu) },
@@ -83,7 +83,7 @@ fun AddSessionBottomSheet(
                             DropdownMenuItem({
                                 Text(
                                     subject.name,
-                                    fontStyle = AppTypography.labelLarge.fontStyle,
+                                    style = AppTypography.labelLarge,
                                 )
                             }, onClick = {
                                 subjectId = subject.id
@@ -107,7 +107,7 @@ fun AddSessionBottomSheet(
                             })
                         Text(
                             day.name,
-                            fontStyle = AppTypography.labelLarge.fontStyle,
+                            style = AppTypography.labelLarge,
                         )
                     }
                 }
@@ -130,7 +130,7 @@ fun AddSessionBottomSheet(
             ) {
                 Text(
                     "Finish",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
             }
         }
@@ -138,18 +138,18 @@ fun AddSessionBottomSheet(
         AlertDialog(onDismissRequest = { onDismiss() }, title = {
             Text(
                 "No Subjects Available",
-                fontStyle = AppTypography.titleMedium.fontStyle,
+                style = AppTypography.titleMedium,
             )
         }, text = {
             Text(
                 "Please add a subject before adding a session.",
-                fontStyle = AppTypography.bodyMedium.fontStyle,
+                style = AppTypography.bodyMedium,
             )
         }, confirmButton = {
             TextButton({ onDismiss() }) {
                 Text(
                     "OK",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
             }
         })

@@ -81,7 +81,7 @@ fun EditSubjectBottomSheet(
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Text(
                 if (subject.name.isEmpty()) "New Subject" else "Edit Subject",
-                fontStyle = AppTypography.titleLarge.fontStyle,
+                style = AppTypography.titleLarge,
                 modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
             )
             HorizontalDivider(modifier = Modifier.padding(8.dp))
@@ -90,19 +90,19 @@ fun EditSubjectBottomSheet(
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = {
                     Text(
                         "Details",
-                        fontStyle = AppTypography.labelMedium.fontStyle,
+                        style = AppTypography.labelMedium,
                     )
                 })
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = {
                     Text(
                         "Start Date",
-                        fontStyle = AppTypography.labelMedium.fontStyle,
+                        style = AppTypography.labelMedium,
                     )
                 })
                 Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = {
                     Text(
                         "Extras",
-                        fontStyle = AppTypography.labelMedium.fontStyle,
+                        style = AppTypography.labelMedium,
                     )
                 })
             }
@@ -115,14 +115,14 @@ fun EditSubjectBottomSheet(
                         label = {
                             Text(
                                 "Subject Name",
-                                fontStyle = AppTypography.titleSmall.fontStyle,
+                                style = AppTypography.titleSmall,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
                         placeholder = {
                             Text(
                                 "Enter subject name",
-                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                style = AppTypography.labelMedium,
                             )
                         },
                         singleLine = true,
@@ -150,7 +150,7 @@ fun EditSubjectBottomSheet(
                                 label = {
                                     Text(
                                         "Semester",
-                                        fontStyle = AppTypography.titleSmall.fontStyle,
+                                        style = AppTypography.titleSmall,
                                     )
                                 },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showSemPicker) },
@@ -163,7 +163,7 @@ fun EditSubjectBottomSheet(
                                     DropdownMenuItem(text = {
                                         Text(
                                             it.toString(),
-                                            fontStyle = AppTypography.labelMedium.fontStyle,
+                                            style = AppTypography.labelMedium,
                                         )
                                     }, onClick = {
                                         semester = it
@@ -185,7 +185,7 @@ fun EditSubjectBottomSheet(
                                 label = {
                                     Text(
                                         "Card Color",
-                                        fontStyle = AppTypography.titleSmall.fontStyle,
+                                        style = AppTypography.titleSmall,
                                     )
                                 },
                                 leadingIcon = {
@@ -205,7 +205,7 @@ fun EditSubjectBottomSheet(
                                     DropdownMenuItem(text = {
                                         Text(
                                             it.name,
-                                            fontStyle = AppTypography.labelMedium.fontStyle,
+                                            style = AppTypography.labelMedium,
                                         )
                                     }, onClick = {
                                         color = it.name
@@ -224,7 +224,7 @@ fun EditSubjectBottomSheet(
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Text(
                             "Required Attendance : $minAttendance",
-                            fontStyle = AppTypography.labelMedium.fontStyle,
+                            style = AppTypography.labelMedium,
                         )
                         Slider(
                             value = minAttendance.toFloat(), onValueChange = {
@@ -245,14 +245,14 @@ fun EditSubjectBottomSheet(
                         label = {
                             Text(
                                 "Professor Name",
-                                fontStyle = AppTypography.titleSmall.fontStyle,
+                                style = AppTypography.titleSmall,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
                         placeholder = {
                             Text(
                                 "Enter professor's name",
-                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                style = AppTypography.labelMedium,
                             )
                         },
                         singleLine = true,
@@ -266,14 +266,14 @@ fun EditSubjectBottomSheet(
                         label = {
                             Text(
                                 "Room Number",
-                                fontStyle = AppTypography.titleSmall.fontStyle,
+                                style = AppTypography.titleSmall,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
                         placeholder = {
                             Text(
                                 "Enter room number",
-                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                style = AppTypography.labelMedium,
                             )
                         },
                         singleLine = true,
@@ -287,14 +287,14 @@ fun EditSubjectBottomSheet(
                         label = {
                             Text(
                                 "Note",
-                                fontStyle = AppTypography.titleSmall.fontStyle,
+                                style = AppTypography.titleSmall,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
                         placeholder = {
                             Text(
                                 "Anything important",
-                                fontStyle = AppTypography.labelMedium.fontStyle,
+                                style = AppTypography.labelMedium,
                             )
                         },
                         minLines = 3,
@@ -326,7 +326,7 @@ fun EditSubjectBottomSheet(
             ) {
                 Text(
                     "Finish",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
             }
         }

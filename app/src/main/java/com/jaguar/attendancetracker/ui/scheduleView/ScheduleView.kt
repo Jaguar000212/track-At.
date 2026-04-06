@@ -85,7 +85,7 @@ fun DayHeader(
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
-            fontStyle = AppTypography.titleSmall.fontStyle,
+            style = AppTypography.titleSmall,
             modifier = Modifier.weight(1f)
         )
 
@@ -130,11 +130,11 @@ fun ScheduleView(
                         ) {
                             Text(
                                 "Something went wrong :(",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                             Text(
                                 targetState.message,
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                             )
                         }
                     }
@@ -196,7 +196,7 @@ fun ScheduleView(
                         if (sessions.isEmpty()) {
                             Text(
                                 "No sessions yet.",
-                                fontStyle = AppTypography.bodyMedium.fontStyle,
+                                style = AppTypography.bodyMedium,
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         } else {
@@ -337,7 +337,7 @@ fun ScheduleView(
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         "Add Session",
-                                        fontStyle = AppTypography.labelMedium.fontStyle,
+                                        style = AppTypography.labelMedium,
                                     )
                                 }
                             }

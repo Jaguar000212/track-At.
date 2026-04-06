@@ -58,7 +58,7 @@ fun ScheduleCard(
         ) {
             Text(
                 subject.name,
-                fontStyle = AppTypography.titleLarge.fontStyle,
+                style = AppTypography.titleLarge,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -85,7 +85,7 @@ fun ScheduleCard(
             TextButton({ showDeleteAlert = false }) {
                 Text(
                     "No",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
             }
         },
@@ -93,7 +93,7 @@ fun ScheduleCard(
             TextButton({ onDelete(sessionRecord) }) {
                 Text(
                     "Yes",
-                    fontStyle = AppTypography.labelMedium.fontStyle,
+                    style = AppTypography.labelMedium,
                 )
             }
         },
@@ -101,13 +101,13 @@ fun ScheduleCard(
         title = {
             Text(
                 "Delete Session",
-                fontStyle = AppTypography.titleMedium.fontStyle,
+                style = AppTypography.titleMedium,
             )
         },
         text = {
             Text(
                 "Are you sure want to delete this session? All the data will be deleted and this operation is not reversible.",
-                fontStyle = AppTypography.bodyMedium.fontStyle,
+                style = AppTypography.bodyMedium,
             )
         })
 }
