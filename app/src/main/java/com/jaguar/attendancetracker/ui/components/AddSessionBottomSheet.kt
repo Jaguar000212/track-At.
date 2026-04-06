@@ -50,9 +50,6 @@ fun AddSessionBottomSheet(
                 Text(
                     "New Session",
                     fontStyle = AppTypography.titleLarge.fontStyle,
-                    fontSize = AppTypography.titleLarge.fontSize,
-                    fontWeight = AppTypography.titleLarge.fontWeight,
-                    fontFamily = AppTypography.titleLarge.fontFamily,
                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
                 )
                 HorizontalDivider(modifier = Modifier.padding(8.dp))
@@ -73,9 +70,6 @@ fun AddSessionBottomSheet(
                             Text(
                                 "Subject",
                                 fontStyle = AppTypography.titleSmall.fontStyle,
-                                fontSize = AppTypography.titleSmall.fontSize,
-                                fontWeight = AppTypography.titleSmall.fontWeight,
-                                fontFamily = AppTypography.titleSmall.fontFamily,
                             )
                         },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectSelectionMenu) },
@@ -90,9 +84,6 @@ fun AddSessionBottomSheet(
                                 Text(
                                     subject.name,
                                     fontStyle = AppTypography.labelLarge.fontStyle,
-                                    fontSize = AppTypography.labelLarge.fontSize,
-                                    fontWeight = AppTypography.labelLarge.fontWeight,
-                                    fontFamily = AppTypography.labelLarge.fontFamily,
                                 )
                             }, onClick = {
                                 subjectId = subject.id
@@ -117,9 +108,6 @@ fun AddSessionBottomSheet(
                         Text(
                             day.name,
                             fontStyle = AppTypography.labelLarge.fontStyle,
-                            fontSize = AppTypography.labelLarge.fontSize,
-                            fontWeight = AppTypography.labelLarge.fontWeight,
-                            fontFamily = AppTypography.labelLarge.fontFamily,
                         )
                     }
                 }
@@ -143,9 +131,6 @@ fun AddSessionBottomSheet(
                 Text(
                     "Finish",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         }
@@ -154,26 +139,17 @@ fun AddSessionBottomSheet(
             Text(
                 "No Subjects Available",
                 fontStyle = AppTypography.titleMedium.fontStyle,
-                fontSize = AppTypography.titleMedium.fontSize,
-                fontWeight = AppTypography.titleMedium.fontWeight,
-                fontFamily = AppTypography.titleMedium.fontFamily,
             )
         }, text = {
             Text(
                 "Please add a subject before adding a session.",
                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                fontSize = AppTypography.bodyMedium.fontSize,
-                fontWeight = AppTypography.bodyMedium.fontWeight,
-                fontFamily = AppTypography.bodyMedium.fontFamily,
             )
         }, confirmButton = {
             TextButton({ onDismiss() }) {
                 Text(
                     "OK",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         })

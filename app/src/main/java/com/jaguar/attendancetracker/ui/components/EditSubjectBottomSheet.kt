@@ -82,9 +82,6 @@ fun EditSubjectBottomSheet(
             Text(
                 if (subject.name.isEmpty()) "New Subject" else "Edit Subject",
                 fontStyle = AppTypography.titleLarge.fontStyle,
-                fontSize = AppTypography.titleLarge.fontSize,
-                fontWeight = AppTypography.titleLarge.fontWeight,
-                fontFamily = AppTypography.titleLarge.fontFamily,
                 modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
             )
             HorizontalDivider(modifier = Modifier.padding(8.dp))
@@ -94,27 +91,18 @@ fun EditSubjectBottomSheet(
                     Text(
                         "Details",
                         fontStyle = AppTypography.labelMedium.fontStyle,
-                        fontSize = AppTypography.labelMedium.fontSize,
-                        fontWeight = AppTypography.labelMedium.fontWeight,
-                        fontFamily = AppTypography.labelMedium.fontFamily,
                     )
                 })
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = {
                     Text(
                         "Start Date",
                         fontStyle = AppTypography.labelMedium.fontStyle,
-                        fontSize = AppTypography.labelMedium.fontSize,
-                        fontWeight = AppTypography.labelMedium.fontWeight,
-                        fontFamily = AppTypography.labelMedium.fontFamily,
                     )
                 })
                 Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = {
                     Text(
                         "Extras",
                         fontStyle = AppTypography.labelMedium.fontStyle,
-                        fontSize = AppTypography.labelMedium.fontSize,
-                        fontWeight = AppTypography.labelMedium.fontWeight,
-                        fontFamily = AppTypography.labelMedium.fontFamily,
                     )
                 })
             }
@@ -128,9 +116,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Subject Name",
                                 fontStyle = AppTypography.titleSmall.fontStyle,
-                                fontSize = AppTypography.titleSmall.fontSize,
-                                fontWeight = AppTypography.titleSmall.fontWeight,
-                                fontFamily = AppTypography.titleSmall.fontFamily,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
@@ -138,9 +123,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Enter subject name",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                fontSize = AppTypography.labelMedium.fontSize,
-                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                fontFamily = AppTypography.labelMedium.fontFamily,
                             )
                         },
                         singleLine = true,
@@ -169,9 +151,6 @@ fun EditSubjectBottomSheet(
                                     Text(
                                         "Semester",
                                         fontStyle = AppTypography.titleSmall.fontStyle,
-                                        fontSize = AppTypography.titleSmall.fontSize,
-                                        fontWeight = AppTypography.titleSmall.fontWeight,
-                                        fontFamily = AppTypography.titleSmall.fontFamily,
                                     )
                                 },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showSemPicker) },
@@ -185,9 +164,6 @@ fun EditSubjectBottomSheet(
                                         Text(
                                             it.toString(),
                                             fontStyle = AppTypography.labelMedium.fontStyle,
-                                            fontSize = AppTypography.labelMedium.fontSize,
-                                            fontWeight = AppTypography.labelMedium.fontWeight,
-                                            fontFamily = AppTypography.labelMedium.fontFamily,
                                         )
                                     }, onClick = {
                                         semester = it
@@ -210,9 +186,6 @@ fun EditSubjectBottomSheet(
                                     Text(
                                         "Card Color",
                                         fontStyle = AppTypography.titleSmall.fontStyle,
-                                        fontSize = AppTypography.titleSmall.fontSize,
-                                        fontWeight = AppTypography.titleSmall.fontWeight,
-                                        fontFamily = AppTypography.titleSmall.fontFamily,
                                     )
                                 },
                                 leadingIcon = {
@@ -233,9 +206,6 @@ fun EditSubjectBottomSheet(
                                         Text(
                                             it.name,
                                             fontStyle = AppTypography.labelMedium.fontStyle,
-                                            fontSize = AppTypography.labelMedium.fontSize,
-                                            fontWeight = AppTypography.labelMedium.fontWeight,
-                                            fontFamily = AppTypography.labelMedium.fontFamily,
                                         )
                                     }, onClick = {
                                         color = it.name
@@ -255,9 +225,6 @@ fun EditSubjectBottomSheet(
                         Text(
                             "Required Attendance : $minAttendance",
                             fontStyle = AppTypography.labelMedium.fontStyle,
-                            fontSize = AppTypography.labelMedium.fontSize,
-                            fontWeight = AppTypography.labelMedium.fontWeight,
-                            fontFamily = AppTypography.labelMedium.fontFamily,
                         )
                         Slider(
                             value = minAttendance.toFloat(), onValueChange = {
@@ -279,9 +246,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Professor Name",
                                 fontStyle = AppTypography.titleSmall.fontStyle,
-                                fontSize = AppTypography.titleSmall.fontSize,
-                                fontWeight = AppTypography.titleSmall.fontWeight,
-                                fontFamily = AppTypography.titleSmall.fontFamily,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
@@ -289,9 +253,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Enter professor's name",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                fontSize = AppTypography.labelMedium.fontSize,
-                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                fontFamily = AppTypography.labelMedium.fontFamily,
                             )
                         },
                         singleLine = true,
@@ -306,9 +267,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Room Number",
                                 fontStyle = AppTypography.titleSmall.fontStyle,
-                                fontSize = AppTypography.titleSmall.fontSize,
-                                fontWeight = AppTypography.titleSmall.fontWeight,
-                                fontFamily = AppTypography.titleSmall.fontFamily,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
@@ -316,9 +274,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Enter room number",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                fontSize = AppTypography.labelMedium.fontSize,
-                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                fontFamily = AppTypography.labelMedium.fontFamily,
                             )
                         },
                         singleLine = true,
@@ -333,9 +288,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Note",
                                 fontStyle = AppTypography.titleSmall.fontStyle,
-                                fontSize = AppTypography.titleSmall.fontSize,
-                                fontWeight = AppTypography.titleSmall.fontWeight,
-                                fontFamily = AppTypography.titleSmall.fontFamily,
                             )
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Words),
@@ -343,9 +295,6 @@ fun EditSubjectBottomSheet(
                             Text(
                                 "Anything important",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                fontSize = AppTypography.labelMedium.fontSize,
-                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                fontFamily = AppTypography.labelMedium.fontFamily,
                             )
                         },
                         minLines = 3,
@@ -378,9 +327,6 @@ fun EditSubjectBottomSheet(
                 Text(
                     "Finish",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         }

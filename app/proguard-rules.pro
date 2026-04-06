@@ -23,7 +23,7 @@
 # --- GSON & DATA EXPORT RULES ---
 
 # Keep specific data classes used for Export/Import serialization
--keep class com.jaguar.attendancetracker.ui.imexport.BackupData { *; }
+-keep class com.jaguar.attendancetracker.ui.imExport.BackupData { *; }
 -keep class com.jaguar.attendancetracker.backend.entities.** { *; }
 -keep class com.jaguar.attendancetracker.backend.enums.** { *; }
 

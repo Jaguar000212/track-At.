@@ -84,9 +84,6 @@ fun SubjectCard(
                 Text(
                     subject.name,
                     fontStyle = AppTypography.titleLarge.fontStyle,
-                    fontSize = AppTypography.titleLarge.fontSize,
-                    fontWeight = AppTypography.titleLarge.fontWeight,
-                    fontFamily = AppTypography.titleLarge.fontFamily,
                 )
                 Text(
                     when {
@@ -95,16 +92,10 @@ fun SubjectCard(
                         else -> "At risk, you should avoid skipping classes."
                     },
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
                 Text(
                     "Present: ${subject.attendedClasses} | Absent: ${subject.totalClasses - subject.attendedClasses}",
                     fontStyle = AppTypography.labelSmall.fontStyle,
-                    fontSize = AppTypography.labelSmall.fontSize,
-                    fontWeight = AppTypography.labelSmall.fontWeight,
-                    fontFamily = AppTypography.labelSmall.fontFamily,
                 )
                 Row(modifier = Modifier.padding(top = 8.dp)) {
                     TooltipBox(
@@ -187,9 +178,6 @@ fun SubjectCard(
                 Text(
                     text = "${subject.attendancePercentage().toInt()}%", color = Color.White,
                     fontStyle = AppTypography.labelLarge.fontStyle,
-                    fontSize = AppTypography.labelLarge.fontSize,
-                    fontWeight = AppTypography.labelLarge.fontWeight,
-                    fontFamily = AppTypography.labelLarge.fontFamily,
                 )
             }
         }
@@ -202,9 +190,6 @@ fun SubjectCard(
                 Text(
                     "No",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -216,9 +201,6 @@ fun SubjectCard(
                 Text(
                     "Yes",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -227,18 +209,12 @@ fun SubjectCard(
             Text(
                 "Delete Subject",
                 fontStyle = AppTypography.titleMedium.fontStyle,
-                fontSize = AppTypography.titleMedium.fontSize,
-                fontWeight = AppTypography.titleMedium.fontWeight,
-                fontFamily = AppTypography.titleMedium.fontFamily,
             )
         },
         text = {
             Text(
                 "Are you sure want to delete this subject? All the data will be deleted and this operation is not reversible.",
                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                fontSize = AppTypography.bodyMedium.fontSize,
-                fontWeight = AppTypography.bodyMedium.fontWeight,
-                fontFamily = AppTypography.bodyMedium.fontFamily,
             )
         })
 
@@ -249,9 +225,6 @@ fun SubjectCard(
                 Text(
                     "No",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -263,9 +236,6 @@ fun SubjectCard(
                 Text(
                     "Yes",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -274,18 +244,12 @@ fun SubjectCard(
             Text(
                 "Stop future scheduling",
                 fontStyle = AppTypography.titleMedium.fontStyle,
-                fontSize = AppTypography.titleMedium.fontSize,
-                fontWeight = AppTypography.titleMedium.fontWeight,
-                fontFamily = AppTypography.titleMedium.fontFamily,
             )
         },
         text = {
             Text(
                 "Are you sure want to stop scheduling this subject? This will delete all related schedules, but won't affect your attendance data.",
                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                fontSize = AppTypography.bodyMedium.fontSize,
-                fontWeight = AppTypography.bodyMedium.fontWeight,
-                fontFamily = AppTypography.bodyMedium.fontFamily,
             )
         })
 

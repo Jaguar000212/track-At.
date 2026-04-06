@@ -59,9 +59,6 @@ fun ScheduleCard(
             Text(
                 subject.name,
                 fontStyle = AppTypography.titleLarge.fontStyle,
-                fontSize = AppTypography.titleLarge.fontSize,
-                fontWeight = AppTypography.titleLarge.fontWeight,
-                fontFamily = AppTypography.titleLarge.fontFamily,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -89,9 +86,6 @@ fun ScheduleCard(
                 Text(
                     "No",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -100,9 +94,6 @@ fun ScheduleCard(
                 Text(
                     "Yes",
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
             }
         },
@@ -111,18 +102,12 @@ fun ScheduleCard(
             Text(
                 "Delete Session",
                 fontStyle = AppTypography.titleMedium.fontStyle,
-                fontSize = AppTypography.titleMedium.fontSize,
-                fontWeight = AppTypography.titleMedium.fontWeight,
-                fontFamily = AppTypography.titleMedium.fontFamily,
             )
         },
         text = {
             Text(
                 "Are you sure want to delete this session? All the data will be deleted and this operation is not reversible.",
                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                fontSize = AppTypography.bodyMedium.fontSize,
-                fontWeight = AppTypography.bodyMedium.fontWeight,
-                fontFamily = AppTypography.bodyMedium.fontFamily,
             )
         })
 }

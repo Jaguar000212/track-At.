@@ -42,9 +42,7 @@ class DayViewModel @Inject constructor(
                 emit(DayState.Error(date, e.message ?: "Unknown error"))
             }
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        DayState.Loading(_currentDate.value)
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), DayState.Loading(_currentDate.value)
     )
 
     fun loadDate(date: LocalDate) {
@@ -62,13 +60,12 @@ class DayViewModel @Inject constructor(
         val dayOfWeek = date.dayOfWeek.value
 
         val sessions = scheduleRepo.getSessionsByDay(dayOfWeek).sortedBy { it.orderNo }
-        val existingRecords = attendanceRepo.getAttendanceRecordsByDate(date)
+        val existingRecords = attendanceRepo.getAttendanceByDate(date)
         val recordedSessionIds = existingRecords.map { it.sessionId }.toSet()
 
         sessions.forEach { session ->
-            if (session.id !in recordedSessionIds && session.startDate <= date
-            ) {
-                attendanceRepo.addAttendanceRecord(
+            if (session.id !in recordedSessionIds && session.startDate <= date) {
+                attendanceRepo.addAttendance(
                     AttendanceRecord(
                         id = UUID.randomUUID(),
                         sessionId = session.id,
@@ -95,6 +92,6 @@ class DayViewModel @Inject constructor(
     }
 
     fun addExtraClass(record: AttendanceRecord) {
-        viewModelScope.launch { attendanceRepo.addAttendanceRecord(record) }
+        viewModelScope.launch { attendanceRepo.addAttendance(record) }
     }
 }

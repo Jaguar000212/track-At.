@@ -1,4 +1,4 @@
-package com.jaguar.attendancetracker.ui.imexport
+package com.jaguar.attendancetracker.ui.imExport
 
 import com.jaguar.attendancetracker.backend.DB_VERSION
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord

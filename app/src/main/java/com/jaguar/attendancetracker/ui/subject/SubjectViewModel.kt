@@ -25,11 +25,10 @@ class SubjectViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val subject = scheduleRepo.getSubject(subjectId)
-            val records = attendanceRepo.getSubjectAttendanceRecords(subjectId)
+            val records = attendanceRepo.getAttendanceBySubject(subjectId)
 
             _uiState.value = SubjectState.Success(
-                subject = subject,
-                attendanceRecords = records
+                subject = subject, attendanceRecords = records
             )
         }
     }
