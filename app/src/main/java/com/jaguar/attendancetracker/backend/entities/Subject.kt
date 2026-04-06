@@ -31,8 +31,8 @@ data class Subject(
         val current = attendedClasses.toDouble() / totalClasses
 
         return if (current >= target) {
-            val need = (attendedClasses / target) - totalClasses
-            need.toInt()
+            val canSkip = (attendedClasses / target) - totalClasses
+            canSkip.toInt()
         } else {
             val needed = (target * totalClasses - attendedClasses) / (1.0 - target)
             -kotlin.math.ceil(needed).toInt()
