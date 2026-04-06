@@ -10,7 +10,7 @@ a sleek UI with robust functionality to keep you on top of your schedule. 🚀
   your curriculum.
 - **📅 Smart Scheduler**: Set up your weekly timetable and let the app remind you of upcoming
   classes.
-- **✅ Quick Marking**: Mark attendance (Present, Absent, or Canceled) with just a few taps from the
+- **✅ Quick Marking**: Mark attendance (Present, Absent, or Cancelled) with just a few taps from the
   Day View.
 - **📊 Insightful Statistics**: View real-time attendance percentages. Know exactly how many classes
   you can afford to miss or need to attend to hit your targets.
