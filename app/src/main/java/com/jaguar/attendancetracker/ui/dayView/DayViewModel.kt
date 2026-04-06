@@ -48,9 +48,9 @@ class DayViewModel @Inject constructor(
     )
 
     fun loadDate(date: LocalDate) {
+        _currentDate.value = date
         viewModelScope.launch {
             ensureAttendanceRecordsExist(date)
-            _currentDate.value = date
         }
     }
 
