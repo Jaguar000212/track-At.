@@ -116,14 +116,11 @@ fun DayView(
             }
 
             AnimatedContent(
-                targetState = currentDate,
-                transitionSpec = {
+                targetState = currentDate, transitionSpec = {
                     if (targetState.isAfter(initialState)) {
-                        slideInHorizontally { width -> width } + fadeIn() togetherWith
-                                slideOutHorizontally { width -> -width } + fadeOut()
+                        slideInHorizontally { width -> width } + fadeIn() togetherWith slideOutHorizontally { width -> -width } + fadeOut()
                     } else {
-                        slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                                slideOutHorizontally { width -> width } + fadeOut()
+                        slideInHorizontally { width -> -width } + fadeIn() togetherWith slideOutHorizontally { width -> width } + fadeOut()
                     }.using(SizeTransform(clip = false))
                 }, label = "DateAnimation"
             ) { targetDate ->
@@ -137,17 +134,11 @@ fun DayView(
                             targetDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
                                 ?: "Today",
                             fontStyle = AppTypography.titleLarge.fontStyle,
-                            fontSize = AppTypography.titleLarge.fontSize,
-                            fontWeight = AppTypography.titleLarge.fontWeight,
-                            fontFamily = AppTypography.titleLarge.fontFamily,
                         )
                     }
                     Text(
                         targetDate.dayOfWeek?.name ?: "MONDAY",
                         fontStyle = AppTypography.titleSmall.fontStyle,
-                        fontSize = AppTypography.titleSmall.fontSize,
-                        fontWeight = AppTypography.titleSmall.fontWeight,
-                        fontFamily = AppTypography.titleSmall.fontFamily,
                     )
                 }
             }
@@ -166,17 +157,11 @@ fun DayView(
                     Text(
                         "Something went wrong :(",
                         fontStyle = AppTypography.bodyMedium.fontStyle,
-                        fontSize = AppTypography.bodyMedium.fontSize,
-                        fontWeight = AppTypography.bodyMedium.fontWeight,
-                        fontFamily = AppTypography.bodyMedium.fontFamily,
                         modifier = Modifier.align(Alignment.Center)
                     )
                     Text(
                         (uiState as DayState.Error).message,
                         fontStyle = AppTypography.bodyMedium.fontStyle,
-                        fontSize = AppTypography.bodyMedium.fontSize,
-                        fontWeight = AppTypography.bodyMedium.fontWeight,
-                        fontFamily = AppTypography.bodyMedium.fontFamily,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -187,9 +172,6 @@ fun DayView(
                     if (dayRecords.isEmpty()) Text(
                         "No session for today.",
                         fontStyle = AppTypography.bodyMedium.fontStyle,
-                        fontSize = AppTypography.bodyMedium.fontSize,
-                        fontWeight = AppTypography.bodyMedium.fontWeight,
-                        fontFamily = AppTypography.bodyMedium.fontFamily,
                         modifier = Modifier.align(Alignment.Center)
                     )
                     else {
@@ -209,9 +191,6 @@ fun DayView(
                                             Text(
                                                 "Present",
                                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                                fontSize = AppTypography.labelMedium.fontSize,
-                                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                                fontFamily = AppTypography.labelMedium.fontFamily,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Check, "") },
@@ -228,9 +207,6 @@ fun DayView(
                                             Text(
                                                 "Absent",
                                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                                fontSize = AppTypography.labelMedium.fontSize,
-                                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                                fontFamily = AppTypography.labelMedium.fontFamily,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Close, "") },
@@ -247,9 +223,6 @@ fun DayView(
                                             Text(
                                                 "Cancel",
                                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                                fontSize = AppTypography.labelMedium.fontSize,
-                                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                                fontFamily = AppTypography.labelMedium.fontFamily,
                                             )
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.Delete, "") },
@@ -299,9 +272,6 @@ fun DayView(
                                 Text(
                                     "Extra Class",
                                     fontStyle = AppTypography.labelMedium.fontStyle,
-                                    fontSize = AppTypography.labelMedium.fontSize,
-                                    fontWeight = AppTypography.labelMedium.fontWeight,
-                                    fontFamily = AppTypography.labelMedium.fontFamily,
                                 )
                             }
                         }
@@ -314,26 +284,17 @@ fun DayView(
                                 Text(
                                     "No Subjects Available",
                                     fontStyle = AppTypography.titleMedium.fontStyle,
-                                    fontSize = AppTypography.titleMedium.fontSize,
-                                    fontWeight = AppTypography.titleMedium.fontWeight,
-                                    fontFamily = AppTypography.titleMedium.fontFamily,
                                 )
                             }, text = {
                                 Text(
                                     "Please add a subject before adding a class.",
                                     fontStyle = AppTypography.bodyMedium.fontStyle,
-                                    fontSize = AppTypography.bodyMedium.fontSize,
-                                    fontWeight = AppTypography.bodyMedium.fontWeight,
-                                    fontFamily = AppTypography.bodyMedium.fontFamily,
                                 )
                             }, confirmButton = {
                                 TextButton({ showAddClassDialog = false }) {
                                     Text(
                                         "OK",
                                         fontStyle = AppTypography.labelMedium.fontStyle,
-                                        fontSize = AppTypography.labelMedium.fontSize,
-                                        fontWeight = AppTypography.labelMedium.fontWeight,
-                                        fontFamily = AppTypography.labelMedium.fontFamily,
                                     )
                                 }
                             })
@@ -349,9 +310,6 @@ fun DayView(
                                         Text(
                                             "No",
                                             fontStyle = AppTypography.labelMedium.fontStyle,
-                                            fontSize = AppTypography.labelMedium.fontSize,
-                                            fontWeight = AppTypography.labelMedium.fontWeight,
-                                            fontFamily = AppTypography.labelMedium.fontFamily,
                                         )
                                     }
                                 },
@@ -371,9 +329,6 @@ fun DayView(
                                         Text(
                                             "Yes",
                                             fontStyle = AppTypography.labelMedium.fontStyle,
-                                            fontSize = AppTypography.labelMedium.fontSize,
-                                            fontWeight = AppTypography.labelMedium.fontWeight,
-                                            fontFamily = AppTypography.labelMedium.fontFamily,
                                         )
                                     }
                                 },
@@ -382,9 +337,6 @@ fun DayView(
                                     Text(
                                         "Select Subject",
                                         fontStyle = AppTypography.titleMedium.fontStyle,
-                                        fontSize = AppTypography.titleMedium.fontSize,
-                                        fontWeight = AppTypography.titleMedium.fontWeight,
-                                        fontFamily = AppTypography.titleMedium.fontFamily,
                                     )
                                 },
                                 text = {
@@ -402,9 +354,6 @@ fun DayView(
                                                 Text(
                                                     "Subject",
                                                     fontStyle = AppTypography.titleSmall.fontStyle,
-                                                    fontSize = AppTypography.titleSmall.fontSize,
-                                                    fontWeight = AppTypography.titleSmall.fontWeight,
-                                                    fontFamily = AppTypography.titleSmall.fontFamily,
                                                 )
                                             },
                                             trailingIcon = {
@@ -423,9 +372,6 @@ fun DayView(
                                                     Text(
                                                         subject.name,
                                                         fontStyle = AppTypography.labelLarge.fontStyle,
-                                                        fontSize = AppTypography.labelLarge.fontSize,
-                                                        fontWeight = AppTypography.labelLarge.fontWeight,
-                                                        fontFamily = AppTypography.labelLarge.fontFamily,
                                                     )
                                                 }, onClick = {
                                                     subjectId = subject.id
@@ -452,9 +398,6 @@ fun DayView(
                                 Text(
                                     "OK",
                                     fontStyle = AppTypography.labelMedium.fontStyle,
-                                    fontSize = AppTypography.labelMedium.fontSize,
-                                    fontWeight = AppTypography.labelMedium.fontWeight,
-                                    fontFamily = AppTypography.labelMedium.fontFamily,
                                 )
                             }
                         }, dismissButton = {
@@ -462,9 +405,6 @@ fun DayView(
                                 Text(
                                     "Cancel",
                                     fontStyle = AppTypography.labelMedium.fontStyle,
-                                    fontSize = AppTypography.labelMedium.fontSize,
-                                    fontWeight = AppTypography.labelMedium.fontWeight,
-                                    fontFamily = AppTypography.labelMedium.fontFamily,
                                 )
                             }
                         }) {

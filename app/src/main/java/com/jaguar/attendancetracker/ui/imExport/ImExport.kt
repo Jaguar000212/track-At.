@@ -1,4 +1,4 @@
-package com.jaguar.attendancetracker.ui.imexport
+package com.jaguar.attendancetracker.ui.imExport
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,29 +41,29 @@ fun ImExport(
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
 
+    var isSubjectsChecked by remember { mutableStateOf(true) }
+    var isScheduleChecked by remember { mutableStateOf(true) }
+    var isAttendanceChecked by remember { mutableStateOf(true) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            viewModel.exportData(
+                uri, isSubjectsChecked, isScheduleChecked, isAttendanceChecked
+            )
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.importData(uri)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-
-        var isSubjectsChecked by remember { mutableStateOf(true) }
-        var isScheduleChecked by remember { mutableStateOf(true) }
-        var isAttendanceChecked by remember { mutableStateOf(true) }
-
-        val exportLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.CreateDocument("application/json")
-        ) { uri ->
-            if (uri != null) {
-                viewModel.exportData(
-                    uri, isSubjectsChecked, isScheduleChecked, isAttendanceChecked
-                )
-            }
-        }
-
-        val importLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenDocument()
-        ) { uri ->
-            if (uri != null) {
-                viewModel.importData(uri)
-            }
-        }
 
         Column(
             modifier = Modifier
@@ -177,7 +177,8 @@ fun ImExport(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)), contentAlignment = Alignment.Center
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()

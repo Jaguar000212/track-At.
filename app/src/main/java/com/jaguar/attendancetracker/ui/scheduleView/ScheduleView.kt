@@ -75,22 +75,17 @@ fun DayHeader(
     day: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        label = "ArrowRotation"
+        targetValue = if (expanded) 180f else 0f, label = "ArrowRotation"
     )
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onToggle() }
+        .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
             fontStyle = AppTypography.titleSmall.fontStyle,
-            fontSize = AppTypography.titleSmall.fontSize,
-            fontWeight = AppTypography.titleSmall.fontWeight,
-            fontFamily = AppTypography.titleSmall.fontFamily,
             modifier = Modifier.weight(1f)
         )
 
@@ -118,12 +113,9 @@ fun ScheduleView(
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
-            targetState = uiState,
-            transitionSpec = {
+            targetState = uiState, transitionSpec = {
                 fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
-            },
-            label = "ScheduleStateAnimation",
-            modifier = Modifier.fillMaxSize()
+            }, label = "ScheduleStateAnimation", modifier = Modifier.fillMaxSize()
         ) { targetState ->
             when (targetState) {
                 ScheduleState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
@@ -139,16 +131,10 @@ fun ScheduleView(
                             Text(
                                 "Something went wrong :(",
                                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                                fontSize = AppTypography.bodyMedium.fontSize,
-                                fontWeight = AppTypography.bodyMedium.fontWeight,
-                                fontFamily = AppTypography.bodyMedium.fontFamily,
                             )
                             Text(
                                 targetState.message,
                                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                                fontSize = AppTypography.bodyMedium.fontSize,
-                                fontWeight = AppTypography.bodyMedium.fontWeight,
-                                fontFamily = AppTypography.bodyMedium.fontFamily,
                             )
                         }
                     }
@@ -174,8 +160,7 @@ fun ScheduleView(
                         0f
                     }
 
-                    val subjects: List<Subject> =
-                        targetState.sessionRecords.map { it.subject }
+                    val subjects: List<Subject> = targetState.sessionRecords.map { it.subject }
                     val subjectMap = remember(subjects) {
                         subjects.associateBy { it.id }
                     }
@@ -212,9 +197,6 @@ fun ScheduleView(
                             Text(
                                 "No sessions yet.",
                                 fontStyle = AppTypography.bodyMedium.fontStyle,
-                                fontSize = AppTypography.bodyMedium.fontSize,
-                                fontWeight = AppTypography.bodyMedium.fontWeight,
-                                fontFamily = AppTypography.bodyMedium.fontFamily,
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         } else {
@@ -246,39 +228,33 @@ fun ScheduleView(
                                                     remember { MutableInteractionSource() }
 
                                                 Box(
-                                                    modifier = Modifier
-                                                        .then(
-                                                            if (isEditMode) {
-                                                                Modifier
-                                                                    .rotate(shakeRotation)
-                                                                    .draggableHandle(
-                                                                        onDragStarted = {
-                                                                            haptic.performHapticFeedback(
-                                                                                HapticFeedbackType.LongPress
-                                                                            )
-                                                                        },
-                                                                        onDragStopped = {
-                                                                            haptic.performHapticFeedback(
-                                                                                HapticFeedbackType.GestureEnd
-                                                                            )
-                                                                        },
-                                                                        interactionSource = interactionSource,
+                                                    modifier = Modifier.then(
+                                                        if (isEditMode) {
+                                                        Modifier
+                                                            .rotate(shakeRotation)
+                                                            .draggableHandle(
+                                                                onDragStarted = {
+                                                                    haptic.performHapticFeedback(
+                                                                        HapticFeedbackType.LongPress
                                                                     )
-                                                            } else {
-                                                                Modifier.pointerInput(Unit) {
-                                                                    detectTapGestures(
-                                                                        onLongPress = {
-                                                                            isEditMode = true
-                                                                            haptic.performHapticFeedback(
-                                                                                HapticFeedbackType.LongPress
-                                                                            )
-                                                                        },
-                                                                        onTap = {}
+                                                                },
+                                                                onDragStopped = {
+                                                                    haptic.performHapticFeedback(
+                                                                        HapticFeedbackType.GestureEnd
                                                                     )
-                                                                }
-                                                            }
-                                                        )
-                                                ) {
+                                                                },
+                                                                interactionSource = interactionSource,
+                                                            )
+                                                    } else {
+                                                        Modifier.pointerInput(Unit) {
+                                                            detectTapGestures(onLongPress = {
+                                                                isEditMode = true
+                                                                haptic.performHapticFeedback(
+                                                                    HapticFeedbackType.LongPress
+                                                                )
+                                                            }, onTap = {})
+                                                        }
+                                                    })) {
                                                     ScheduleCard(
                                                         sessionRecord = session,
                                                         subject = subjectMap[session.subjectId]!!,
@@ -362,9 +338,6 @@ fun ScheduleView(
                                     Text(
                                         "Add Session",
                                         fontStyle = AppTypography.labelMedium.fontStyle,
-                                        fontSize = AppTypography.labelMedium.fontSize,
-                                        fontWeight = AppTypography.labelMedium.fontWeight,
-                                        fontFamily = AppTypography.labelMedium.fontFamily,
                                     )
                                 }
                             }

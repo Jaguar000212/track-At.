@@ -17,7 +17,7 @@ import androidx.navigation.navArgument
 import com.jaguar.attendancetracker.ui.dashboard.Dashboard
 import com.jaguar.attendancetracker.ui.dayView.DayView
 import com.jaguar.attendancetracker.ui.helpPage.HelpPage
-import com.jaguar.attendancetracker.ui.imexport.ImExport
+import com.jaguar.attendancetracker.ui.imExport.ImExport
 import com.jaguar.attendancetracker.ui.scheduleView.ScheduleView
 import com.jaguar.attendancetracker.ui.subject.Subject
 
@@ -62,7 +62,7 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
         ) {
             Subject()
         }
-        composable(Destinations.IMEXPORT.route) {
+        composable(Destinations.IM_EXPORT.route) {
             ImExport()
         }
         composable(Destinations.HELP.route) {

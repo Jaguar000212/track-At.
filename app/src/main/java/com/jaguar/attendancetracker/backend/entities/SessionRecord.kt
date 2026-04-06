@@ -8,22 +8,15 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Entity(
-    tableName = "SessionRecords",
-    foreignKeys = [
-        ForeignKey(
-            entity = Subject::class,
-            parentColumns = ["id"],
-            childColumns = ["subjectId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("subjectId")]
+    tableName = "SessionRecords", foreignKeys = [ForeignKey(
+        entity = Subject::class,
+        parentColumns = ["id"],
+        childColumns = ["subjectId"],
+        onDelete = ForeignKey.CASCADE
+    )], indices = [Index("subjectId")]
 )
 data class SessionRecord(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
 
-    val subjectId: UUID,
-    val orderNo: Int = 0,
-    val dayOfWeek: Int,
-    val startDate: LocalDate
+    val subjectId: UUID, val orderNo: Int = 0, val dayOfWeek: Int, val startDate: LocalDate
 )

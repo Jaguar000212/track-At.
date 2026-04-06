@@ -19,8 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val scheduleRepo: ScheduleRepository,
-    private val attendanceRepo: AttendanceRepository
+    private val scheduleRepo: ScheduleRepository, private val attendanceRepo: AttendanceRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardState> =
@@ -67,7 +66,7 @@ class DashboardViewModel @Inject constructor(
 
     fun cancelScheduling(subject: Subject) {
         viewModelScope.launch {
-            attendanceRepo.deleteBySubject(subject.id)
+            attendanceRepo.deleteAttendanceBySubject(subject.id)
             scheduleRepo.cancelScheduling(subject)
         }
     }

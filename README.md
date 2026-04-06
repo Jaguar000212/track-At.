@@ -59,7 +59,7 @@ If you're a developer or want to contribute:
    git clone https://github.com/Jaguar000212/track-At..git
    ```
 2. **Open in Android Studio:**
-   File -> Open -> Select the `AttendanceTracker` folder.
+   File → Open → Select the `AttendanceTracker` folder.
 3. **Sync & Run:**
    Wait for Gradle to sync dependencies, then hit **Run** ▶️ on your emulator or physical device.
 

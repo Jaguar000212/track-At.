@@ -13,9 +13,9 @@ class ImportExportRepository @Inject constructor(
     private val subjectDao: SubjectDao,
     private val sessionRecordDao: SessionRecordDao
 ) {
-    fun getAllSubjects() = subjectDao.getAllSubjects()
-    fun getAllSessionRecords() = sessionRecordDao.getAllRecords()
-    fun getAllAttendanceRecords() = attendanceRecordDao.getAllRecords()
+    fun getAllSubjects() = subjectDao.getAll()
+    fun getAllSessionRecords() = sessionRecordDao.getAll()
+    fun getAllAttendanceRecords() = attendanceRecordDao.getAll()
 
     suspend fun upsertDataInTransaction(
         subjects: List<com.jaguar.attendancetracker.backend.entities.Subject>?,

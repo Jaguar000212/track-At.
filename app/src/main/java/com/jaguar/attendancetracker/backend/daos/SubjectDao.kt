@@ -25,14 +25,14 @@ interface SubjectDao {
     suspend fun delete(subject: Subject)
 
     @Query("SELECT * FROM Subjects")
-    fun getAllSubjects(): Flow<List<Subject>>
+    fun getAll(): Flow<List<Subject>>
 
     @Query("SELECT * FROM Subjects WHERE id = :subjectId")
-    suspend fun getSubject(subjectId: UUID): Subject
+    suspend fun getOne(subjectId: UUID): Subject
 
     @Query("SELECT * FROM Subjects WHERE id IN (SELECT subjectId FROM SessionRecords)")
-    fun getScheduledSubjects(): Flow<List<Subject>>
+    fun getScheduled(): Flow<List<Subject>>
 
     @Query("SELECT * FROM Subjects WHERE isEnded = 0")
-    fun getSchedulableSubjects(): Flow<List<Subject>>
+    fun getSchedulable(): Flow<List<Subject>>
 }

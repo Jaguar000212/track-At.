@@ -25,24 +25,22 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     CenterAlignedTopAppBar(
-        title = title,
-        actions = {
-            if (navBackStackEntry?.destination?.route == Destinations.DASHBOARD.route)
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = { PlainTooltip { Text("Import/Export data.") } },
-                    state = rememberTooltipState()
-                ) {
-                    IconButton({
-                        navController.navigate(Destinations.IMEXPORT.route) {
-                            popUpTo(Destinations.DASHBOARD.route) {
-                                inclusive = false
-                            }
+        title = title, actions = {
+            if (navBackStackEntry?.destination?.route == Destinations.DASHBOARD.route) TooltipBox(
+                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                tooltip = { PlainTooltip { Text("Import/Export data.") } },
+                state = rememberTooltipState()
+            ) {
+                IconButton({
+                    navController.navigate(Destinations.IM_EXPORT.route) {
+                        popUpTo(Destinations.DASHBOARD.route) {
+                            inclusive = false
                         }
-                    }) {
-                        Icon(painterResource(R.drawable.import_export), "")
                     }
+                }) {
+                    Icon(painterResource(R.drawable.import_export), "")
                 }
+            }
             if (navBackStackEntry?.destination?.route != Destinations.HELP.route) {
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),

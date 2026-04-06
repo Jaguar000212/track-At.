@@ -10,23 +10,19 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Entity(
-    tableName = "AttendanceRecords",
-    foreignKeys = [
-        ForeignKey(
-            entity = Subject::class,
-            parentColumns = ["id"],
-            childColumns = ["subjectId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("subjectId")]
+    tableName = "AttendanceRecords", foreignKeys = [ForeignKey(
+        entity = Subject::class,
+        parentColumns = ["id"],
+        childColumns = ["subjectId"],
+        onDelete = ForeignKey.CASCADE
+    )], indices = [Index("subjectId")]
 )
 data class AttendanceRecord(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
-    val subjectId: UUID,
 
-    val date: LocalDate,
+    val subjectId: UUID,
     val sessionId: UUID?,
+    val date: LocalDate,
 
     val status: AttendanceStatus?,
     val classType: ClassType

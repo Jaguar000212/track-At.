@@ -76,16 +76,10 @@ fun SessionCard(
                     Text(
                         subject.name,
                         fontStyle = AppTypography.titleLarge.fontStyle,
-                        fontSize = AppTypography.titleLarge.fontSize,
-                        fontWeight = AppTypography.titleLarge.fontWeight,
-                        fontFamily = AppTypography.titleLarge.fontFamily,
                     )
                     if (record.classType == ClassType.EXTRA) Text(
                         "EXTRA",
                         fontStyle = AppTypography.labelSmall.fontStyle,
-                        fontSize = AppTypography.labelSmall.fontSize,
-                        fontWeight = AppTypography.labelSmall.fontWeight,
-                        fontFamily = AppTypography.labelSmall.fontFamily,
                         modifier = Modifier
                             .align(Alignment.Bottom)
                             .clip(CircleShape)
@@ -100,23 +94,14 @@ fun SessionCard(
                         else -> "Below minimum, can't skip any class, ${required.absoluteValue} needed."
                     },
                     fontStyle = AppTypography.labelMedium.fontStyle,
-                    fontSize = AppTypography.labelMedium.fontSize,
-                    fontWeight = AppTypography.labelMedium.fontWeight,
-                    fontFamily = AppTypography.labelMedium.fontFamily,
                 )
                 if (subject.roomNo != null) Text(
                     "Room No: ${subject.roomNo}",
                     fontStyle = AppTypography.labelSmall.fontStyle,
-                    fontSize = AppTypography.labelSmall.fontSize,
-                    fontWeight = AppTypography.labelSmall.fontWeight,
-                    fontFamily = AppTypography.labelSmall.fontFamily,
                 )
                 if (subject.professor != null) Text(
                     "Professor: ${subject.professor}",
                     fontStyle = AppTypography.labelSmall.fontStyle,
-                    fontSize = AppTypography.labelSmall.fontSize,
-                    fontWeight = AppTypography.labelSmall.fontWeight,
-                    fontFamily = AppTypography.labelSmall.fontFamily,
                 )
 
                 Row(modifier = Modifier.padding(top = 8.dp)) {

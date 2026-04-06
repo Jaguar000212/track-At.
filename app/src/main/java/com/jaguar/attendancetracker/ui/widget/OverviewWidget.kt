@@ -35,13 +35,15 @@ fun OverviewWidget(subjects: List<Subject>) {
             val progressColor = when {
                 percentage >= sub.minAttendance -> ColorProvider(
                     Color(StatusColor.GOOD.lightColor), Color(StatusColor.GOOD.lightColor)
-                ) // Green
+                )
+
                 percentage >= (sub.minAttendance - 5) -> ColorProvider(
                     Color(StatusColor.WARNING.lightColor), Color(StatusColor.WARNING.lightColor)
-                ) // Close to danger
+                )
+
                 else -> ColorProvider(
                     Color(StatusColor.ALERT.lightColor), Color(StatusColor.ALERT.lightColor)
-                ) // Red
+                )
             }
 
             Column(

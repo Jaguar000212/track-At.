@@ -29,8 +29,7 @@ import androidx.compose.ui.unit.dp
 fun HelpPage() {
     var pageNo by remember { mutableIntStateOf(0) }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         when (pageNo) {
             0 -> HelpHome { pageNo = it }

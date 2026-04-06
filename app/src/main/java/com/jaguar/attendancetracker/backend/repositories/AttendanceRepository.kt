@@ -6,7 +6,6 @@ import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.AttendanceWithSubject
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
-import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
@@ -15,29 +14,24 @@ class AttendanceRepository @Inject constructor(
     private val attendanceRecordDao: AttendanceRecordDao,
     private val subjectDao: SubjectDao,
 ) {
-    fun getAllAttendanceRecords(): Flow<List<AttendanceRecord>> =
-        attendanceRecordDao.getAllRecords()
+    suspend fun getAttendanceByDate(date: LocalDate): List<AttendanceRecord> =
+        attendanceRecordDao.getByDate(date)
 
-    suspend fun getAttendanceRecordsByDate(date: LocalDate): List<AttendanceRecord> =
-        attendanceRecordDao.getAttendanceRecordByDate(date)
+    fun getAttendanceWithSubjects(date: LocalDate) = attendanceRecordDao.getWithSubjects(date)
 
-    fun getAttendanceWithSubjects(date: LocalDate) =
-        attendanceRecordDao.getAttendanceWithSubjects(date)
-
-    suspend fun deleteBySubject(subjectId: UUID) {
+    suspend fun deleteAttendanceBySubject(subjectId: UUID) {
         attendanceRecordDao.deleteBySubject(subjectId)
     }
 
-    suspend fun addAttendanceRecord(record: AttendanceRecord) {
+    suspend fun addAttendance(record: AttendanceRecord) {
         attendanceRecordDao.insert(record)
     }
 
     private suspend fun updateSubjectStats(subjectId: UUID) {
         val total = attendanceRecordDao.countTotalClasses(subjectId)
         val attended = attendanceRecordDao.countAttendedClasses(subjectId)
-        val subject = subjectDao.getSubject(subjectId).copy(
-            totalClasses = total,
-            attendedClasses = attended
+        val subject = subjectDao.getOne(subjectId).copy(
+            totalClasses = total, attendedClasses = attended
         )
         subjectDao.update(subject)
     }
@@ -62,8 +56,8 @@ class AttendanceRepository @Inject constructor(
         updateSubjectStats(recordWithSubject.record.subjectId)
     }
 
-    suspend fun getSubjectAttendanceRecords(
+    suspend fun getAttendanceBySubject(
         subjectId: UUID
-    ): List<AttendanceRecord> = attendanceRecordDao.getSubjectAttendanceRecords(subjectId)
+    ): List<AttendanceRecord> = attendanceRecordDao.getBySubject(subjectId)
 
 }
