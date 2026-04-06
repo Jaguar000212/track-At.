@@ -53,23 +53,20 @@ fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onToggle() }
+        .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",
             fontStyle = AppTypography.titleSmall.fontStyle,
-            fontSize = AppTypography.titleSmall.fontSize,
-            fontWeight = AppTypography.titleSmall.fontWeight,
-            fontFamily = AppTypography.titleSmall.fontFamily,
             modifier = Modifier.weight(0.5f)
         )
 
         Icon(
-            imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null,
+            imageVector = Icons.Default.KeyboardArrowDown,
+            contentDescription = null,
             modifier = Modifier.rotate(rotationState.value)
         )
     }
@@ -96,17 +93,11 @@ fun Dashboard(
                 Text(
                     "Something went wrong :(",
                     fontStyle = AppTypography.bodyMedium.fontStyle,
-                    fontSize = AppTypography.bodyMedium.fontSize,
-                    fontWeight = AppTypography.bodyMedium.fontWeight,
-                    fontFamily = AppTypography.bodyMedium.fontFamily,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 Text(
                     (uiState as DashboardState.Error).message,
                     fontStyle = AppTypography.bodyMedium.fontStyle,
-                    fontSize = AppTypography.bodyMedium.fontSize,
-                    fontWeight = AppTypography.bodyMedium.fontWeight,
-                    fontFamily = AppTypography.bodyMedium.fontFamily,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -134,9 +125,6 @@ fun Dashboard(
                     Text(
                         "No subjects yet.",
                         fontStyle = AppTypography.bodyMedium.fontStyle,
-                        fontSize = AppTypography.bodyMedium.fontSize,
-                        fontWeight = AppTypography.bodyMedium.fontWeight,
-                        fontFamily = AppTypography.bodyMedium.fontFamily,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
@@ -186,8 +174,7 @@ fun Dashboard(
                         .padding(16.dp)) {
                     FloatingActionButton(
                         onClick = { showAddSubjectDialog = true },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
+                        modifier = Modifier.align(Alignment.BottomEnd)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -198,9 +185,6 @@ fun Dashboard(
                             Text(
                                 "Add Subject",
                                 fontStyle = AppTypography.labelMedium.fontStyle,
-                                fontSize = AppTypography.labelMedium.fontSize,
-                                fontWeight = AppTypography.labelMedium.fontWeight,
-                                fontFamily = AppTypography.labelMedium.fontFamily,
                             )
                         }
                     }

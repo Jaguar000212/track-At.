@@ -31,7 +31,6 @@ import androidx.glance.text.TextStyle
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.AttendanceWithSubject
 import com.jaguar.attendancetracker.backend.enums.ClassType
-import com.jaguar.attendancetracker.dependencies.WidgetEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import java.time.LocalDate
 import java.util.UUID

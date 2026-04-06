@@ -5,10 +5,7 @@ import androidx.compose.material.icons.outlined.Home
 import com.jaguar.attendancetracker.R
 
 enum class HelpTopics(
-    val title: String,
-    val description: String,
-    val icon: Any,
-    val pageNo: Int
+    val title: String, val description: String, val icon: Any, val pageNo: Int
 ) {
     DASHBOARD(
         "Dashboard",
@@ -34,7 +31,7 @@ enum class HelpTopics(
         R.drawable.subject,
         4
     ),
-    IMEXPORT(
+    IM_EXPORT(
         "Import/Export",
         "This feature allows you to backup your data or import data from another device. Keep your attendance records safe!",
         R.drawable.import_export,

@@ -5,6 +5,5 @@ import androidx.room.Relation
 
 data class AttendanceWithSubject(
     @Embedded val record: AttendanceRecord,
-
     @Relation(parentColumn = "subjectId", entityColumn = "id") val subject: Subject
 )

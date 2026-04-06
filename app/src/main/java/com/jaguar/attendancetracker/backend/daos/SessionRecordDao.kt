@@ -33,15 +33,15 @@ interface SessionRecordDao {
     suspend fun deleteBySubject(subjectId: UUID)
 
     @Query("SELECT * FROM SessionRecords")
-    fun getAllRecords(): Flow<List<SessionRecord>>
+    fun getAll(): Flow<List<SessionRecord>>
 
     @Query("SELECT * FROM SessionRecords WHERE subjectId = :subjectId order by dayOfWeek")
-    suspend fun getSubjectSessionRecords(subjectId: UUID): List<SessionRecord>
+    suspend fun getBySubject(subjectId: UUID): List<SessionRecord>
 
     @Query("SELECT * FROM SessionRecords WHERE dayOfWeek = :day")
-    suspend fun getSessionsByDay(day: Int): List<SessionRecord>
+    suspend fun getByDay(day: Int): List<SessionRecord>
 
     @Transaction
     @Query("SELECT * FROM SessionRecords ORDER BY dayOfWeek, orderNo")
-    fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>>
+    fun getWithSubjects(): Flow<List<SessionsWithSubject>>
 }

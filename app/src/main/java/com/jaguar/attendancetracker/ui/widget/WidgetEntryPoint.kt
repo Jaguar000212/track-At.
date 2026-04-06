@@ -1,4 +1,4 @@
-package com.jaguar.attendancetracker.dependencies
+package com.jaguar.attendancetracker.ui.widget
 
 import com.jaguar.attendancetracker.backend.repositories.AttendanceRepository
 import com.jaguar.attendancetracker.backend.repositories.ScheduleRepository

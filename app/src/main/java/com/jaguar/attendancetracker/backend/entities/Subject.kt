@@ -31,8 +31,8 @@ data class Subject(
         val current = attendedClasses.toDouble() / totalClasses
 
         return if (current >= target) {
-            val bunkable = (attendedClasses / target) - totalClasses
-            bunkable.toInt()
+            val need = (attendedClasses / target) - totalClasses
+            need.toInt()
         } else {
             val needed = (target * totalClasses - attendedClasses) / (1.0 - target)
             -kotlin.math.ceil(needed).toInt()

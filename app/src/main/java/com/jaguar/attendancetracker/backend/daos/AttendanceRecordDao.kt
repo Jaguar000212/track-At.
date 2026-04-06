@@ -31,17 +31,17 @@ interface AttendanceRecordDao {
     suspend fun deleteBySubject(subjectId: UUID)
 
     @Query("SELECT * FROM AttendanceRecords")
-    fun getAllRecords(): Flow<List<AttendanceRecord>>
+    fun getAll(): Flow<List<AttendanceRecord>>
 
     @Query("SELECT * FROM AttendanceRecords WHERE subjectId = :subjectId ORDER BY date DESC")
-    suspend fun getSubjectAttendanceRecords(subjectId: UUID): List<AttendanceRecord>
+    suspend fun getBySubject(subjectId: UUID): List<AttendanceRecord>
 
     @Query("SELECT * FROM attendancerecords WHERE date = :date")
-    suspend fun getAttendanceRecordByDate(date: LocalDate): List<AttendanceRecord>
+    suspend fun getByDate(date: LocalDate): List<AttendanceRecord>
 
     @Transaction
     @Query("SELECT * FROM AttendanceRecords WHERE date = :date")
-    fun getAttendanceWithSubjects(date: LocalDate): Flow<List<AttendanceWithSubject>>
+    fun getWithSubjects(date: LocalDate): Flow<List<AttendanceWithSubject>>
 
     @Query("SELECT count(*) FROM AttendanceRecords WHERE subjectId = :subjectId AND status IN ('PRESENT', 'ABSENT')")
     suspend fun countTotalClasses(subjectId: UUID): Int

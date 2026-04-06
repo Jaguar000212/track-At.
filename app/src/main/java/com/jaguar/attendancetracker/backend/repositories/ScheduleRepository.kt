@@ -10,19 +10,12 @@ import java.util.UUID
 import javax.inject.Inject
 
 class ScheduleRepository @Inject constructor(
-    private val sessionRecordDao: SessionRecordDao,
-    private val subjectDao: SubjectDao
+    private val sessionRecordDao: SessionRecordDao, private val subjectDao: SubjectDao
 ) {
-    fun getAllSessionRecords(): Flow<List<SessionRecord>> = sessionRecordDao.getAllRecords()
-
-    suspend fun getSessionsByDay(day: Int): List<SessionRecord> =
-        sessionRecordDao.getSessionsByDay(day)
+    suspend fun getSessionsByDay(day: Int): List<SessionRecord> = sessionRecordDao.getByDay(day)
 
     fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>> =
-        sessionRecordDao.getSessionsWithSubjects()
-
-    suspend fun getSubjectSessionRecords(subjectId: UUID): List<SessionRecord> =
-        sessionRecordDao.getSubjectSessionRecords(subjectId)
+        sessionRecordDao.getWithSubjects()
 
     suspend fun addSession(sessionRecord: SessionRecord) {
         sessionRecordDao.insert(sessionRecord)
@@ -41,11 +34,10 @@ class ScheduleRepository @Inject constructor(
         sessionRecordDao.deleteBySubject(subject.id)
     }
 
-    fun getScheduledSubjects(): Flow<List<Subject>> = subjectDao.getScheduledSubjects()
-    fun getSchedulableSubjects(): Flow<List<Subject>> = subjectDao.getSchedulableSubjects()
+    fun getSchedulableSubjects(): Flow<List<Subject>> = subjectDao.getSchedulable()
 
-    fun getAllSubjects(): Flow<List<Subject>> = subjectDao.getAllSubjects()
-    suspend fun getSubject(subjectId: UUID): Subject = subjectDao.getSubject(subjectId)
+    fun getAllSubjects(): Flow<List<Subject>> = subjectDao.getAll()
+    suspend fun getSubject(subjectId: UUID): Subject = subjectDao.getOne(subjectId)
     suspend fun addSubject(subject: Subject) {
         subjectDao.insert(subject)
     }
