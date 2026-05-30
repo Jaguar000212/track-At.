@@ -22,8 +22,8 @@ data class Subject(
     val attendedClasses: Int = 0,
     val minAttendance: Int = 75
 ) {
-    fun attendancePercentage(): Double = if (totalClasses == 0) 0.0
-    else (attendedClasses.toDouble() / totalClasses) * 100
+    fun attendancePercentage(): Float = if (totalClasses == 0) 0f
+    else (attendedClasses.toFloat() / totalClasses) * 100
 
     fun requiredToMakeUp(): Int {
         if (totalClasses == 0) return 0

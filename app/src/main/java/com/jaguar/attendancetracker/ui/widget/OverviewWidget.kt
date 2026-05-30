@@ -64,7 +64,7 @@ fun OverviewWidget(subjects: List<Subject>) {
                     ), maxLines = 1, modifier = GlanceModifier.padding(16.dp)
                 )
                 LinearProgressIndicator(
-                    progress = sub.attendancePercentage().toFloat() / 100,
+                    progress = sub.attendancePercentage() / 100,
                     color = progressColor,
                     modifier = GlanceModifier.fillMaxWidth().height(8.dp).padding(end = 8.dp)
                 )
