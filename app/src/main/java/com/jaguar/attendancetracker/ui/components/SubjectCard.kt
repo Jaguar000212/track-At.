@@ -1,25 +1,31 @@
 package com.jaguar.attendancetracker.ui.components
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -45,7 +52,6 @@ import com.jaguar.attendancetracker.ui.theme.AppTypography
 import kotlin.math.absoluteValue
 
 
-@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalStdlibApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SubjectCard(
@@ -63,8 +69,9 @@ fun SubjectCard(
     val isDark = isSystemInDarkTheme()
 
     val required = subject.requiredToMakeUp()
+    val currentPercent = subject.attendancePercentage()
 
-    Card(
+    ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
@@ -84,32 +91,67 @@ fun SubjectCard(
                 Text(
                     text = subject.name,
                     style = AppTypography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     when {
-                        required < 0 -> "Below minimum, can't skip any class, ${required.absoluteValue} needed."
-                        required > 0 -> "All set, you can skip $required classes."
+                        required < 0 -> "Below minimum, ${required.absoluteValue} needed."
+                        required > 0 -> "All set, you can skip ${required.absoluteValue} classes."
                         else -> "At risk, you should avoid skipping classes."
                     },
                     style = AppTypography.labelMedium,
                 )
-                Text(
-                    "Present: ${subject.attendedClasses} | Absent: ${subject.totalClasses - subject.attendedClasses}",
-                    style = AppTypography.labelSmall,
-                )
-                Row(modifier = Modifier.padding(top = 8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Text(
+                        subject.attendedClasses.toString(), style = AppTypography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        " Present", style = AppTypography.labelSmall.copy(
+                            fontWeight = FontWeight.Thin
+                        ), color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        (subject.totalClasses - subject.attendedClasses).toString(),
+                        style = AppTypography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        " Absent", style = AppTypography.labelSmall.copy(
+                            fontWeight = FontWeight.Thin
+                        ), color = Color.Gray
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = { PlainTooltip { Text("Edit this subject.") } },
                         state = rememberTooltipState()
                     ) {
-                        IconButton({
-                            showEditDialog = true
-                        }) {
+                        ElevatedButton(
+                            {
+                                showEditDialog = true
+                            },
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(32.dp)
+                        ) {
                             Icon(
                                 Icons.Outlined.Create,
                                 "",
-                                tint = Color(StatusColor.GOOD.color(isDark))
+                                tint = Color(StatusColor.GOOD.color(isDark)),
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
@@ -118,13 +160,19 @@ fun SubjectCard(
                         tooltip = { PlainTooltip { Text("Delete this subject.") } },
                         state = rememberTooltipState()
                     ) {
-                        IconButton({
-                            showDeleteAlert = true
-                        }) {
+                        ElevatedButton(
+                            {
+                                showDeleteAlert = true
+                            },
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(32.dp)
+                        ) {
                             Icon(
                                 Icons.Outlined.Delete,
                                 "",
-                                tint = Color(StatusColor.ALERT.color(isDark))
+                                tint = Color(StatusColor.ALERT.color(isDark)),
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
@@ -133,22 +181,28 @@ fun SubjectCard(
                         tooltip = { PlainTooltip { Text("End scheduling of this subject.") } },
                         state = rememberTooltipState()
                     ) {
-                        IconButton({
-                            if (!subject.isEnded) {
-                                showCancelAlert = true
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Subject will be scheduled in future.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                onCancelSchedule(subject.copy(isEnded = false, color = "PINK"))
-                            }
-                        }) {
+                        ElevatedButton(
+                            {
+                                if (!subject.isEnded) {
+                                    showCancelAlert = true
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Subject will be scheduled in future.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    onCancelSchedule(subject.copy(isEnded = false, color = "PINK"))
+                                }
+                            },
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(32.dp)
+                        ) {
                             Icon(
                                 painterResource(R.drawable.pause),
                                 "",
-                                tint = Color(StatusColor.WARNING.color(isDark))
+                                tint = Color(StatusColor.WARNING.color(isDark)),
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
@@ -157,28 +211,49 @@ fun SubjectCard(
 
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .align(Alignment.CenterEnd)
-                    .background(
-                        color = Color(
-                            when {
-                                subject.attendancePercentage() > subject.minAttendance -> StatusColor.GOOD.color(
-                                    isDark
-                                )
-
-                                subject.attendancePercentage() < subject.minAttendance -> StatusColor.ALERT.color(
-                                    isDark
-                                )
-
-                                else -> StatusColor.WARNING.color(isDark)
-                            }
-                        ), shape = CircleShape
-                    ), contentAlignment = Alignment.Center
+                    .padding(8.dp)
+                    .size(84.dp)
+                    .align(Alignment.CenterEnd),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "${subject.attendancePercentage().toInt()}%", color = Color.White,
-                    style = AppTypography.labelLarge,
+                CircularProgressIndicator(
+                    progress = { (currentPercent / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxSize(),
+                    strokeWidth = 8.dp,
                 )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "${"%.1f".format(currentPercent)}%", style = AppTypography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+
+                        color = when {
+                            currentPercent < subject.minAttendance - 5 -> Color(
+                                StatusColor.ALERT.color(
+                                    isSystemInDarkTheme()
+                                )
+                            )
+
+                            currentPercent > subject.minAttendance + 5 -> Color(
+                                StatusColor.GOOD.color(isSystemInDarkTheme())
+                            )
+
+                            else -> Color(
+                                StatusColor.WARNING.color(
+                                    isSystemInDarkTheme()
+                                )
+                            )
+                        }
+                    )
+                    Text(
+                        "PRESENT", style = AppTypography.bodySmall.copy(
+                            fontWeight = FontWeight.Thin
+                        ), color = Color.Gray
+                    )
+                }
             }
         }
     }
