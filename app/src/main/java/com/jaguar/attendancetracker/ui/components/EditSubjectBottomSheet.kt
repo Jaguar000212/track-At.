@@ -19,6 +19,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -37,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -55,6 +58,7 @@ fun EditSubjectBottomSheet(
     subject: Subject, onDismiss: () -> Unit, onSave: (subject: Subject) -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
+    val haptic = LocalHapticFeedback.current
 
     var name: String by remember { mutableStateOf(subject.name) }
     var semester: Int by remember { mutableIntStateOf(subject.semester) }
@@ -82,6 +86,7 @@ fun EditSubjectBottomSheet(
             Text(
                 if (subject.name.isEmpty()) "New Subject" else "Edit Subject",
                 style = AppTypography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
             )
             HorizontalDivider(modifier = Modifier.padding(8.dp))
@@ -229,6 +234,9 @@ fun EditSubjectBottomSheet(
                         Slider(
                             value = minAttendance.toFloat(), onValueChange = {
                                 minAttendance = (it / 5).roundToInt() * 5
+                                haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                            }, onValueChangeFinished = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             }, valueRange = 0f..100f, steps = 19
                         )
                     }

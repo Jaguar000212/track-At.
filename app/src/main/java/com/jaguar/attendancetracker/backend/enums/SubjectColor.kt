@@ -28,7 +28,7 @@ enum class SubjectColor(
         light = 0xFFFFD8A8, dark = 0xFF4A2A00
     ),
     GRAY(
-        light = 0xFF888888, dark = 0xFF888888, false
+        light = 0xFFFFFFFF, dark = 0xFF444444, false
     );
 
     fun color(isDark: Boolean): Long = if (isDark) dark else light

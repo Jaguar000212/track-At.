@@ -16,18 +16,33 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpPage() {
+    val haptic = LocalHapticFeedback.current
     var pageNo by remember { mutableIntStateOf(0) }
+
+    val prevTooltipState = rememberTooltipState()
+    LaunchedEffect(prevTooltipState.isVisible) {
+        if (prevTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val nextTooltipState = rememberTooltipState()
+    LaunchedEffect(nextTooltipState.isVisible) {
+        if (nextTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -41,32 +56,39 @@ fun HelpPage() {
         }
 
         if (pageNo != 0) SmallFloatingActionButton(
-            { pageNo-- },
-            shape = CircleShape,
-            modifier = Modifier
+            {
+                pageNo--
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+            }, shape = CircleShape, modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.BottomStart)
         ) {
             TooltipBox(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = { PlainTooltip { Text("Previous Page") } },
-                state = rememberTooltipState()
+                tooltip = {
+                    PlainTooltip { Text("Previous Page") }
+                },
+                state = prevTooltipState
             ) {
                 Icon(Icons.AutoMirrored.Outlined.ArrowBack, "")
             }
         }
 
         if (pageNo != 5) SmallFloatingActionButton(
-            { pageNo++ },
-            shape = CircleShape,
-            modifier = Modifier
+            {
+                pageNo++
+
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+            }, shape = CircleShape, modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.BottomEnd)
         ) {
             TooltipBox(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = { PlainTooltip { Text("Next Page") } },
-                state = rememberTooltipState()
+                tooltip = {
+                    PlainTooltip { Text("Next Page") }
+                },
+                state = nextTooltipState
             ) {
                 Icon(Icons.AutoMirrored.Outlined.ArrowForward, "")
             }

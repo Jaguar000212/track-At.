@@ -60,6 +60,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +83,7 @@ import java.util.UUID
 fun DayView(
     viewModel: DayViewModel = hiltViewModel()
 ) {
+    val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val subjects by viewModel.getSubjects().collectAsStateWithLifecycle(emptyList())
     val listState = rememberLazyListState()
@@ -110,7 +113,10 @@ fun DayView(
                 .padding(horizontal = 32.dp)
         ) {
             IconButton(
-                onClick = { viewModel.loadDate(currentDate.minusDays(1)) },
+                onClick = {
+                    viewModel.loadDate(currentDate.minusDays(1))
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                },
             ) {
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, null)
             }
@@ -144,7 +150,10 @@ fun DayView(
             }
 
             IconButton(
-                onClick = { viewModel.loadDate(currentDate.plusDays(1)) }) {
+                onClick = {
+                    viewModel.loadDate(currentDate.plusDays(1))
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                }) {
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null)
             }
         }
@@ -167,7 +176,6 @@ fun DayView(
                 }
 
                 is DayState.Success -> {
-                    viewModel.loadDate(uiState.date)
                     val dayRecords = (uiState as DayState.Success).dayRecords
                     if (dayRecords.isEmpty()) Text(
                         "No session for today.",
@@ -262,7 +270,10 @@ fun DayView(
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)) {
                         FloatingActionButton(
-                            onClick = { showAddClassDialog = true }) {
+                            onClick = {
+                                showAddClassDialog = true
+                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                            }) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -394,6 +405,7 @@ fun DayView(
                                         Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
                                             .toLocalDate()
                                     } ?: LocalDate.now())
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 }) {
                                 Text(
                                     "OK",

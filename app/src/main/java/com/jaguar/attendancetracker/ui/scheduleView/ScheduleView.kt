@@ -78,10 +78,11 @@ fun DayHeader(
         targetValue = if (expanded) 180f else 0f, label = "ArrowRotation"
     )
 
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = DayOfWeek.of(day).name,
@@ -230,31 +231,31 @@ fun ScheduleView(
                                                 Box(
                                                     modifier = Modifier.then(
                                                         if (isEditMode) {
-                                                        Modifier
-                                                            .rotate(shakeRotation)
-                                                            .draggableHandle(
-                                                                onDragStarted = {
+                                                            Modifier
+                                                                .rotate(shakeRotation)
+                                                                .draggableHandle(
+                                                                    onDragStarted = {
+                                                                        haptic.performHapticFeedback(
+                                                                            HapticFeedbackType.LongPress
+                                                                        )
+                                                                    },
+                                                                    onDragStopped = {
+                                                                        haptic.performHapticFeedback(
+                                                                            HapticFeedbackType.GestureEnd
+                                                                        )
+                                                                    },
+                                                                    interactionSource = interactionSource,
+                                                                )
+                                                        } else {
+                                                            Modifier.pointerInput(Unit) {
+                                                                detectTapGestures(onLongPress = {
+                                                                    isEditMode = true
                                                                     haptic.performHapticFeedback(
                                                                         HapticFeedbackType.LongPress
                                                                     )
-                                                                },
-                                                                onDragStopped = {
-                                                                    haptic.performHapticFeedback(
-                                                                        HapticFeedbackType.GestureEnd
-                                                                    )
-                                                                },
-                                                                interactionSource = interactionSource,
-                                                            )
-                                                    } else {
-                                                        Modifier.pointerInput(Unit) {
-                                                            detectTapGestures(onLongPress = {
-                                                                isEditMode = true
-                                                                haptic.performHapticFeedback(
-                                                                    HapticFeedbackType.LongPress
-                                                                )
-                                                            }, onTap = {})
-                                                        }
-                                                    })) {
+                                                                }, onTap = {})
+                                                            }
+                                                        })) {
                                                     ScheduleCard(
                                                         sessionRecord = session,
                                                         subject = subjectMap[session.subjectId]!!,
@@ -327,7 +328,10 @@ fun ScheduleView(
                             exit = slideOutHorizontally { it } + scaleOut(),
                         ) {
                             FloatingActionButton(
-                                onClick = { showAddScheduleDialog = true },
+                                onClick = {
+                                    showAddScheduleDialog = true
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                },
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,

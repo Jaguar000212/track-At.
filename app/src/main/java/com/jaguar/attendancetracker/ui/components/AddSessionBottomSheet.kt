@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -50,7 +51,8 @@ fun AddSessionBottomSheet(
                 Text(
                     "New Session",
                     style = AppTypography.titleLarge,
-                    modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp)
+                    modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
                 HorizontalDivider(modifier = Modifier.padding(8.dp))
 
@@ -139,6 +141,7 @@ fun AddSessionBottomSheet(
             Text(
                 "No Subjects Available",
                 style = AppTypography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
             )
         }, text = {
             Text(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,7 +22,11 @@ fun HelpSchedule() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Schedule Details", style = AppTypography.titleLarge)
+        Text(
+            text = "Schedule Details",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "time to set it up!", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 
