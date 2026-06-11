@@ -3,8 +3,10 @@ package com.jaguar.attendancetracker
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import com.jaguar.attendancetracker.navigation.Destinations
 import com.jaguar.attendancetracker.navigation.Navigation
 import com.jaguar.attendancetracker.ui.components.BottomBar
 import com.jaguar.attendancetracker.ui.components.Header
+import com.jaguar.attendancetracker.ui.theme.AppTypography
 import com.jaguar.attendancetracker.ui.theme.UITheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             App()
         }
@@ -36,7 +40,8 @@ class MainActivity : ComponentActivity() {
             Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
                 Header(navController = navController) {
                     Text(
-                        stringResource(R.string.app_name)
+                        stringResource(R.string.app_name), style = AppTypography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }, bottomBar = {

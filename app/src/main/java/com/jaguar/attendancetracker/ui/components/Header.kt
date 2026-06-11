@@ -13,6 +13,8 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -23,12 +25,16 @@ import com.jaguar.attendancetracker.navigation.Destinations
 @Composable
 fun Header(navController: NavController, title: @Composable () -> Unit) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val haptic = LocalHapticFeedback.current
 
     CenterAlignedTopAppBar(
         title = title, actions = {
             if (navBackStackEntry?.destination?.route == Destinations.DASHBOARD.route) TooltipBox(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = { PlainTooltip { Text("Import/Export data.") } },
+                tooltip = {
+                    PlainTooltip { Text("Import/Export data.") }
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
                 state = rememberTooltipState()
             ) {
                 IconButton({
@@ -37,6 +43,7 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
                             inclusive = false
                         }
                     }
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 }) {
                     Icon(painterResource(R.drawable.import_export), "")
                 }
@@ -44,7 +51,10 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
             if (navBackStackEntry?.destination?.route != Destinations.HELP.route) {
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = { PlainTooltip { Text("Get to know the app.") } },
+                    tooltip = {
+                        PlainTooltip { Text("Get to know the app.") }
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
                     state = rememberTooltipState()
                 ) {
                     IconButton({
@@ -53,6 +63,7 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
                                 inclusive = false
                             }
                         }
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     }) {
                         Icon(Icons.Outlined.Info, "")
                     }

@@ -1,5 +1,6 @@
 package com.jaguar.attendancetracker.ui.subject
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -20,10 +21,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -89,6 +93,16 @@ fun Subject(
                 }
 
                 val currentPercent = subject.attendancePercentage()
+                var animationTarget by remember { mutableFloatStateOf(0f) }
+                LaunchedEffect(currentPercent) {
+                    animationTarget = (currentPercent / 100f).coerceIn(0f, 1f)
+                }
+                val animatedProgress by animateFloatAsState(
+                    targetValue = animationTarget,
+                    animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                    label = "ProgressAnimation"
+                )
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -202,7 +216,7 @@ fun Subject(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator(
-                                        progress = { (currentPercent / 100f).coerceIn(0f, 1f) },
+                                        progress = { animatedProgress },
                                         modifier = Modifier.fillMaxSize(),
                                         strokeWidth = 8.dp,
                                     )
@@ -286,24 +300,24 @@ fun Subject(
                             ) {
                                 FilterChip(
                                     label = { Text("Present") }, onClick = {
-                                        presentFilter = !presentFilter
-                                        absentFilter = false
-                                        cancelFilter = false
-                                    }, selected = presentFilter
+                                    presentFilter = !presentFilter
+                                    absentFilter = false
+                                    cancelFilter = false
+                                }, selected = presentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Absent") }, onClick = {
-                                        absentFilter = !absentFilter
-                                        presentFilter = false
-                                        cancelFilter = false
-                                    }, selected = absentFilter
+                                    absentFilter = !absentFilter
+                                    presentFilter = false
+                                    cancelFilter = false
+                                }, selected = absentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Cancelled") }, onClick = {
-                                        cancelFilter = !cancelFilter
-                                        presentFilter = false
-                                        absentFilter = false
-                                    }, selected = cancelFilter
+                                    cancelFilter = !cancelFilter
+                                    presentFilter = false
+                                    absentFilter = false
+                                }, selected = cancelFilter
                                 )
                             }
                         }
@@ -336,8 +350,7 @@ private fun AttendanceRecord.Card() {
                     .size(48.dp)
                     .padding(8.dp)
                     .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        CircleShape
+                        MaterialTheme.colorScheme.secondaryContainer, CircleShape
                     ), contentAlignment = Alignment.Center
             ) {
                 when (status) {

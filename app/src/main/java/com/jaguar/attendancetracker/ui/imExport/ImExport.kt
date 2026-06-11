@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -39,6 +41,7 @@ import java.time.format.DateTimeFormatter
 fun ImExport(
     viewModel: ImExportViewModel = hiltViewModel()
 ) {
+    val haptic = LocalHapticFeedback.current
     val isLoading by viewModel.isLoading.collectAsState()
 
     var isSubjectsChecked by remember { mutableStateOf(true) }
@@ -135,6 +138,7 @@ fun ImExport(
                     val timestamp =
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
                     exportLauncher.launch("attendance_backup_$timestamp.json")
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 }, modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.End)
@@ -142,16 +146,17 @@ fun ImExport(
                 Icon(painterResource(R.drawable.export_data), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Export Data",
-                    style = AppTypography.labelMedium
+                    "Export Data", style = AppTypography.labelMedium
                 )
             }
 
         }
 
         FloatingActionButton(
-            onClick = { importLauncher.launch(arrayOf("application/json")) },
-            modifier = Modifier
+            onClick = {
+                importLauncher.launch(arrayOf("application/json"))
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+            }, modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
@@ -162,8 +167,7 @@ fun ImExport(
                 Icon(painterResource(R.drawable.import_data), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Import Data",
-                    style = AppTypography.labelMedium
+                    "Import Data", style = AppTypography.labelMedium
                 )
             }
         }

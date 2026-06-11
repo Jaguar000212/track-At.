@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,11 +55,10 @@ fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onToggle() }
+        .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",
@@ -77,6 +78,7 @@ fun SemesterHeader(
 fun Dashboard(
     viewModel: DashboardViewModel = hiltViewModel(), navController: NavHostController
 ) {
+    val haptic = LocalHapticFeedback.current
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
@@ -176,8 +178,10 @@ fun Dashboard(
                         .align(Alignment.BottomEnd)
                         .padding(16.dp)) {
                     FloatingActionButton(
-                        onClick = { showAddSubjectDialog = true },
-                        modifier = Modifier.align(Alignment.BottomEnd)
+                        onClick = {
+                            showAddSubjectDialog = true
+                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                        }, modifier = Modifier.align(Alignment.BottomEnd)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

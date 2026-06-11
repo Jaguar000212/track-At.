@@ -1,6 +1,8 @@
 package com.jaguar.attendancetracker.ui.components
 
 import android.widget.Toast
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -33,14 +35,18 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,6 +68,7 @@ fun SubjectCard(
     onCancelSchedule: (subject: Subject) -> Unit,
     onDelete: (subject: Subject) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     var showDeleteAlert by remember { mutableStateOf(false) }
     var showCancelAlert by remember { mutableStateOf(false) }
@@ -70,6 +77,17 @@ fun SubjectCard(
 
     val required = subject.requiredToMakeUp()
     val currentPercent = subject.attendancePercentage()
+    var animationTarget by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(currentPercent) {
+        animationTarget = (currentPercent / 100f).coerceIn(0f, 1f)
+    }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = animationTarget,
+        animationSpec = tween(durationMillis = 500),
+        label = "ProgressAnimation"
+    )
 
     ElevatedCard(
         modifier = modifier
@@ -77,19 +95,18 @@ fun SubjectCard(
             .padding(horizontal = 8.dp)
             .clickable(onClick = { onClick(subject) }),
         colors = CardDefaults.cardColors()
-            .copy(containerColor = Color((SubjectColor.entries.firstOrNull {
-                it.name.equals(
-                    subject.color, ignoreCase = true
-                )
-            } ?: SubjectColor.GRAY).color(isDark)))) {
+            .copy(containerColor = Color(SubjectColor.valueOf(subject.color).color(isDark)))
+    ) {
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(Modifier
-                .padding(8.dp)
-                .weight(1f)) {
+            Column(
+                Modifier
+                    .padding(8.dp)
+                    .weight(1f)
+            ) {
                 Text(
                     text = subject.name,
                     style = AppTypography.titleLarge,
@@ -98,18 +115,16 @@ fun SubjectCard(
                 Text(
                     when {
                         required < 0 -> "Below minimum, ${required.absoluteValue} needed."
-                        required > 0 -> "All set, you can skip ${required.absoluteValue} classes."
+                        required > 0 -> "All set, you can skip $required classes."
                         else -> "At risk, you should avoid skipping classes."
                     },
                     style = AppTypography.labelMedium,
                 )
                 Row(
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier.padding(top = 4.dp)
+                    verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Text(
-                        subject.attendedClasses.toString(),
-                        style = AppTypography.bodySmall.copy(
+                        subject.attendedClasses.toString(), style = AppTypography.bodySmall.copy(
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -140,12 +155,16 @@ fun SubjectCard(
                 ) {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = { PlainTooltip { Text("Edit this subject.") } },
+                        tooltip = {
+                            PlainTooltip { Text("Edit this subject.") }
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
                         state = rememberTooltipState()
                     ) {
                         ElevatedButton(
                             {
                                 showEditDialog = true
+                                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             },
                             shape = CircleShape,
                             contentPadding = PaddingValues(0.dp),
@@ -161,12 +180,16 @@ fun SubjectCard(
                     }
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = { PlainTooltip { Text("Delete this subject.") } },
+                        tooltip = {
+                            PlainTooltip { Text("Delete this subject.") }
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
                         state = rememberTooltipState()
                     ) {
                         ElevatedButton(
                             {
                                 showDeleteAlert = true
+                                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             },
                             shape = CircleShape,
                             contentPadding = PaddingValues(0.dp),
@@ -182,13 +205,17 @@ fun SubjectCard(
                     }
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = { PlainTooltip { Text("End scheduling of this subject.") } },
+                        tooltip = {
+                            PlainTooltip { Text("End scheduling of this subject.") }
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
                         state = rememberTooltipState()
                     ) {
                         ElevatedButton(
                             {
                                 if (!subject.isEnded) {
                                     showCancelAlert = true
+                                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -223,7 +250,7 @@ fun SubjectCard(
                     .size(84.dp), contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
-                    progress = { (currentPercent / 100f).coerceIn(0f, 1f) },
+                    progress = { animatedProgress },
                     modifier = Modifier.fillMaxSize(),
                     strokeWidth = 8.dp,
                 )

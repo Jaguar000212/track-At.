@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -30,6 +33,7 @@ import compose.icons.fontawesomeicons.brands.Github
 @Composable
 fun HelpHome(changePage: (Int) -> Unit) {
     val uriHandler = LocalUriHandler.current
+    val haptic = LocalHapticFeedback.current
 
     Column(
         modifier = Modifier
@@ -37,7 +41,11 @@ fun HelpHome(changePage: (Int) -> Unit) {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Save Our Souls!", style = AppTypography.headlineMedium)
+        Text(
+            text = "Save Our Souls!",
+            style = AppTypography.headlineMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Hello fellow student! If you're reading this, you might be feeling a bit lost in the world of attendance tracking. Don't worry, we've got your back! Let's dive in and explore how to use this app to its fullest potential!",
@@ -46,7 +54,10 @@ fun HelpHome(changePage: (Int) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         for (topic in HelpTopics.entries) {
-            TextButton({ changePage(topic.pageNo) }) {
+            TextButton(onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                changePage(topic.pageNo)
+            }) {
                 if (topic.icon is Int) Icon(painterResource(topic.icon), "")
                 else Icon(topic.icon as ImageVector, "")
 
@@ -55,7 +66,7 @@ fun HelpHome(changePage: (Int) -> Unit) {
                 Text(
                     text = topic.title,
                     style = AppTypography.bodyLarge,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
                 )
             }
             Text(
@@ -88,6 +99,9 @@ fun HelpHome(changePage: (Int) -> Unit) {
             textDecoration = TextDecoration.Underline,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable { uriHandler.openUri("https://github.com/Jaguar000212/track-at.") })
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    uriHandler.openUri("https://github.com/Jaguar000212/track-at.")
+                })
     }
 }
