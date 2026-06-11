@@ -35,14 +35,20 @@ This project leverages the latest in Modern Android Development (MAD):
 
 ## 📸 Screenshots
 
-<p align="center">
-  <!-- Upload your screenshots to a folder named 'screenshots' in your repo and link them here -->
-  <img src="screenshots/dashboard.jpg" width="40%" alt="Dashboard" />
-  <img src="screenshots/schedule.jpg" width="40%" alt="Schedule View" />
-  <img src="screenshots/day-view.jpg" width="40%" alt="Statistics" />
-  <img src="screenshots/subject.jpg" width="40%" alt="Statistics" />
-  <img src="screenshots/iExport.jpg" width="40%" alt="Import-Export Screen" />
-</p>
+<table style = "text-align:center;">
+  <tr>
+    <td><img src="screenshots/dashboard.png" alt="Dashboard"/></td>
+    <td><img src="screenshots/schedule.png" alt="Schedule View"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/day-view.png" alt="Statistics"/></td>
+    <td><img src="screenshots/subject.png" alt="Statistics"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/iExport.png" alt="Import-Export Screen"/></td>
+    <td><img src="screenshots/help.png" alt="Help Screen"/></td>
+  </tr>
+</table>
 
 ## 📲 Installation
 
