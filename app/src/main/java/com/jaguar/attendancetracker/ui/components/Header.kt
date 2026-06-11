@@ -33,7 +33,7 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
             ) {
                 IconButton({
                     navController.navigate(Destinations.IM_EXPORT.route) {
-                        popUpTo(Destinations.DASHBOARD.route) {
+                        popUpTo(Destinations.DAYVIEW.route) {
                             inclusive = false
                         }
                     }

@@ -45,6 +45,12 @@ class DayViewModel @Inject constructor(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), DayState.Loading(_currentDate.value)
     )
 
+    init {
+        viewModelScope.launch {
+            ensureAttendanceRecordsExist(_currentDate.value)
+        }
+    }
+
     fun loadDate(date: LocalDate) {
         _currentDate.value = date
         viewModelScope.launch {

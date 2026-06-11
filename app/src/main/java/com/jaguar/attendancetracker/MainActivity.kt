@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
             val subId = intent.extras?.getString("subjectId")
             if (subId != null) {
                 navController.navigate("${Destinations.SUBJECT.route}/$subId") {
-                    popUpTo(Destinations.DASHBOARD.route) {
+                    popUpTo(Destinations.DAYVIEW.route) {
                         inclusive = false
                     }
                 }

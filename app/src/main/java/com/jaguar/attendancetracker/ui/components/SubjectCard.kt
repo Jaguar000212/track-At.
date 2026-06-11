@@ -82,12 +82,14 @@ fun SubjectCard(
                     subject.color, ignoreCase = true
                 )
             } ?: SubjectColor.GRAY).color(isDark)))) {
-        Box(
-            Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.align(Alignment.TopStart)) {
+            Column(Modifier
+                .padding(8.dp)
+                .weight(1f)) {
                 Text(
                     text = subject.name,
                     style = AppTypography.titleLarge,
@@ -102,10 +104,12 @@ fun SubjectCard(
                     style = AppTypography.labelMedium,
                 )
                 Row(
-                    verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Text(
-                        subject.attendedClasses.toString(), style = AppTypography.bodySmall.copy(
+                        subject.attendedClasses.toString(),
+                        style = AppTypography.bodySmall.copy(
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -191,7 +195,11 @@ fun SubjectCard(
                                         "Subject will be scheduled in future.",
                                         Toast.LENGTH_LONG
                                     ).show()
-                                    onCancelSchedule(subject.copy(isEnded = false, color = "PINK"))
+                                    onCancelSchedule(
+                                        subject.copy(
+                                            isEnded = false, color = "PINK"
+                                        )
+                                    )
                                 }
                             },
                             shape = CircleShape,
@@ -207,14 +215,12 @@ fun SubjectCard(
                         }
                     }
                 }
-            }
 
+            }
             Box(
                 modifier = Modifier
                     .padding(8.dp)
-                    .size(84.dp)
-                    .align(Alignment.CenterEnd),
-                contentAlignment = Alignment.Center
+                    .size(84.dp), contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
                     progress = { (currentPercent / 100f).coerceIn(0f, 1f) },

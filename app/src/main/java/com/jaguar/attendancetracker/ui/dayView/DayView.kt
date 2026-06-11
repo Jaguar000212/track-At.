@@ -167,7 +167,6 @@ fun DayView(
                 }
 
                 is DayState.Success -> {
-                    viewModel.loadDate(uiState.date)
                     val dayRecords = (uiState as DayState.Success).dayRecords
                     if (dayRecords.isEmpty()) Text(
                         "No session for today.",

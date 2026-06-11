@@ -1,6 +1,7 @@
 package com.jaguar.attendancetracker.ui.subject
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
@@ -88,7 +90,9 @@ fun Subject(
 
                 val currentPercent = subject.attendancePercentage()
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 ) {
                     item {
                         Text(
@@ -192,7 +196,9 @@ fun Subject(
                                     )
                                 }
                                 Box(
-                                    modifier = Modifier.padding(8.dp).size(120.dp),
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .size(120.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator(
@@ -273,29 +279,31 @@ fun Subject(
                         item {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
-                                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth()
                                     .horizontalScroll(rememberScrollState())
                             ) {
                                 FilterChip(
                                     label = { Text("Present") }, onClick = {
-                                    presentFilter = !presentFilter
-                                    absentFilter = false
-                                    cancelFilter = false
-                                }, selected = presentFilter
+                                        presentFilter = !presentFilter
+                                        absentFilter = false
+                                        cancelFilter = false
+                                    }, selected = presentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Absent") }, onClick = {
-                                    absentFilter = !absentFilter
-                                    presentFilter = false
-                                    cancelFilter = false
-                                }, selected = absentFilter
+                                        absentFilter = !absentFilter
+                                        presentFilter = false
+                                        cancelFilter = false
+                                    }, selected = absentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Cancelled") }, onClick = {
-                                    cancelFilter = !cancelFilter
-                                    presentFilter = false
-                                    absentFilter = false
-                                }, selected = cancelFilter
+                                        cancelFilter = !cancelFilter
+                                        presentFilter = false
+                                        absentFilter = false
+                                    }, selected = cancelFilter
                                 )
                             }
                         }
@@ -313,14 +321,24 @@ fun Subject(
 @Composable
 private fun AttendanceRecord.Card() {
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-            modifier = Modifier.padding(8.dp).fillMaxWidth()
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
         ) {
             Box(
-                modifier = Modifier.size(48.dp).padding(8.dp), contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(8.dp)
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        CircleShape
+                    ), contentAlignment = Alignment.Center
             ) {
                 when (status) {
                     AttendanceStatus.PRESENT -> Text(
@@ -345,7 +363,9 @@ private fun AttendanceRecord.Card() {
                 }
             }
             Column(
-                modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
             ) {
                 Text(
                     text = date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),

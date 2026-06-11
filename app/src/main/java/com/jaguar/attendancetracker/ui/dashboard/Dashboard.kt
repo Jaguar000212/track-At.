@@ -53,10 +53,11 @@ fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",
@@ -110,14 +111,16 @@ fun Dashboard(
                 }
                 val expandedSemesters = remember {
                     mutableStateMapOf<Int, Boolean>().apply {
-                        subjectsBySemester.keys.forEach { put(it, true) }
+                        subjectsBySemester.keys.forEachIndexed { index, semester ->
+                            put(semester, index == 0)
+                        }
                     }
                 }
 
                 LaunchedEffect(subjectsBySemester) {
-                    subjectsBySemester.keys.forEach { key ->
+                    subjectsBySemester.keys.forEachIndexed { index, key ->
                         if (!expandedSemesters.containsKey(key)) {
-                            expandedSemesters[key] = true
+                            expandedSemesters[key] = index == 0
                         }
                     }
                 }
@@ -132,14 +135,14 @@ fun Dashboard(
                         state = listState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        subjectsBySemester.toSortedMap().forEach { (semester, semesterSubjects) ->
+                        subjectsBySemester.forEach { (semester, semesterSubjects) ->
                             item(key = "header_$semester") {
                                 SemesterHeader(
                                     semester = semester,
                                     expanded = expandedSemesters[semester] == true,
                                     onToggle = {
                                         expandedSemesters[semester] =
-                                            !(expandedSemesters[semester] ?: true)
+                                            !(expandedSemesters[semester] ?: false)
                                     })
                             }
 
@@ -151,7 +154,7 @@ fun Dashboard(
                                         subject = subject,
                                         onClick = {
                                             navController.navigate("${Destinations.SUBJECT.route}/${it.id}") {
-                                                popUpTo(Destinations.DASHBOARD.route) {
+                                                popUpTo(Destinations.DAYVIEW.route) {
                                                     inclusive = false
                                                 }
                                             }
