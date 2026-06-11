@@ -22,7 +22,11 @@ fun HelpImExport() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Import/Export", style = AppTypography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Text(
+            text = "Import/Export",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "your saviour (and your buddy's).", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 

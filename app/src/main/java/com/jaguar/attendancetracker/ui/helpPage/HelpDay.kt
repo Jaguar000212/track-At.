@@ -22,7 +22,11 @@ fun HelpDay() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "The Day View", style = AppTypography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Text(
+            text = "The Day View",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "mark it, forget it.", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 

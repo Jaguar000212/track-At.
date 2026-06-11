@@ -233,11 +233,11 @@ fun EditSubjectBottomSheet(
                         )
                         Slider(
                             value = minAttendance.toFloat(), onValueChange = {
-                            minAttendance = (it / 5).roundToInt() * 5
-                            haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-                        }, onValueChangeFinished = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }, valueRange = 0f..100f, steps = 19
+                                minAttendance = (it / 5).roundToInt() * 5
+                                haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                            }, onValueChangeFinished = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }, valueRange = 0f..100f, steps = 19
                         )
                     }
                 }

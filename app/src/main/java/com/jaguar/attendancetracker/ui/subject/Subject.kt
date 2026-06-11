@@ -300,24 +300,24 @@ fun Subject(
                             ) {
                                 FilterChip(
                                     label = { Text("Present") }, onClick = {
-                                    presentFilter = !presentFilter
-                                    absentFilter = false
-                                    cancelFilter = false
-                                }, selected = presentFilter
+                                        presentFilter = !presentFilter
+                                        absentFilter = false
+                                        cancelFilter = false
+                                    }, selected = presentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Absent") }, onClick = {
-                                    absentFilter = !absentFilter
-                                    presentFilter = false
-                                    cancelFilter = false
-                                }, selected = absentFilter
+                                        absentFilter = !absentFilter
+                                        presentFilter = false
+                                        cancelFilter = false
+                                    }, selected = absentFilter
                                 )
                                 FilterChip(
                                     label = { Text("Cancelled") }, onClick = {
-                                    cancelFilter = !cancelFilter
-                                    presentFilter = false
-                                    absentFilter = false
-                                }, selected = cancelFilter
+                                        cancelFilter = !cancelFilter
+                                        presentFilter = false
+                                        absentFilter = false
+                                    }, selected = cancelFilter
                                 )
                             }
                         }

@@ -22,7 +22,11 @@ fun HelpSubject() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Subject Details", style = AppTypography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Text(
+            text = "Subject Details",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "keeps you updated.", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 

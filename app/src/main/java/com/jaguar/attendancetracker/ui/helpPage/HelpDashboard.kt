@@ -22,7 +22,11 @@ fun HelpDashboard() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "The Dashboard", style = AppTypography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Text(
+            text = "The Dashboard",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "from where it starts.", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 

@@ -55,10 +55,11 @@ fun SemesterHeader(
     semester: Int, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onToggle() }
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Semester $semester",

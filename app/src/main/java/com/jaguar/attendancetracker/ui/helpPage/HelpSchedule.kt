@@ -22,7 +22,11 @@ fun HelpSchedule() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Schedule Details", style = AppTypography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Text(
+            text = "Schedule Details",
+            style = AppTypography.titleLarge,
+            color = MaterialTheme.colorScheme.secondary
+        )
         Text(text = "time to set it up!", style = AppTypography.bodyLarge)
         Spacer(modifier = Modifier.height(8.dp))
 
