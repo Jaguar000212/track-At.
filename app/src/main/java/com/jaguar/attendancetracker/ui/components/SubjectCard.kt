@@ -75,6 +75,21 @@ fun SubjectCard(
     var showEditDialog by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
+    val editTooltipState = rememberTooltipState()
+    LaunchedEffect(editTooltipState.isVisible) {
+        if (editTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val deleteTooltipState = rememberTooltipState()
+    LaunchedEffect(deleteTooltipState.isVisible) {
+        if (deleteTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val cancelTooltipState = rememberTooltipState()
+    LaunchedEffect(cancelTooltipState.isVisible) {
+        if (cancelTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
     val required = subject.requiredToMakeUp()
     val currentPercent = subject.attendancePercentage()
     var animationTarget by remember { mutableFloatStateOf(0f) }
@@ -157,9 +172,8 @@ fun SubjectCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("Edit this subject.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = editTooltipState
                     ) {
                         ElevatedButton(
                             {
@@ -182,9 +196,8 @@ fun SubjectCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("Delete this subject.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = deleteTooltipState
                     ) {
                         ElevatedButton(
                             {
@@ -207,9 +220,8 @@ fun SubjectCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("End scheduling of this subject.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = cancelTooltipState
                     ) {
                         ElevatedButton(
                             {

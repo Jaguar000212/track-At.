@@ -28,6 +28,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +61,21 @@ fun SessionCard(
     val required = subject.requiredToMakeUp()
     val checked = remember(record.status) {
         record.status
+    }
+
+    val presentTooltipState = rememberTooltipState()
+    LaunchedEffect(presentTooltipState.isVisible) {
+        if (presentTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val absentTooltipState = rememberTooltipState()
+    LaunchedEffect(absentTooltipState.isVisible) {
+        if (absentTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val cancelTooltipState = rememberTooltipState()
+    LaunchedEffect(cancelTooltipState.isVisible) {
+        if (cancelTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
     ElevatedCard(
@@ -118,9 +134,8 @@ fun SessionCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("Mark present.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = presentTooltipState
                     ) {
                         ElevatedButton(
                             {
@@ -149,9 +164,8 @@ fun SessionCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("Mark absent.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = absentTooltipState
                     ) {
                         ElevatedButton(
                             {
@@ -180,9 +194,8 @@ fun SessionCard(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip { Text("Mark cancelled.") }
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
-                        state = rememberTooltipState()
+                        state = cancelTooltipState
                     ) {
                         ElevatedButton(
                             {

@@ -16,6 +16,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,17 @@ import androidx.compose.ui.unit.dp
 fun HelpPage() {
     val haptic = LocalHapticFeedback.current
     var pageNo by remember { mutableIntStateOf(0) }
+
+    val prevTooltipState = rememberTooltipState()
+    LaunchedEffect(prevTooltipState.isVisible) {
+        if (prevTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val nextTooltipState = rememberTooltipState()
+    LaunchedEffect(nextTooltipState.isVisible) {
+        if (nextTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -55,10 +67,8 @@ fun HelpPage() {
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
                     PlainTooltip { Text("Previous Page") }
-
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                state = rememberTooltipState()
+                state = prevTooltipState
             ) {
                 Icon(Icons.AutoMirrored.Outlined.ArrowBack, "")
             }
@@ -77,9 +87,8 @@ fun HelpPage() {
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
                     PlainTooltip { Text("Next Page") }
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                state = rememberTooltipState()
+                state = nextTooltipState
             ) {
                 Icon(Icons.AutoMirrored.Outlined.ArrowForward, "")
             }

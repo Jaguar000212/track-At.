@@ -25,6 +25,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +55,16 @@ fun ScheduleCard(
     var showDeleteAlert by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
+    val dragTooltipState = rememberTooltipState()
+    LaunchedEffect(dragTooltipState.isVisible) {
+        if (dragTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    val deleteTooltipState = rememberTooltipState()
+    LaunchedEffect(deleteTooltipState.isVisible) {
+        if (deleteTooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -73,9 +84,8 @@ fun ScheduleCard(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
                     PlainTooltip { Text("Drag and drop to rearrange.") }
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                state = rememberTooltipState()
+                state = dragTooltipState
             ) {
                 Icon(
                     Icons.Outlined.Menu, "", tint = Color.Gray
@@ -95,9 +105,8 @@ fun ScheduleCard(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
                     PlainTooltip { Text("Delete this session.") }
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                state = rememberTooltipState()
+                state = deleteTooltipState
             ) {
                 ElevatedButton(
                     {
