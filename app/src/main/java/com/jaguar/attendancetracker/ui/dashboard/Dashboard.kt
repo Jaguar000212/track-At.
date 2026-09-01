@@ -7,23 +7,31 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Create
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -39,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -48,7 +57,9 @@ import androidx.navigation.NavHostController
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.Subject
+import com.jaguar.attendancetracker.backend.enums.StatusColor
 import com.jaguar.attendancetracker.navigation.Destinations
+import com.jaguar.attendancetracker.ui.components.EditSemesterBottomSheet
 import com.jaguar.attendancetracker.ui.components.EditSubjectBottomSheet
 import com.jaguar.attendancetracker.ui.components.SubjectCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
@@ -58,8 +69,17 @@ import java.util.UUID
 
 @Composable
 fun SemesterHeader(
-    semesterName: String, expanded: Boolean, onToggle: () -> Unit
+    semester: Semester,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onEdit: (Semester) -> Unit,
+    onDelete: (Semester) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+    val isDark = isSystemInDarkTheme()
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteAlert by remember { mutableStateOf(false) }
+
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
     Row(
         modifier = Modifier
@@ -68,15 +88,98 @@ fun SemesterHeader(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = semesterName,
+            text = semester.name,
             style = AppTypography.titleSmall,
-            modifier = Modifier.weight(0.5f)
+            modifier = Modifier.weight(1f)
         )
+
+        ElevatedButton(
+            {
+                showEditDialog = true
+                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+            },
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                Icons.Outlined.Create,
+                contentDescription = "Edit semester",
+                tint = Color(StatusColor.GOOD.color(isDark)),
+                modifier = Modifier.padding(6.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        ElevatedButton(
+            {
+                showDeleteAlert = true
+                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+            },
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                Icons.Outlined.Delete,
+                contentDescription = "Delete semester",
+                tint = Color(StatusColor.ALERT.color(isDark)),
+                modifier = Modifier.padding(6.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         Icon(
             imageVector = Icons.Default.KeyboardArrowDown,
             contentDescription = null,
             modifier = Modifier.rotate(rotationState.value)
+        )
+    }
+
+    if (showDeleteAlert) AlertDialog(
+        onDismissRequest = { showDeleteAlert = false },
+        dismissButton = {
+            TextButton({ showDeleteAlert = false }) {
+                Text(
+                    "No",
+                    style = AppTypography.labelMedium,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton({
+                onDelete(semester)
+                showDeleteAlert = false
+            }) {
+                Text(
+                    "Yes",
+                    style = AppTypography.labelMedium,
+                )
+            }
+        },
+        title = {
+            Text(
+                "Delete Semester",
+                style = AppTypography.titleMedium,
+            )
+        },
+        text = {
+            Text(
+                "Are you sure you want to delete \"${semester.name}\"? This will also delete every subject in it, along with all of their attendance and schedule data. This operation is not reversible.",
+                style = AppTypography.bodyMedium,
+            )
+        })
+
+    if (showEditDialog) {
+        EditSemesterBottomSheet(
+            semester = semester,
+            onDismiss = { showEditDialog = false },
+            onSave = {
+                onEdit(it)
+                showEditDialog = false
+            }
         )
     }
 }
@@ -87,6 +190,7 @@ fun Dashboard(
 ) {
     val haptic = LocalHapticFeedback.current
     var showAddSubjectDialog by remember { mutableStateOf(false) }
+    var showAddSemesterDialog by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val isAtTop by remember {
@@ -164,12 +268,14 @@ fun Dashboard(
                             val semester = semesterWithSubjects.semester
                             item(key = "header_${semester.id}") {
                                 SemesterHeader(
-                                    semesterName = semester.name,
+                                    semester = semester,
                                     expanded = expandedSemesters[semester.id] == true,
                                     onToggle = {
                                         expandedSemesters[semester.id] =
                                             !(expandedSemesters[semester.id] ?: false)
-                                    })
+                                    },
+                                    onEdit = { viewModel.updateSemester(it) },
+                                    onDelete = { viewModel.deleteSemester(it) })
                             }
 
                             if (expandedSemesters[semester.id] == true) {
@@ -200,6 +306,16 @@ fun Dashboard(
                                             onDelete = { viewModel.deleteSubject(it) })
                                     }
                                 }
+                            }
+                        }
+                        item(key = "add_semester") {
+                            TextButton(
+                                onClick = { showAddSemesterDialog = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Outlined.Add, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Add Semester", style = AppTypography.labelMedium)
                             }
                         }
                         item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -241,6 +357,15 @@ fun Dashboard(
                             showAddSubjectDialog = false
                         },
                         availableSemesters = semesters.map { it.semester })
+                }
+                if (showAddSemesterDialog) {
+                    EditSemesterBottomSheet(
+                        semester = viewModel.newSemester(),
+                        onDismiss = { showAddSemesterDialog = false },
+                        onSave = {
+                            viewModel.addSemester(it)
+                            showAddSemesterDialog = false
+                        })
                 }
             }
         }

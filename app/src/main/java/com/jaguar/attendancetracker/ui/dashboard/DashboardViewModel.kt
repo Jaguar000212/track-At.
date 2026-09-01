@@ -75,9 +75,29 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    fun newSemester(): Semester {
+        return Semester(
+            name = "",
+            startDate = LocalDate.now(ZoneId.systemDefault()),
+            endDate = null
+        )
+    }
+
     fun addSemester(semester: Semester) {
         viewModelScope.launch {
             scheduleRepo.addSemester(semester)
+        }
+    }
+
+    fun updateSemester(semester: Semester) {
+        viewModelScope.launch {
+            scheduleRepo.updateSemester(semester)
+        }
+    }
+
+    fun deleteSemester(semester: Semester) {
+        viewModelScope.launch {
+            scheduleRepo.deleteSemester(semester)
         }
     }
 }
