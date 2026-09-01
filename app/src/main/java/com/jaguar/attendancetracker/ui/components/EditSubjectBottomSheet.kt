@@ -42,6 +42,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.SubjectColor
 import com.jaguar.attendancetracker.ui.theme.AppTypography
@@ -49,19 +50,23 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.UUID
 import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditSubjectBottomSheet(
-    subject: Subject, onDismiss: () -> Unit, onSave: (subject: Subject) -> Unit
+    subject: Subject, 
+    onDismiss: () -> Unit, 
+    onSave: (subject: Subject) -> Unit,
+    availableSemesters: List<Semester> = emptyList()
 ) {
     val isDark = isSystemInDarkTheme()
     val haptic = LocalHapticFeedback.current
 
     var name: String by remember { mutableStateOf(subject.name) }
-    var semester: Int by remember { mutableIntStateOf(subject.semester) }
+    var semesterId: UUID by remember { mutableStateOf(subject.semesterId) }
     var startDate: LocalDate by remember { mutableStateOf(subject.startDate) }
     var color: String by remember { mutableStateOf(subject.color) }
     var minAttendance: Int by remember { mutableIntStateOf(subject.minAttendance) }
@@ -145,11 +150,12 @@ fun EditSubjectBottomSheet(
                             expanded = showSemPicker,
                             onExpandedChange = { showSemPicker = it },
                         ) {
+                            val currentSemesterName = availableSemesters.find { it.id == semesterId }?.name ?: "Select Semester"
                             TextField(
                                 modifier = Modifier
                                     .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                                     .fillMaxWidth(0.5f),
-                                value = semester.toString(),
+                                value = currentSemesterName,
                                 onValueChange = { },
                                 readOnly = true,
                                 label = {
@@ -164,14 +170,14 @@ fun EditSubjectBottomSheet(
                             ExposedDropdownMenu(
                                 expanded = showSemPicker,
                                 onDismissRequest = { showSemPicker = false }) {
-                                (1..10).forEach {
+                                availableSemesters.forEach { sem ->
                                     DropdownMenuItem(text = {
                                         Text(
-                                            it.toString(),
+                                            sem.name,
                                             style = AppTypography.labelMedium,
                                         )
                                     }, onClick = {
-                                        semester = it
+                                        semesterId = sem.id
                                         showSemPicker = false
                                     })
                                 }
@@ -316,10 +322,10 @@ fun EditSubjectBottomSheet(
 
             TextButton(
                 {
-                    if (name.isNotEmpty() && semester in 1..10) onSave(
+                    if (name.isNotEmpty()) onSave(
                         subject.copy(
                             name = name,
-                            semester = semester,
+                            semesterId = semesterId,
                             startDate = startDate,
                             color = color,
                             minAttendance = minAttendance,

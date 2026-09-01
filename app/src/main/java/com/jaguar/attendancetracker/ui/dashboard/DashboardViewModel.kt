@@ -2,6 +2,8 @@ package com.jaguar.attendancetracker.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jaguar.attendancetracker.backend.entities.Semester
+import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.repositories.AttendanceRepository
 import com.jaguar.attendancetracker.backend.repositories.ScheduleRepository
@@ -15,15 +17,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val scheduleRepo: ScheduleRepository, private val attendanceRepo: AttendanceRepository
+    private val scheduleRepo: ScheduleRepository,
+    private val attendanceRepo: AttendanceRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardState> =
-        scheduleRepo.getAllSubjects().map<List<Subject>, DashboardState> {
+        scheduleRepo.getActiveSemesters().map<List<SemesterWithSubjects>, DashboardState> {
             DashboardState.Success(it)
         }.onStart {
             emit(DashboardState.Loading)
@@ -33,10 +37,10 @@ class DashboardViewModel @Inject constructor(
             viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardState.Loading
         )
 
-    fun newSubject(): Subject {
+    fun newSubject(semesterId: UUID): Subject {
         return Subject(
             name = "",
-            semester = 1,
+            semesterId = semesterId,
             startDate = LocalDate.now(ZoneId.systemDefault()),
             isEnded = false,
             color = "PINK",
@@ -68,6 +72,32 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             attendanceRepo.deleteAttendanceBySubject(subject.id)
             scheduleRepo.cancelScheduling(subject)
+        }
+    }
+
+    fun newSemester(): Semester {
+        return Semester(
+            name = "",
+            startDate = LocalDate.now(ZoneId.systemDefault()),
+            endDate = null
+        )
+    }
+
+    fun addSemester(semester: Semester) {
+        viewModelScope.launch {
+            scheduleRepo.addSemester(semester)
+        }
+    }
+
+    fun updateSemester(semester: Semester) {
+        viewModelScope.launch {
+            scheduleRepo.updateSemester(semester)
+        }
+    }
+
+    fun deleteSemester(semester: Semester) {
+        viewModelScope.launch {
+            scheduleRepo.deleteSemester(semester)
         }
     }
 }

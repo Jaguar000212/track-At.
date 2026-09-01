@@ -1,15 +1,28 @@
 package com.jaguar.attendancetracker.backend.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDate
 import java.util.UUID
 
-@Entity(tableName = "Subjects")
+@Entity(
+    tableName = "Subjects",
+    foreignKeys = [
+        ForeignKey(
+            entity = Semester::class,
+            parentColumns = ["id"],
+            childColumns = ["semesterId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("semesterId")]
+)
 data class Subject(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
-    val semester: Int,
+    val semesterId: UUID,
     val startDate: LocalDate,
     val isEnded: Boolean,
     val color: String,
@@ -38,5 +51,4 @@ data class Subject(
             -kotlin.math.ceil(needed).toInt()
         }
     }
-
 }

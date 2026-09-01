@@ -1,7 +1,10 @@
 package com.jaguar.attendancetracker.backend.repositories
 
+import com.jaguar.attendancetracker.backend.daos.SemesterDao
 import com.jaguar.attendancetracker.backend.daos.SessionRecordDao
 import com.jaguar.attendancetracker.backend.daos.SubjectDao
+import com.jaguar.attendancetracker.backend.entities.Semester
+import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.SessionsWithSubject
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -10,12 +13,29 @@ import java.util.UUID
 import javax.inject.Inject
 
 class ScheduleRepository @Inject constructor(
-    private val sessionRecordDao: SessionRecordDao, private val subjectDao: SubjectDao
+    private val sessionRecordDao: SessionRecordDao,
+    private val subjectDao: SubjectDao,
+    private val semesterDao: SemesterDao
 ) {
     suspend fun getSessionsByDay(day: Int): List<SessionRecord> = sessionRecordDao.getByDay(day)
 
     fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>> =
         sessionRecordDao.getWithSubjects()
+
+    fun getActiveSemesters(): Flow<List<SemesterWithSubjects>> =
+        semesterDao.getActiveSemestersWithSubjects()
+
+    suspend fun addSemester(semester: Semester) {
+        semesterDao.insert(semester)
+    }
+
+    suspend fun updateSemester(semester: Semester) {
+        semesterDao.update(semester)
+    }
+
+    suspend fun deleteSemester(semester: Semester) {
+        semesterDao.delete(semester)
+    }
 
     suspend fun addSession(sessionRecord: SessionRecord) {
         sessionRecordDao.insert(sessionRecord)
