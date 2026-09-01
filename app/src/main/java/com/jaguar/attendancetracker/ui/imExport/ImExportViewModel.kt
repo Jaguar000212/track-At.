@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -28,6 +29,7 @@ import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,6 +50,7 @@ class ImExportViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 val backupData = withContext(Dispatchers.IO) {
+                    val semesters = if (includeSubjects) ieRepo.getAllSemesters().first() else null
                     val subjects = if (includeSubjects) ieRepo.getAllSubjects().first() else null
                     val schedule =
                         if (includeSchedule) ieRepo.getAllSessionRecords().first() else null
@@ -55,7 +58,10 @@ class ImExportViewModel @Inject constructor(
                         if (includeAttendance) ieRepo.getAllAttendanceRecords().first() else null
 
                     BackupData(
-                        subjects = subjects, schedule = schedule, attendance = attendance
+                        semesters = semesters,
+                        subjects = subjects,
+                        schedule = schedule,
+                        attendance = attendance
                     )
                 }
 
@@ -97,6 +103,7 @@ class ImExportViewModel @Inject constructor(
                             val backupData = gson.fromJson(jsonRoot, BackupData::class.java)
 
                             ieRepo.upsertDataInTransaction(
+                                semesters = backupData.semesters,
                                 subjects = backupData.subjects,
                                 sessions = backupData.schedule,
                                 attendance = backupData.attendance
@@ -125,6 +132,7 @@ class ImExportViewModel @Inject constructor(
         while (currentVersion < targetVersion) {
             when (currentVersion) {
                 8 -> migrateToVersion9(json)
+                9 -> migrateToVersion10(json)
             }
             currentVersion++
         }
@@ -140,6 +148,43 @@ class ImExportViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun migrateToVersion10(json: JsonObject) {
+        if (json.has("semesters")) return // Already has semesters
+
+        val semestersArray = JsonArray()
+        val semesterMap = mutableMapOf<Int, String>()
+        // BackupData's LocalDate fields go through the LocalDateAdapter registered on `gson`,
+        // which (de)serializes them as ISO date strings - not the epoch-day Long Room stores
+        // them as in the database. Match that format here or restoring this backup will throw
+        // a DateTimeParseException when it's read back in.
+        val nowIso = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+        if (json.has("subjects")) {
+            val subjectsArray = json.getAsJsonArray("subjects")
+            subjectsArray.forEach { element ->
+                val subjectObj = element.asJsonObject
+                if (subjectObj.has("semester")) {
+                    val oldSemInt = subjectObj.get("semester").asInt
+                    val semesterId = semesterMap.getOrPut(oldSemInt) {
+                        val newId = UUID.randomUUID().toString()
+                        val semesterObj = JsonObject().apply {
+                            addProperty("id", newId)
+                            addProperty("name", "Semester $oldSemInt")
+                            addProperty("startDate", nowIso)
+                            addProperty("targetAttendance", 75)
+                            addProperty("isArchived", false)
+                        }
+                        semestersArray.add(semesterObj)
+                        newId
+                    }
+                    subjectObj.addProperty("semesterId", semesterId)
+                    subjectObj.remove("semester")
+                }
+            }
+        }
+        json.add("semesters", semestersArray)
     }
 }
 

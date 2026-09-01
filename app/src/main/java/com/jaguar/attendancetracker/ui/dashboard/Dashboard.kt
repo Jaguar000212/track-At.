@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -43,16 +45,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.jaguar.attendancetracker.backend.entities.Semester
+import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.navigation.Destinations
 import com.jaguar.attendancetracker.ui.components.EditSubjectBottomSheet
 import com.jaguar.attendancetracker.ui.components.SubjectCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
+import java.time.LocalDate
+import java.util.UUID
 
 
 @Composable
 fun SemesterHeader(
-    semester: Int, expanded: Boolean, onToggle: () -> Unit
+    semesterName: String, expanded: Boolean, onToggle: () -> Unit
 ) {
     val rotationState = animateFloatAsState(if (expanded) 180f else 0f)
     Row(
@@ -62,7 +68,7 @@ fun SemesterHeader(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = "Semester $semester",
+            text = semesterName,
             style = AppTypography.titleSmall,
             modifier = Modifier.weight(0.5f)
         )
@@ -107,64 +113,92 @@ fun Dashboard(
             }
 
             is DashboardState.Success -> {
-                val subjects: List<Subject> =
-                    (uiState as DashboardState.Success).subjects.sortedBy { it.isEnded }
-                val subjectsBySemester = remember(subjects) {
-                    subjects.groupBy { it.semester }.toSortedMap(compareByDescending { it })
-                }
+                val semesters: List<SemesterWithSubjects> =
+                    (uiState as DashboardState.Success).semesters
+                
                 val expandedSemesters = remember {
-                    mutableStateMapOf<Int, Boolean>().apply {
-                        subjectsBySemester.keys.forEachIndexed { index, semester ->
-                            put(semester, index == 0)
+                    mutableStateMapOf<UUID, Boolean>().apply {
+                        semesters.forEachIndexed { index, semesterWithSubjects ->
+                            put(semesterWithSubjects.semester.id, index == 0)
                         }
                     }
                 }
 
-                LaunchedEffect(subjectsBySemester) {
-                    subjectsBySemester.keys.forEachIndexed { index, key ->
+                LaunchedEffect(semesters) {
+                    semesters.forEachIndexed { index, semesterWithSubjects ->
+                        val key = semesterWithSubjects.semester.id
                         if (!expandedSemesters.containsKey(key)) {
                             expandedSemesters[key] = index == 0
                         }
                     }
                 }
-                if (subjects.isEmpty()) {
-                    Text(
-                        "No subjects yet.",
-                        style = AppTypography.bodyMedium,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                
+                if (semesters.isEmpty()) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            "No semesters yet.",
+                            style = AppTypography.bodyMedium
+                        )
+                        TextButton(onClick = {
+                            viewModel.addSemester(
+                                Semester(
+                                    name = "Semester 1",
+                                    startDate = LocalDate.now(),
+                                    endDate = null
+                                )
+                            )
+                        }) {
+                            Text("Create Semester 1")
+                        }
+                    }
                 } else {
                     LazyColumn(
                         state = listState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        subjectsBySemester.forEach { (semester, semesterSubjects) ->
-                            item(key = "header_$semester") {
+                        semesters.forEach { semesterWithSubjects ->
+                            val semester = semesterWithSubjects.semester
+                            item(key = "header_${semester.id}") {
                                 SemesterHeader(
-                                    semester = semester,
-                                    expanded = expandedSemesters[semester] == true,
+                                    semesterName = semester.name,
+                                    expanded = expandedSemesters[semester.id] == true,
                                     onToggle = {
-                                        expandedSemesters[semester] =
-                                            !(expandedSemesters[semester] ?: false)
+                                        expandedSemesters[semester.id] =
+                                            !(expandedSemesters[semester.id] ?: false)
                                     })
                             }
 
-                            if (expandedSemesters[semester] == true) {
-                                items(
-                                    items = semesterSubjects, key = { it.id }) { subject ->
-                                    SubjectCard(
-                                        modifier = Modifier.animateItem(),
-                                        subject = subject,
-                                        onClick = {
-                                            navController.navigate("${Destinations.SUBJECT.route}/${it.id}") {
-                                                popUpTo(Destinations.DAYVIEW.route) {
-                                                    inclusive = false
+                            if (expandedSemesters[semester.id] == true) {
+                                if (semesterWithSubjects.subjects.isEmpty()) {
+                                    item {
+                                        Text(
+                                            "No subjects in this semester.",
+                                            style = AppTypography.bodySmall,
+                                            modifier = Modifier.padding(start = 32.dp, top = 8.dp, bottom = 8.dp)
+                                        )
+                                    }
+                                } else {
+                                    items(
+                                        items = semesterWithSubjects.subjects, key = { it.id }) { subject ->
+                                        SubjectCard(
+                                            modifier = Modifier.animateItem(),
+                                            subject = subject,
+                                            availableSemesters = semesters.map { it.semester },
+                                            onClick = {
+                                                navController.navigate("${Destinations.SUBJECT.route}/${it.id}") {
+                                                    popUpTo(Destinations.DAYVIEW.route) {
+                                                        inclusive = false
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        onEdit = { viewModel.editSubject(it) },
-                                        onCancelSchedule = { viewModel.cancelScheduling(it) },
-                                        onDelete = { viewModel.deleteSubject(it) })
+                                            },
+                                            onEdit = { viewModel.editSubject(it) },
+                                            onCancelSchedule = { viewModel.cancelScheduling(it) },
+                                            onDelete = { viewModel.deleteSubject(it) })
+                                    }
                                 }
                             }
                         }
@@ -197,15 +231,16 @@ fun Dashboard(
                         }
                     }
                 }
-                if (showAddSubjectDialog) {
-                    val newSubject = viewModel.newSubject()
+                if (showAddSubjectDialog && semesters.isNotEmpty()) {
+                    val newSubject = viewModel.newSubject(semesters.first().semester.id)
                     EditSubjectBottomSheet(
                         subject = newSubject,
                         onDismiss = { showAddSubjectDialog = false },
                         onSave = {
                             viewModel.addSubject(it)
                             showAddSubjectDialog = false
-                        })
+                        },
+                        availableSemesters = semesters.map { it.semester })
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.jaguar.attendancetracker.dependencies
 
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.backend.daos.AttendanceRecordDao
+import com.jaguar.attendancetracker.backend.daos.SemesterDao
 import com.jaguar.attendancetracker.backend.daos.SessionRecordDao
 import com.jaguar.attendancetracker.backend.daos.SubjectDao
 import dagger.Module
@@ -22,4 +23,7 @@ object DaoModules {
 
     @Provides
     fun provideSubjectDao(database: AttendanceDatabase): SubjectDao = database.subjectDao()
+
+    @Provides
+    fun provideSemesterDao(database: AttendanceDatabase): SemesterDao = database.semesterDao()
 }

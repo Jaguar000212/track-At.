@@ -51,6 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.StatusColor
 import com.jaguar.attendancetracker.backend.enums.SubjectColor
@@ -63,6 +64,7 @@ import kotlin.math.absoluteValue
 fun SubjectCard(
     subject: Subject,
     modifier: Modifier = Modifier,
+    availableSemesters: List<Semester> = emptyList(),
     onClick: (subject: Subject) -> Unit,
     onEdit: (subject: Subject) -> Unit,
     onCancelSchedule: (subject: Subject) -> Unit,
@@ -374,9 +376,14 @@ fun SubjectCard(
         })
 
     if (showEditDialog) {
-        EditSubjectBottomSheet(subject, { showEditDialog = false }) {
-            onEdit(it)
-            showEditDialog = false
-        }
+        EditSubjectBottomSheet(
+            subject = subject,
+            onDismiss = { showEditDialog = false },
+            onSave = {
+                onEdit(it)
+                showEditDialog = false
+            },
+            availableSemesters = availableSemesters
+        )
     }
 }
