@@ -1,0 +1,10 @@
+CREATE TABLE BoardItems (
+    id BLOB NOT NULL,
+    title TEXT NOT NULL,
+    dueDate INTEGER,
+    isDone INTEGER NOT NULL,
+    PRIMARY KEY (id)
+);
+INSERT INTO BoardItems VALUES
+    (X'00000000000000000000000000000021', 'Undated task', NULL, 0),
+    (X'00000000000000000000000000000022', 'Completed task', 20020, 1);

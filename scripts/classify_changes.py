@@ -37,7 +37,7 @@ def migration_changes(paths):
                                     "app/src/androidTest/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackup",
                                     "app/src/main/java/" + board, "app/src/androidTest/java/" + board))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
-                           main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt",
+                           main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt", main + "daos/ExamDao.kt",
                            main + "repositories/PlannerRestoreRepository.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerMergePreview.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupFormat.kt",
