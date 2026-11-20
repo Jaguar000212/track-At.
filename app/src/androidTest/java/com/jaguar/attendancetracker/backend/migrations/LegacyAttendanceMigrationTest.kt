@@ -33,9 +33,10 @@ class LegacyAttendanceMigrationTest {
                 legacy.version = fromVersion
             }
 
-            Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
+            val room = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
                 .addMigrations(Migration8TO9, Migration9TO10)
-                .build().use { room ->
+                .build()
+            try {
                     // Opening through Room runs its actual migration transaction and schema validation.
                     val db = room.openHelper.writableDatabase
                     assertEquals(10, db.version)
@@ -103,7 +104,9 @@ class LegacyAttendanceMigrationTest {
                     assertRows(db, "SELECT hex(id) FROM SessionRecords", emptyList())
                     assertRows(db, "SELECT hex(id) FROM AttendanceRecords", listOf(listOf(EXTRA)))
                     assertRows(db, "PRAGMA foreign_key_check", emptyList())
-                }
+            } finally {
+                room.close()
+            }
         } finally {
             assertTrue("Temporary fixture database must be removed", context.deleteDatabase(name) ||
                 !context.getDatabasePath(name).exists())
