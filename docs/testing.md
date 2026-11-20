@@ -437,3 +437,21 @@ death does not persist drafts or pending confirmations.
 The focused API 29 tests use real Room: review versus confirmation, selected
 fields, duplicate confirmation, stale source, backup and late rollback. They
 do not drive the complete navigation or the actual date pickers.
+
+### Internal exam reminder policy
+
+No settings, permission prompts, alarm, Worker or notifications are enabled
+by this phase. The JVM tests cover explicit per-dated-exam consent and a
+suggestion of 18:00 on the previous calendar day in the originating zone.
+A past suggestion asks for an explicit future time; it never fires
+immediately or moves itself. Since an exam has no known time, an explicit
+future reminder may be set through the exam's calendar date, but not later.
+A nonexistent local time in a DST jump is invalid; in an overlap the
+earlier instant is used and the resolved offset can be shown. Invalid or
+unrepresentable dates fail closed. The delivery window closes at the earlier
+of two hours after the chosen time or midnight ending the exam date, both
+exclusive. The revision, exam identity and date must still match, and a
+changed date does not move the alert without a new explicit confirmation.
+An imported exam without local consent cannot deliver. Storage, one-shot
+claim under the same lock as live edits/cancellation, permissions and
+generic lock-screen notifications belong to later runtime verification.
