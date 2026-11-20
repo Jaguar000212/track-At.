@@ -399,3 +399,17 @@ are not recalculated from the attendance log just by browsing.
    chooser rejection, repeated materialization, existing-row edits,
    archived history through planner export/restore, and confirmation/Back.
    Also check the Dashboard scroll/expansion, large fonts and TalkBack.
+
+### Reorder mixed timetables
+
+On the same weekday, put two sessions in active semesters and two in archived
+semesters, with at least one session also on a different day. Archived rows
+stay visible and labeled below the active rows. Reorder within each group
+and save; the other group and weekday must be unchanged. Try dragging across
+the group and day boundaries; the drop must not move the row. Try the same
+using TalkBack actions, including an edge of a group. Previous deliberate
+addition and deletion actions still work in both scopes where available.
+If that day's timetable or term status changes while an order is pending,
+saving must show an error without applying the draft. The API 29 tests cover
+the actual Room ordering writes, group boundaries and stale rejection;
+drag gestures and accessibility require hands-on testing.
