@@ -40,10 +40,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -64,7 +64,6 @@ import com.jaguar.attendancetracker.ui.components.EditSubjectBottomSheet
 import com.jaguar.attendancetracker.ui.components.SubjectCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
 import java.time.LocalDate
-import java.util.UUID
 
 
 @Composable
@@ -188,10 +187,25 @@ fun SemesterHeader(
 fun Dashboard(
     viewModel: DashboardViewModel = hiltViewModel(), navController: NavHostController
 ) {
+    SemesterBrowser { showArchived ->
+        if (showArchived) {
+            val archived by viewModel.archivedState.collectAsStateWithLifecycle()
+            ArchivedTerms(archived)
+        } else {
+            ActiveDashboard(viewModel, navController)
+        }
+    }
+}
+
+@Composable
+private fun ActiveDashboard(viewModel: DashboardViewModel, navController: NavHostController) {
     val haptic = LocalHapticFeedback.current
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var showAddSemesterDialog by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Keep expansion choices outside Loading/Success so a new query does not clear them.
+    var expanded by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+    var collapsed by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
     val listState = rememberLazyListState()
     val isAtTop by remember {
         derivedStateOf {
@@ -220,23 +234,16 @@ fun Dashboard(
                 val semesters: List<SemesterWithSubjects> =
                     (uiState as DashboardState.Success).semesters
                 
-                val expandedSemesters = remember {
-                    mutableStateMapOf<UUID, Boolean>().apply {
-                        semesters.forEachIndexed { index, semesterWithSubjects ->
-                            put(semesterWithSubjects.semester.id, index == 0)
-                        }
+                LaunchedEffect(semesters) {
+                    val newIds = semesters.map { it.semester.id.toString() }
+                        .filterNot { it in expanded || it in collapsed }
+                    if (newIds.isNotEmpty()) {
+                        val firstId = semesters.first().semester.id.toString()
+                        if (firstId in newIds) expanded = ArrayList(expanded + firstId)
+                        collapsed = ArrayList(collapsed + newIds.filterNot { it == firstId })
                     }
                 }
 
-                LaunchedEffect(semesters) {
-                    semesters.forEachIndexed { index, semesterWithSubjects ->
-                        val key = semesterWithSubjects.semester.id
-                        if (!expandedSemesters.containsKey(key)) {
-                            expandedSemesters[key] = index == 0
-                        }
-                    }
-                }
-                
                 if (semesters.isEmpty()) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
@@ -266,19 +273,26 @@ fun Dashboard(
                     ) {
                         semesters.forEach { semesterWithSubjects ->
                             val semester = semesterWithSubjects.semester
+                            val id = semester.id.toString()
+                            val isExpanded = id in expanded || (id !in collapsed && semester == semesters.first().semester)
                             item(key = "header_${semester.id}") {
                                 SemesterHeader(
                                     semester = semester,
-                                    expanded = expandedSemesters[semester.id] == true,
+                                    expanded = isExpanded,
                                     onToggle = {
-                                        expandedSemesters[semester.id] =
-                                            !(expandedSemesters[semester.id] ?: false)
+                                        if (isExpanded) {
+                                            expanded = ArrayList(expanded - id)
+                                            collapsed = ArrayList(collapsed + id)
+                                        } else {
+                                            collapsed = ArrayList(collapsed - id)
+                                            expanded = ArrayList(expanded + id)
+                                        }
                                     },
                                     onEdit = { viewModel.updateSemester(it) },
                                     onDelete = { viewModel.deleteSemester(it) })
                             }
 
-                            if (expandedSemesters[semester.id] == true) {
+                            if (isExpanded) {
                                 if (semesterWithSubjects.subjects.isEmpty()) {
                                     item {
                                         Text(

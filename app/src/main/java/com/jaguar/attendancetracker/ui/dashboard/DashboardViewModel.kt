@@ -8,6 +8,7 @@ import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.repositories.AttendanceRepository
 import com.jaguar.attendancetracker.backend.repositories.ScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -26,8 +27,11 @@ class DashboardViewModel @Inject constructor(
     private val attendanceRepo: AttendanceRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<DashboardState> =
-        scheduleRepo.getActiveSemesters().map<List<SemesterWithSubjects>, DashboardState> {
+    val uiState = dashboardState(scheduleRepo.getActiveSemesters())
+    val archivedState = dashboardState(scheduleRepo.getArchivedSemesters())
+
+    private fun dashboardState(semesters: Flow<List<SemesterWithSubjects>>): StateFlow<DashboardState> =
+        semesters.map<List<SemesterWithSubjects>, DashboardState> {
             DashboardState.Success(it)
         }.onStart {
             emit(DashboardState.Loading)

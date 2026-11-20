@@ -25,6 +25,9 @@ class ScheduleRepository @Inject constructor(
     fun getActiveSemesters(): Flow<List<SemesterWithSubjects>> =
         semesterDao.getActiveSemestersWithSubjects()
 
+    fun getArchivedSemesters(): Flow<List<SemesterWithSubjects>> =
+        semesterDao.getArchivedSemestersWithSubjects()
+
     suspend fun addSemester(semester: Semester) {
         semesterDao.insert(semester)
     }

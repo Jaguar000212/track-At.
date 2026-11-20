@@ -374,3 +374,23 @@ Counts are still visible information on the home screen; add only if desired.
 4. The API 29 runner tests the real aggregate query, both manifest receivers,
    and an explicit warm Today intent. It does not drive the launcher widget
    pin, actual resize, RemoteViews draw, screenshot, or launcher refresh timing.
+
+## Archived semesters
+
+On the subject Dashboard, switch between **Active** and **Archived**. An
+archived term shows its dates, subjects, and saved attendance totals only.
+It does not link to editing, deletion or marking. The numbers are the saved
+subject totals, not a new calculation from the attendance log. This does
+not change how Day View, Today, or the widgets treat dates or scheduling.
+
+1. Compare a fixture containing archived and active semesters, including an
+   archived term with no subjects. Only Active offers the existing create,
+   edit, delete and subject-detail actions.
+2. Expand/collapse an Active semester, switch to Archived, then press Back.
+   The Active scope and its expansion/scroll state should return. Back from
+   Active should still leave the Dashboard normally. Check narrow width,
+   TalkBack and large fonts.
+3. Compare an archived subject's records before and after browsing. The
+   focused API 29 test verifies Room scope separation and intact historical
+   marks, plus returning to retained Active state without exposing active
+   actions in Archived. Creation/archive/restore are not part of browsing.
