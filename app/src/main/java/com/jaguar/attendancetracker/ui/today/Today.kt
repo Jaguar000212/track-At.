@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -38,10 +39,11 @@ internal fun Today(
     openDashboard: () -> Unit,
     openExams: () -> Unit,
     openLeave: () -> Unit,
+    openInsights: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    TodayContent(state, openDayView, openDashboard, openExams, openLeave)
+    TodayContent(state, openDayView, openDashboard, openExams, openLeave, openInsights)
 }
 
 @Composable
@@ -51,10 +53,11 @@ internal fun TodayContent(
     openDashboard: () -> Unit,
     openExams: () -> Unit,
     openLeave: () -> Unit,
+    openInsights: () -> Unit,
 ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
-            modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth(),
+            modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth().testTag("today-list"),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -104,6 +107,11 @@ internal fun TodayContent(
             item {
                 OutlinedButton(onClick = openLeave, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.leave_title))
+                }
+            }
+            item {
+                OutlinedButton(onClick = openInsights, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.insights_title))
                 }
             }
             when (state) {

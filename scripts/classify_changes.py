@@ -35,12 +35,15 @@ def migration_changes(paths):
     board = "com/jaguar/attendancetracker/ui/board/"
     exams = "com/jaguar/attendancetracker/ui/exams/"
     leave = "com/jaguar/attendancetracker/ui/leave/"
+    insights = "com/jaguar/attendancetracker/ui/insights/"
     return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/",
                                     "app/src/androidTest/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackup",
                                     "app/src/main/java/" + board, "app/src/androidTest/java/" + board,
                                     "app/src/main/java/" + exams, "app/src/androidTest/java/" + exams,
-                                    "app/src/androidTest/java/" + leave))
+                                    "app/src/androidTest/java/" + leave,
+                                    "app/src/main/java/" + insights, "app/src/androidTest/java/" + insights))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
+                           main + "daos/AttendanceRecordDao.kt",
                            main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt", main + "daos/ExamDao.kt",
                            main + "repositories/PlannerRestoreRepository.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerMergePreview.kt",

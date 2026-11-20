@@ -11,6 +11,10 @@ import java.util.UUID
 
 internal const val ATTENDANCE_TREND_WEEKS = 8
 
+internal fun attendanceTrendStart(through: LocalDate): LocalDate =
+    through.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        .minusWeeks((ATTENDANCE_TREND_WEEKS - 1).toLong())
+
 internal data class AttendanceRate(val attended: Long, val marked: Long)
 
 internal data class AttendanceTrendWeek(
@@ -40,8 +44,7 @@ internal fun attendanceTrend(
     today: LocalDate,
     subjectId: UUID? = null,
 ): List<AttendanceTrendWeek> {
-    val currentMonday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-    val firstMonday = currentMonday.minusWeeks((ATTENDANCE_TREND_WEEKS - 1).toLong())
+    val firstMonday = attendanceTrendStart(today)
     val weeks = Array(ATTENDANCE_TREND_WEEKS) { WeekCounters() }
     val regular = mutableMapOf<RegularOccurrence, AttendanceRecord>()
     val duplicated = mutableSetOf<RegularOccurrence>()

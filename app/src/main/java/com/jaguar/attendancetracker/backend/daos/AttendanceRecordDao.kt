@@ -33,6 +33,9 @@ interface AttendanceRecordDao {
     @Query("SELECT * FROM AttendanceRecords")
     fun getAll(): Flow<List<AttendanceRecord>>
 
+    @Query("SELECT * FROM AttendanceRecords WHERE date BETWEEN :first AND :last ORDER BY date, id")
+    suspend fun readDateWindow(first: LocalDate, last: LocalDate): List<AttendanceRecord>
+
     @Query("SELECT * FROM AttendanceRecords WHERE subjectId = :subjectId ORDER BY date DESC")
     suspend fun getBySubject(subjectId: UUID): List<AttendanceRecord>
 

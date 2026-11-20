@@ -48,7 +48,7 @@ class ClassifierTest(unittest.TestCase):
                      "ui/imExport/PlannerMergePreview.kt", "ui/imExport/PlannerBackupFormat.kt",
                      "ui/imExport/PlannerBackupFiles.kt", "ui/imExport/PlannerBackupScreen.kt",
                      "ui/imExport/PlannerBackupViewModel.kt", "backend/daos/BoardItemDao.kt",
-                     "ui/board/BoardScreen.kt", "ui/board/BoardViewModel.kt", "backend/daos/ExamDao.kt", "ui/exams/ExamsScreen.kt", "ui/today/Today.kt", "ui/leave/LeaveScreen.kt", "ui/leave/LeaveScenario.kt", "ui/leave/LeaveViewModel.kt", "ui/components/PickerCalendarDate.kt", "ui/dayView/DayView.kt"):
+                     "ui/board/BoardScreen.kt", "ui/board/BoardViewModel.kt", "backend/daos/ExamDao.kt", "ui/exams/ExamsScreen.kt", "ui/today/Today.kt", "ui/leave/LeaveScreen.kt", "ui/leave/LeaveScenario.kt", "ui/leave/LeaveViewModel.kt", "ui/components/PickerCalendarDate.kt", "ui/dayView/DayView.kt", "ui/insights/InsightsScreen.kt", "backend/daos/AttendanceRecordDao.kt"):
             self.assertTrue(module.migration_changes([prefix + path]))
 
     def test_rename_reports_both_paths(self):

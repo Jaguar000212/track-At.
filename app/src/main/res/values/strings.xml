@@ -131,4 +131,24 @@
     <string name="leave_undated_exams">Undated exams</string>
     <string name="leave_undated_caveat">These have no date, so overlap is unknown.</string>
     <string name="leave_load_error">Could not load the Leave Planner.</string>
+    <string name="insights_title">Insights</string>
+    <string name="insights_intro">Eight weeks of saved attendance. Weeks start on Monday; the current week includes records through today only.</string>
+    <string name="insights_scope">Showing: %1$s</string>
+    <string name="insights_all_subjects">All subjects, including archived</string>
+    <string name="insights_choose_subject">Choose attendance scope</string>
+    <string name="insights_subject">%1$s · %2$s</string>
+    <string name="insights_archived_subject">%1$s · %2$s (archived)</string>
+    <string name="insights_close">Close</string>
+    <string name="insights_denominator">The bar compares present and absent marks. Unmarked and cancelled records do not count toward the rate.</string>
+    <string name="insights_no_records_scope">No saved attendance in this scope and date window.</string>
+    <string name="insights_no_marked_scope">No marked classes in this scope and date window.</string>
+    <string name="insights_no_marked_week">No marked classes this week.</string>
+    <string name="insights_current_week">Current week · through today</string>
+    <string name="insights_week">%1$s to %2$s</string>
+    <string name="insights_rate">%1$s · %2$d present out of %3$d marked</string>
+    <string name="insights_marked_counts">Present: %1$d · Absent: %2$d</string>
+    <string name="insights_other_counts">Unmarked: %1$d · Cancelled: %2$d</string>
+    <string name="insights_excluded_count">Ambiguous records excluded: %1$d</string>
+    <string name="insights_excluded_help">Counts come from saved records in these weeks. Ambiguous records are set aside, so totals can differ from the subject summary.</string>
+    <string name="insights_load_error">Could not load attendance insights.</string>
 </resources>
