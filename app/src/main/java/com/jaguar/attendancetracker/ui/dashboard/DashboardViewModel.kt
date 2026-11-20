@@ -99,6 +99,10 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    fun setSemesterArchived(id: UUID, archived: Boolean) {
+        viewModelScope.launch { scheduleRepo.setSemesterArchived(id, archived) }
+    }
+
     fun deleteSemester(semester: Semester) {
         viewModelScope.launch {
             scheduleRepo.deleteSemester(semester)

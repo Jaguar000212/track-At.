@@ -1,14 +1,14 @@
 package com.jaguar.attendancetracker.backend.daos
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+import java.util.UUID
 
 @Dao
 interface SemesterDao {
@@ -29,9 +29,15 @@ interface SemesterDao {
     @Insert
     suspend fun insert(semester: Semester)
 
-    @Update
-    suspend fun update(semester: Semester)
+    @Query("""
+        UPDATE Semesters SET name = :name, startDate = :startDate, endDate = :endDate,
+        targetAttendance = :targetAttendance WHERE id = :id AND isArchived = 0
+    """)
+    suspend fun updateActiveDetails(id: UUID, name: String, startDate: LocalDate, endDate: LocalDate?, targetAttendance: Int)
 
-    @Delete
-    suspend fun delete(semester: Semester)
+    @Query("UPDATE Semesters SET isArchived = :archived WHERE id = :id AND isArchived != :archived")
+    suspend fun setArchived(id: UUID, archived: Boolean)
+
+    @Query("DELETE FROM Semesters WHERE id = :id AND isArchived = 0")
+    suspend fun deleteActive(id: UUID)
 }

@@ -35,7 +35,7 @@ internal class TodayViewModel @Inject constructor(
     }.distinctUntilChanged().flatMapLatest { date ->
         combine(
             attendance.getAttendanceWithSubjects(date),
-            schedule.getSessionsWithSubjects(),
+            schedule.getOperationalSessionsWithSubjects(),
         ) { records, timetable ->
             val snapshot: TodayState = todaySnapshot(date, records, timetable)
             snapshot

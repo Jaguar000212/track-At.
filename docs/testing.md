@@ -377,20 +377,25 @@ Counts are still visible information on the home screen; add only if desired.
 
 ## Archived semesters
 
-On the subject Dashboard, switch between **Active** and **Archived**. An
-archived term shows its dates, subjects, and saved attendance totals only.
-It does not link to editing, deletion or marking. The numbers are the saved
-subject totals, not a new calculation from the attendance log. This does
-not change how Day View, Today, or the widgets treat dates or scheduling.
+On the subject Dashboard, switch between **Active** and **Archived**. Expand
+an active term to find **Archive semester**, or use **Unarchive semester** on
+an archived term. Only confirming changes the term status. Term dates,
+timetable, saved attendance, and backup content are kept. The saved totals
+are not recalculated from the attendance log just by browsing.
 
-1. Compare a fixture containing archived and active semesters, including an
-   archived term with no subjects. Only Active offers the existing create,
-   edit, delete and subject-detail actions.
-2. Expand/collapse an Active semester, switch to Archived, then press Back.
-   The Active scope and its expansion/scroll state should return. Back from
-   Active should still leave the Dashboard normally. Check narrow width,
-   TalkBack and large fonts.
-3. Compare an archived subject's records before and after browsing. The
-   focused API 29 test verifies Room scope separation and intact historical
-   marks, plus returning to retained Active state without exposing active
-   actions in Archived. Creation/archive/restore are not part of browsing.
+1. Cancel either confirmation and verify neither list changes. Confirm to
+   move the term, then reverse it. While archived, the term summary does not
+   expose edit, delete, or marking actions.
+2. Give an active and archived subject matching weekdays and session start
+   dates. In Day View inspect today and an earlier eligible date: only the
+   active slot should materialize, but a saved archived record stays visible
+   and can still be marked. The extra-class list must omit archived subjects.
+   Unarchive and reopen/reselect a date to make the preserved timetable
+   eligible again; already saved rows must not duplicate.
+3. Verify Today and the original Tracker widget no longer show unsaved slots
+   from archived terms but keep saved rows. Tracker launcher refresh remains
+   hands-on. Campus Brief stays saved-count-only.
+4. The focused API 29 tests check real Room eligibility including stale
+   chooser rejection, repeated materialization, existing-row edits,
+   archived history through planner export/restore, and confirmation/Back.
+   Also check the Dashboard scroll/expansion, large fonts and TalkBack.

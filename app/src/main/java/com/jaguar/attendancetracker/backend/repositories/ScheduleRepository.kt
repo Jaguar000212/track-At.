@@ -17,7 +17,12 @@ class ScheduleRepository @Inject constructor(
     private val subjectDao: SubjectDao,
     private val semesterDao: SemesterDao
 ) {
-    suspend fun getSessionsByDay(day: Int): List<SessionRecord> = sessionRecordDao.getByDay(day)
+    suspend fun getSessionsByDay(day: Int): List<SessionRecord> = sessionRecordDao.getOperationalByDay(day)
+
+    fun getOperationalSessionsWithSubjects(): Flow<List<SessionsWithSubject>> =
+        sessionRecordDao.getOperationalWithSubjects()
+
+    fun getExtraClassSubjects(): Flow<List<Subject>> = subjectDao.getExtraClassSubjects()
 
     fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>> =
         sessionRecordDao.getWithSubjects()
@@ -33,11 +38,13 @@ class ScheduleRepository @Inject constructor(
     }
 
     suspend fun updateSemester(semester: Semester) {
-        semesterDao.update(semester)
+        semesterDao.updateActiveDetails(semester.id, semester.name, semester.startDate, semester.endDate, semester.targetAttendance)
     }
 
+    suspend fun setSemesterArchived(id: UUID, archived: Boolean) = semesterDao.setArchived(id, archived)
+
     suspend fun deleteSemester(semester: Semester) {
-        semesterDao.delete(semester)
+        semesterDao.deleteActive(semester.id)
     }
 
     suspend fun addSession(sessionRecord: SessionRecord) {
