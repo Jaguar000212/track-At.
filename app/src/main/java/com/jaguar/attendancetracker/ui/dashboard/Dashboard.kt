@@ -296,7 +296,7 @@ fun Dashboard(
                                             availableSemesters = semesters.map { it.semester },
                                             onClick = {
                                                 navController.navigate("${Destinations.SUBJECT.route}/${it.id}") {
-                                                    popUpTo(Destinations.DAYVIEW.route) {
+                                                    popUpTo(Destinations.TODAY.route) {
                                                         inclusive = false
                                                     }
                                                 }

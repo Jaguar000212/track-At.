@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.jaguar.attendancetracker.R
@@ -43,38 +44,38 @@ fun Header(navController: NavController, title: @Composable () -> Unit) {
             if (navBackStackEntry?.destination?.route == Destinations.DASHBOARD.route) TooltipBox(
                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                 tooltip = {
-                    PlainTooltip { Text("Import/Export data.") }
+                    PlainTooltip { Text(stringResource(R.string.nav_import_export)) }
                 },
                 state = importExportTooltipState
             ) {
                 IconButton({
                     navController.navigate(Destinations.IM_EXPORT.route) {
-                        popUpTo(Destinations.DAYVIEW.route) {
+                        popUpTo(Destinations.TODAY.route) {
                             inclusive = false
                         }
                     }
                     haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 }) {
-                    Icon(painterResource(R.drawable.import_export), "")
+                    Icon(painterResource(R.drawable.import_export), stringResource(R.string.nav_import_export))
                 }
             }
             if (navBackStackEntry?.destination?.route != Destinations.HELP.route) {
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                     tooltip = {
-                        PlainTooltip { Text("Get to know the app.") }
+                        PlainTooltip { Text(stringResource(R.string.nav_help)) }
                     },
                     state = helpTooltipState
                 ) {
                     IconButton({
                         navController.navigate(Destinations.HELP.route) {
-                            popUpTo(Destinations.DAYVIEW.route) {
+                            popUpTo(Destinations.TODAY.route) {
                                 inclusive = false
                             }
                         }
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     }) {
-                        Icon(Icons.Outlined.Info, "")
+                        Icon(Icons.Outlined.Info, stringResource(R.string.nav_help))
                     }
                 }
             }

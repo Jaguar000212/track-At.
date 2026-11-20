@@ -20,12 +20,13 @@ import com.jaguar.attendancetracker.ui.helpPage.HelpPage
 import com.jaguar.attendancetracker.ui.imExport.ImExport
 import com.jaguar.attendancetracker.ui.scheduleView.ScheduleView
 import com.jaguar.attendancetracker.ui.subject.Subject
+import com.jaguar.attendancetracker.ui.today.Today
 
 @Composable
 fun Navigation(navController: NavHostController, modifier: Modifier) {
     NavHost(
         navController = navController,
-        startDestination = Destinations.DAYVIEW.route,
+        startDestination = Destinations.TODAY.route,
         modifier = modifier,
         enterTransition = {
             slideInVertically(
@@ -47,6 +48,17 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
                 targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(300)
             ) + fadeOut(animationSpec = tween(300))
         }) {
+        composable(Destinations.TODAY.route) {
+            Today(
+                openDayView = {
+                    // The Today shortcut opens today's date rather than restoring a historical tab.
+                    navController.navigate(Destinations.DAYVIEW.route) { launchSingleTop = true }
+                },
+                openDashboard = {
+                    navController.navigate(Destinations.DASHBOARD.route) { launchSingleTop = true }
+                },
+            )
+        }
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }
