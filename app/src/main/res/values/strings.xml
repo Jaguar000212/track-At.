@@ -151,4 +151,11 @@
     <string name="insights_excluded_count">Ambiguous records excluded: %1$d</string>
     <string name="insights_excluded_help">Counts come from saved records in these weeks. Ambiguous records are set aside, so totals can differ from the subject summary.</string>
     <string name="insights_load_error">Could not load attendance insights.</string>
+    <string name="campus_brief_title">Campus Brief</string>
+    <string name="campus_brief_description">A launcher overview of saved attendance and upcoming task and exam counts. No names or titles.</string>
+    <string name="campus_brief_as_of">As of %1$s</string>
+    <string name="campus_brief_saved">Saved: %1$d marked, %2$d unmarked</string>
+    <string name="campus_brief_upcoming">Next 7 days: %1$d tasks due, %2$d dated exams</string>
+    <string name="campus_brief_unavailable">Counts unavailable</string>
+    <string name="campus_brief_open_today">Open Today</string>
 </resources>

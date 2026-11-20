@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.jaguar.attendancetracker.backend.daos.AttendanceRecordDao
 import com.jaguar.attendancetracker.backend.daos.BoardItemDao
+import com.jaguar.attendancetracker.backend.daos.CampusBriefDao
 import com.jaguar.attendancetracker.backend.daos.ExamDao
 import com.jaguar.attendancetracker.backend.daos.PlannerRestoreDao
 import com.jaguar.attendancetracker.backend.daos.SessionRecordDao
@@ -32,5 +33,6 @@ abstract class AttendanceDatabase : RoomDatabase() {
     abstract fun semesterDao(): SemesterDao
     abstract fun boardItemDao(): BoardItemDao
     abstract fun examDao(): ExamDao
+    abstract fun campusBriefDao(): CampusBriefDao
     abstract fun plannerRestoreDao(): PlannerRestoreDao
 }

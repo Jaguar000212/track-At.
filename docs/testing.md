@@ -347,3 +347,30 @@ rows are reported separately; they are not part of the denominator.
 The existing selective API 29 runner verifies the actual Room snapshot makes
 no scheduled rows, and the Compose filter/archived label/denominator/no-marks
 workflow. Hands-on visual and full navigation checks remain manual.
+
+
+## Campus Brief launcher widget
+
+Add the separate **Campus Brief** widget from your launcher. The original
+Tracker/Overview widget and subject links remain independently available.
+Campus Brief displays aggregate counts only: today’s saved Present/Absent
+marks and saved unmarked rows, excluding cancellations. It does not project
+or write attendance from the timetable. Larger sizes add undone tasks with
+a due date and dated exams in the seven days starting today. No titles,
+classes, notes, names, or timestamps of individual records appear on it.
+Counts are still visible information on the home screen; add only if desired.
+
+1. Test compact/expanded sizes, light/dark, large font, TalkBack, and the
+   **Open Today** action when Track-At is cold or already on another screen.
+   Back and the existing Tracker subject shortcuts still work.
+2. Edit attendance, a dated task and an exam separately; return to the
+   launcher. An installed widget is refreshed best-effort when the app leaves
+   the foreground. No timed work/alarm/network/notification is added; without
+   launching/revisiting the app or a launcher refresh, the as-of date may
+   remain old. Rotation does not request another app-departure refresh.
+3. Compare counts with/without an unmarked saved extra, cancelled session,
+   done/undated task, undated exam and a future or overdue date. Read
+   failures show “Counts unavailable” rather than a false zero.
+4. The API 29 runner tests the real aggregate query, both manifest receivers,
+   and an explicit warm Today intent. It does not drive the launcher widget
+   pin, actual resize, RemoteViews draw, screenshot, or launcher refresh timing.
