@@ -22,10 +22,13 @@ import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
+import com.jaguar.attendancetracker.backend.reminders.OPEN_EXAM_REMINDER
+import com.jaguar.attendancetracker.backend.reminders.examReminderIntent
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
@@ -98,6 +101,16 @@ class CampusBriefWidgetTest {
         compose.runOnIdle { activity.startActivity(start) }
         compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.exams_intro)).assertDoesNotExist()
+
+        val reminder = examReminderIntent(context)
+        assertEquals(ComponentName(context, MainActivity::class.java), reminder.component)
+        assertEquals(OPEN_EXAM_REMINDER, reminder.action)
+        assertNull(reminder.extras)
+        assertNull(reminder.data)
+        compose.runOnIdle { activity.startActivity(reminder) }
+        compose.onNodeWithText(context.getString(R.string.exams_intro)).assertIsDisplayed()
+        compose.runOnIdle { activity.onBackPressedDispatcher.onBackPressed() }
+        compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
     }
 
     private fun record(subjectId: UUID, date: LocalDate, status: AttendanceStatus?) =

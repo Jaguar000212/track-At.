@@ -455,3 +455,36 @@ changed date does not move the alert without a new explicit confirmation.
 An imported exam without local consent cannot deliver. Storage, one-shot
 claim under the same lock as live edits/cancellation, permissions and
 generic lock-screen notifications belong to later runtime verification.
+
+### Exam reminder runtime plumbing (dormant)
+
+No screen enables exam reminders yet and the app makes no permission request
+or reminder schedule on startup/import. Existing exam editing is not wired
+to the dormant coordinator until the enable/disable UI lands. The coordinator
+provides the date-change seam: it durably revokes before a successful change
+under the same lock used by the worker; on failure it cannot silently
+revive consent. Returning to a previously chosen date cannot reactivate an
+old revision. Title-only edits preserve the date and consent.
+
+Pending work contains only an exam UUID and revision. The Worker uses
+default WorkManager initialization, one unique, delayed, inexact request per
+exam, no custom periodic job or exact alarm. Only a current local-file
+consent can post; its little per-exam file is in Android's
+`noBackupFilesDir` and not in planner JSON. The one-shot claim is durable
+before Android notification delivery. Even an early, expired, or blocked
+current attempt is spent; it cannot show as pending or be retried silently.
+A rare crash during delivery can
+drop the alert rather than duplicate it. A clock rollback that makes the
+worker early drops that attempt rather than posting before the chosen time.
+The notification text is always generic, and its immutable intent opens
+the Exams list above Today without any exam identifier. Unsupported or
+extreme dates that cannot be scheduled by WorkManager fail closed.
+
+API 29 coverage uses actual atomic files, a fake clock/notice, default
+WorkManager initialization and replacement, and distinct warm Campus Brief
+and Exams navigation. When UI is enabled, check on
+real devices: permission denial (Android 13+), blocked app/channel,
+lock-screen privacy, cold/warm tap, WorkManager delay/Doze, device
+reboot/calendar clock changes, and a backup restore to a device without
+local consent. Check the merged manifest for the notification declaration,
+default AndroidX initializer and no exact-alarm permission.
