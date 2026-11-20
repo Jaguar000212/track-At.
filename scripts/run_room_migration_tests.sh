@@ -4,6 +4,18 @@ set -euo pipefail
 image='system-images;android-29;default;x86_64'
 results=app/build/room-migration-results
 mkdir -p "$results"
+app_apk=app/build/outputs/apk/debug/app-debug.apk
+test_apk=app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+aapt="$ANDROID_HOME/build-tools/36.0.0/aapt"
+apk_package() {
+    "$aapt" dump badging "$1" | sed -n "s/^package: name='\([^']*\)'.*/\1/p"
+}
+app_id="$(apk_package "$app_apk")"
+test_id="$(apk_package "$test_apk")"
+[[ "$app_id" == com.jaguar.attendancetracker.dev ]]
+[[ "$test_id" =~ ^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+$ && "$test_id" != "$app_id" ]]
+runner="$test_id/androidx.test.runner.AndroidJUnitRunner"
+printf 'Debug APK target: %s; instrumentation: %s\n' "$app_id" "$runner"
 test -c /dev/kvm
 # Make KVM accessible to the runner group on this ephemeral VM.
 sudo chgrp "$(id -gn)" /dev/kvm
@@ -36,12 +48,22 @@ for attempt in {1..90}; do
     sleep 2
 done
 [[ "$(timeout 5 adb shell getprop sys.boot_completed | tr -d '\r')" == 1 ]]
-timeout 45 adb install app/build/outputs/apk/debug/app-debug.apk
-timeout 45 adb install app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+timeout 45 adb install "$app_apk"
+timeout 45 adb install "$test_apk"
+timeout 10 adb shell pm list instrumentation "$app_id" | tr -d '\r' | tee "$results/registered-instrumentation.txt"
+grep -Fxq "instrumentation:$runner (target=$app_id)" "$results/registered-instrumentation.txt"
 timeout 90 adb shell am instrument -w -r \
     -e class com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest \
-    com.jaguar.attendancetracker.b.test/androidx.test.runner.AndroidJUnitRunner \
+    "$runner" \
     | tr -d '\r' | tee "$results/instrumentation.txt"
 # adb can return zero on assertion failure or a runner startup error.
 grep -Eq '^OK \(2 tests\)$' "$results/instrumentation.txt"
 grep -Fxq 'INSTRUMENTATION_CODE: -1' "$results/instrumentation.txt"
+
+# Optional evidence only: launch the fresh debug app after the migration fixtures passed.
+# No test, build or job result depends on screenshot capture.
+if timeout 15 adb shell am start -W -n "$app_id/com.jaguar.attendancetracker.MainActivity" >/dev/null 2>&1; then
+    if ! timeout 10 adb exec-out screencap -p > "$results/track-at-emulator.png"; then
+        rm -f "$results/track-at-emulator.png"
+    fi
+fi
