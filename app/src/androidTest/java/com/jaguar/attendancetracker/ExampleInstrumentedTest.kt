@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.jaguar.attendancetracker", appContext.packageName)
+        assertEquals("com.jaguar.attendancetracker.b", appContext.packageName)
     }
 }
