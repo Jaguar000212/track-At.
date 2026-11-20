@@ -16,6 +16,10 @@ interface SemesterDao {
     @Query("SELECT * FROM Semesters WHERE isArchived = 0 ORDER BY startDate DESC")
     fun getActiveSemestersWithSubjects(): Flow<List<SemesterWithSubjects>>
 
+    @Transaction
+    @Query("SELECT * FROM Semesters WHERE isArchived = 1 ORDER BY startDate DESC, id ASC")
+    fun getArchivedSemestersWithSubjects(): Flow<List<SemesterWithSubjects>>
+
     @Query("SELECT * FROM Semesters")
     fun getAll(): Flow<List<Semester>>
 

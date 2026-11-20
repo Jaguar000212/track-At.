@@ -158,4 +158,13 @@
     <string name="campus_brief_upcoming">Next 7 days: %1$d tasks due, %2$d dated exams</string>
     <string name="campus_brief_unavailable">Counts unavailable</string>
     <string name="campus_brief_open_today">Open Today</string>
+    <string name="terms_active">Active</string>
+    <string name="terms_archived">Archived</string>
+    <string name="terms_archive_intro">Archived semesters and their saved attendance totals. This view does not edit records.</string>
+    <string name="terms_archive_empty">No archived semesters.</string>
+    <string name="terms_archive_load_error">Could not load archived semesters.</string>
+    <string name="terms_archive_dates">%1$s to %2$s</string>
+    <string name="terms_archive_start">Started %1$s</string>
+    <string name="terms_archive_subjects_empty">No subjects in this semester.</string>
+    <string name="terms_archive_saved_totals">Saved totals: %1$d attended of %2$d</string>
 </resources>
