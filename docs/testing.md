@@ -21,7 +21,7 @@ Unit tests cover current attendance arithmetic and backup representations. They 
 
 ## Emulator/device boundary
 
-Instrumentation compilation is not execution. The existing package smoke test targets the debug application ID (`com.jaguar.attendancetracker.b`). Run on an emulator or device with:
+Instrumentation compilation is not execution. The existing package smoke test targets the debug application ID (`com.jaguar.attendancetracker.dev`). Run on an emulator or device with:
 
 ```sh
 bash ./gradlew :app:connectedDebugAndroidTest
@@ -37,4 +37,4 @@ Local Python policy tests and source/diff checks can run in the assistant worksp
 
 - The current floating-point make-up calculation can overcount at some thresholds: 3 attended of 5 at an 80% target returns 6 rather than the minimum 5. Targets 0/100 also need explicit domain handling. Phase 0 tests cover established 75% behavior without enshrining those defects as correct.
 - Backup serialization tests do not execute ViewModel migration/import transactions. Unsupported versions and provider streams need a dedicated hardening phase; no claim is made that imports are fully validated.
-- The original debug instrumentation package assertion lacked the `.b` suffix; this baseline corrects that test, not the application ID.
+- The original debug instrumentation package assertion lacked the `.b` suffix; the baseline corrected that assertion; the separate Dev-channel phase then consistently moves debug builds and that assertion to `.dev`, leaving the public ID unchanged.
