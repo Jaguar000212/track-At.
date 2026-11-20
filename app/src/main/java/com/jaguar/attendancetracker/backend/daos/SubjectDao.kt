@@ -24,6 +24,9 @@ interface SubjectDao {
     @Delete
     suspend fun delete(subject: Subject)
 
+    @Query("SELECT id, name, color FROM Subjects WHERE semesterId = :term ORDER BY name, id")
+    suspend fun rolloverChoices(term: UUID): List<RolloverTemplateRow>
+
     @Query("SELECT id, name, color FROM Subjects WHERE semesterId = :term AND id IN (:ids)")
     suspend fun rolloverTemplates(term: UUID, ids: List<UUID>): List<RolloverTemplateRow>
 

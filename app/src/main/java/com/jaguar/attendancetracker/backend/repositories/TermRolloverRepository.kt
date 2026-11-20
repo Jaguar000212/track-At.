@@ -23,6 +23,7 @@ internal data class RolloverTermDetails(
     val targetAttendance: Int,
 )
 
+internal data class RolloverSource(val name: String, val courses: List<RolloverTemplateRow>)
 internal data class RolloverCoursePreview(val name: String, val color: SubjectColor)
 internal data class RolloverPreview(
     val sourceName: String,
@@ -45,6 +46,11 @@ internal interface PreparedTermRollover {
 }
 
 internal class TermRolloverRepository @Inject constructor(private val db: AttendanceDatabase) {
+    suspend fun readSource(id: UUID): RolloverSource? = db.withTransaction {
+        val term = db.semesterDao().find(id) ?: return@withTransaction null
+        RolloverSource(term.name, db.subjectDao().rolloverChoices(id).filter { it.name.isNotBlank() })
+    }
+
     suspend fun prepare(
         sourceTerm: UUID,
         destination: RolloverTermDetails,

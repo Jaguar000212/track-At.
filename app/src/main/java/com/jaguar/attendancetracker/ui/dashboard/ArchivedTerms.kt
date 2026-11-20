@@ -64,6 +64,7 @@ internal fun SemesterBrowser(content: @Composable (showArchived: Boolean) -> Uni
 internal fun ArchivedTerms(
     state: DashboardState,
     onSetArchived: ((UUID, Boolean) -> Unit)? = null,
+    onRollover: ((UUID) -> Unit)? = null,
 ) {
     when (state) {
         DashboardState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -99,6 +100,9 @@ internal fun ArchivedTerms(
                                 )
                                 if (onSetArchived != null) {
                                     SemesterArchiveAction(semester, onSetArchived)
+                                }
+                                if (onRollover != null && subjects.any { it.name.isNotBlank() }) {
+                                    TermRolloverAction(semester.id, onRollover)
                                 }
                                 if (subjects.isEmpty()) {
                                     Text(stringResource(R.string.terms_archive_subjects_empty), style = MaterialTheme.typography.bodySmall)
