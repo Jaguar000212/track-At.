@@ -73,3 +73,25 @@ class, but a subject is still required. Historical dates remain in Day View.
 JVM tests cover the Today projection. A Compose instrumentation test exercises the empty
 state and both actions; CI compiles it, but it must be executed separately on a device
 or emulator. This slice does not include a database migration or test a public APK upgrade.
+
+
+## Historical Room migration: v8 and v9 to v10
+
+For ready PRs that touch Room schema/migrations or their fixtures, the existing
+Linux PR check runs only the focused Room migration class on a single API 29
+emulator. It reuses the debug APKs already built by the normal job; no separate
+workflow, matrix, APK uploads, signing keys, or release is involved. The emulator
+step has a 12-minute limit and publishes test output with the existing reports.
+A skipped emulator step is not a migration pass.
+
+On an Android emulator or a spare device, run:
+
+```sh
+bash ./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest
+```
+
+The two populated legacy fixtures open through Room with the production
+migration chain. They target historical v8/v9 upgrade behavior, not the separate
+in-place test of a same-signed public v6.0.0 (already v10) APK upgrade. There is
+no database version bump, destructive fallback, or backup format change.

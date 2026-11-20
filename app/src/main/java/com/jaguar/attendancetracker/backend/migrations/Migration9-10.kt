@@ -40,15 +40,20 @@ object Migration9TO10 : Migration(9, 10) {
         }
         cursor.close()
 
-        // 3. Rename the old Subjects table out of the way instead of dropping it.
-        // SessionRecords/AttendanceRecords have `ON DELETE CASCADE` foreign keys pointing at
-        // a table named `Subjects`. A plain rename doesn't touch any rows, so it can't trigger
-        // those cascades - whereas `DROP TABLE Subjects` while FK enforcement is on would
-        // implicitly DELETE every row first and wipe SessionRecords/AttendanceRecords with it.
-        // (`PRAGMA foreign_keys = OFF` can't be used to avoid this: Room enables FK enforcement
-        // in onConfigure(), which runs before the transaction that wraps this migrate() call, so
-        // toggling the pragma in here is a documented SQLite no-op.)
-        db.execSQL("ALTER TABLE Subjects RENAME TO Subjects_Old")
+        // SQLite may rewrite child foreign-key targets when a parent is renamed. Stage
+        // the child rows in tables without foreign keys and remove the original children
+        // before touching Subjects. Room wraps this whole migration in a transaction.
+        db.execSQL("""
+            CREATE TABLE `_migration_9_10_sessions` AS
+            SELECT `id`, `subjectId`, `orderNo`, `dayOfWeek`, `startDate` FROM `SessionRecords`
+        """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE `_migration_9_10_attendance` AS
+            SELECT `id`, `subjectId`, `sessionId`, `date`, `status`, `classType` FROM `AttendanceRecords`
+        """.trimIndent())
+        db.execSQL("DROP TABLE `AttendanceRecords`")
+        db.execSQL("DROP TABLE `SessionRecords`")
+        db.execSQL("ALTER TABLE `Subjects` RENAME TO `Subjects_Old`")
 
         // 4. Create the new Subjects table under its final name, with the semesterId FK.
         db.execSQL("""
@@ -121,13 +126,46 @@ object Migration9TO10 : Migration(9, 10) {
         }
         subjectsCursor.close()
 
-        // 6. Drop the old table. Nothing references `Subjects_Old` by name anymore
-        // (SessionRecords/AttendanceRecords point at `Subjects`, which now exists again
-        // fully populated), so this drop cannot cascade into either of them.
-        db.execSQL("DROP TABLE Subjects_Old")
+        db.execSQL("DROP TABLE `Subjects_Old`")
+        db.execSQL("CREATE INDEX `index_Subjects_semesterId` ON `Subjects` (`semesterId`)")
 
-        // 7. Create Index
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_Subjects_semesterId` ON `Subjects` (`semesterId`)")
+        // Use the exact v10 schema and copy the staged rows only once their parent exists.
+        // AttendanceRecord.sessionId is deliberately nullable and is not a foreign key.
+        db.execSQL("""
+            CREATE TABLE `SessionRecords` (
+                `id` BLOB NOT NULL,
+                `subjectId` BLOB NOT NULL,
+                `orderNo` INTEGER NOT NULL,
+                `dayOfWeek` INTEGER NOT NULL,
+                `startDate` INTEGER NOT NULL,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`subjectId`) REFERENCES `Subjects`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE `AttendanceRecords` (
+                `id` BLOB NOT NULL,
+                `subjectId` BLOB NOT NULL,
+                `sessionId` BLOB,
+                `date` INTEGER NOT NULL,
+                `status` TEXT,
+                `classType` TEXT NOT NULL,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`subjectId`) REFERENCES `Subjects`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("""
+            INSERT INTO `SessionRecords` (`id`, `subjectId`, `orderNo`, `dayOfWeek`, `startDate`)
+            SELECT `id`, `subjectId`, `orderNo`, `dayOfWeek`, `startDate` FROM `_migration_9_10_sessions`
+        """.trimIndent())
+        db.execSQL("""
+            INSERT INTO `AttendanceRecords` (`id`, `subjectId`, `sessionId`, `date`, `status`, `classType`)
+            SELECT `id`, `subjectId`, `sessionId`, `date`, `status`, `classType` FROM `_migration_9_10_attendance`
+        """.trimIndent())
+        db.execSQL("CREATE INDEX `index_SessionRecords_subjectId` ON `SessionRecords` (`subjectId`)")
+        db.execSQL("CREATE INDEX `index_AttendanceRecords_subjectId` ON `AttendanceRecords` (`subjectId`)")
+        db.execSQL("DROP TABLE `_migration_9_10_attendance`")
+        db.execSQL("DROP TABLE `_migration_9_10_sessions`")
     }
 
     private fun uuidToBytes(uuid: UUID): ByteArray {

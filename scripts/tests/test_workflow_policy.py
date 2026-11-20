@@ -28,3 +28,10 @@ class WorkflowPolicyTest(unittest.TestCase):
         self.assertIn('steps.changes.outputs.channels', text)
         self.assertIn('-PtrackAtReleaseChannel=dev', text)
         self.assertIn('-PtrackAtReleaseChannel=production', text)
+
+    def test_migration_fixture_uses_one_selective_step(self):
+        text = (ROOT / '.github/workflows/pr-checks.yml').read_text()
+        self.assertEqual(1, text.count('bash scripts/run_room_migration_tests.sh'))
+        self.assertIn("!github.event.pull_request.draft && steps.changes.outputs.migrations != 'false'", text)
+        self.assertIn('timeout-minutes: 12', text)
+        self.assertIn('app/build/room-migration-results/', text)

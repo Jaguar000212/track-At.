@@ -28,17 +28,30 @@ def channel_changes(paths):
                for path in paths)
 
 
+def migration_changes(paths):
+    package = "com/jaguar/attendancetracker/backend/"
+    main = "app/src/main/java/" + package
+    test = "app/src/androidTest/java/" + package
+    return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/"))
+               or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
+                           "scripts/run_room_migration_tests.sh"}
+               for path in paths)
+
+
 def main():
     try:
         paths = changed_paths(os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA"))
         only_docs = docs_only(paths)
         channels = channel_changes(paths)
+        migrations = migration_changes(paths)
     except (ValueError, UnicodeError, OSError, subprocess.SubprocessError):
         only_docs = False
         channels = True
+        migrations = True
     value = "false" if only_docs else "true"
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-        output.write(f"android={value}\nchannels={str(channels).lower()}\n")
+        output.write(f"android={value}\nchannels={str(channels).lower()}\nmigrations={str(migrations).lower()}\n")
     print("Documentation-only change" if only_docs else "Full Android validation required")
 
 

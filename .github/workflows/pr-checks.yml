@@ -30,11 +30,14 @@ jobs:
         env:
           IS_DRAFT: ${{ github.event.pull_request.draft }}
           ANDROID: ${{ steps.changes.outputs.android }}
+          MIGRATIONS: ${{ steps.changes.outputs.migrations }}
         run: |
           if [[ "$IS_DRAFT" == "true" ]]; then
             echo 'Draft: CI policy checks only. Mark ready for review to run Android validation.' >> "$GITHUB_STEP_SUMMARY"
           elif [[ "$ANDROID" == "false" ]]; then
             echo 'Documentation-only: policy checks passed; Android tasks intentionally skipped.' >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$MIGRATIONS" != "false" ]]; then
+            echo 'Ready database PR: normal Android checks plus focused Android Room migration tests.' >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'Ready code PR: debug build, JVM tests, lint and instrumentation compilation. Device tests are not executed.' >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -67,6 +70,10 @@ jobs:
           python3 scripts/check_channel_apk.py dev app/build/outputs/apk/release/app-release-unsigned.apk
           bash ./gradlew --no-daemon -PtrackAtReleaseChannel=production :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
           python3 scripts/check_channel_apk.py production app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Run focused Room migration tests on Android API 29
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.migrations != 'false' }}
+        timeout-minutes: 12
+        run: bash scripts/run_room_migration_tests.sh
       - name: Upload diagnostic reports
         if: ${{ always() && !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
         uses: actions/upload-artifact@v4
@@ -75,5 +82,6 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
+            app/build/room-migration-results/
           if-no-files-found: warn
           retention-days: 7
