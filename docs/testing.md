@@ -311,7 +311,7 @@ manual calendar navigation or a stored-data correction.
 
 ## Attendance Insights calculation
 
-The initial Insights aggregator is read-only and has no screen in this slice.
+The Insights aggregator is read-only and uses saved attendance only.
 It counts saved attendance across eight local Monday–Sunday calendar weeks;
 the final week stops at the supplied local date. All-subject scope includes
 historical and archived subjects; an explicit subject scope narrows the
@@ -323,5 +323,27 @@ A set of multiple regular rows with the same subject/session/calendar-day
 identity, or a regular row without that identity, is flagged as excluded.
 Independently saved Extra classes keep their own record IDs. The tests cover
 mixed/empty records, archived-inclusive versus scoped behavior, year/week
-boundaries, future exclusion and identity conflicts. Any later UI should show
-excluded-row counts and must not present them as absences or hide missing data.
+boundaries, future exclusion and identity conflicts. The UI displays excluded-row counts separately and never treats them as absences.
+
+
+## Attendance Insights screen
+
+Open **Today → Insights**; no sticky setting or new tab is needed. It reads
+eight calendar weeks from saved attendance only, rolling with the local
+date. The latest week stops today; future records and the timetable do not
+inflate the report. Bars compare Present and Absent proportions only, with
+an equivalent text breakdown. Unmarked, Cancelled and ambiguous excluded
+rows are reported separately; they are not part of the denominator.
+
+1. Use a test profile with marked, cancelled and unmarked records across
+   two weeks. Confirm the latest week is labeled partial through today;
+   important denominator and counts are readable without color.
+2. Choose a specific subject; archived terms are labeled and included in
+   All subjects. Confirm a no-marks scope shows no percentage or bar.
+3. Verify saved rows stay unchanged after switching scopes or generating
+   no reports. Large text, dark mode, TalkBack and Back return to Today;
+   existing attendance routes are still available.
+
+The existing selective API 29 runner verifies the actual Room snapshot makes
+no scheduled rows, and the Compose filter/archived label/denominator/no-marks
+workflow. Hands-on visual and full navigation checks remain manual.

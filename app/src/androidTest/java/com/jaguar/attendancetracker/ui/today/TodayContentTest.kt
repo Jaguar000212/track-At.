@@ -1,9 +1,12 @@
 package com.jaguar.attendancetracker.ui.today
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.ui.theme.UITheme
@@ -21,6 +24,7 @@ class TodayContentTest {
         var dashboardOpens = 0
         var examsOpens = 0
         var leaveOpens = 0
+        var insightsOpens = 0
         compose.setContent {
             UITheme {
                 TodayContent(
@@ -29,20 +33,27 @@ class TodayContentTest {
                     openDashboard = { dashboardOpens++ },
                     openExams = { examsOpens++ },
                     openLeave = { leaveOpens++ },
+                    openInsights = { insightsOpens++ },
                 )
             }
         }
         val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
-        compose.onNodeWithText(resources.getString(R.string.today_empty)).assertIsDisplayed()
-        compose.onNodeWithText(resources.getString(R.string.today_open_day_view)).performClick()
-        compose.onNodeWithText(resources.getString(R.string.today_open_dashboard)).performClick()
-        compose.onNodeWithText(resources.getString(R.string.exams_title)).performClick()
-        compose.onNodeWithText(resources.getString(R.string.leave_title)).performClick()
+        val list = compose.onNodeWithTag("today-list")
+        val empty = resources.getString(R.string.today_empty)
+        list.performScrollToNode(hasText(empty))
+        compose.onNodeWithText(empty).assertIsDisplayed()
+        for (id in listOf(R.string.today_open_day_view, R.string.today_open_dashboard, R.string.exams_title,
+            R.string.leave_title, R.string.insights_title)) {
+            val text = resources.getString(id)
+            list.performScrollToNode(hasText(text))
+            compose.onNodeWithText(text).performClick()
+        }
         compose.runOnIdle {
             assertEquals(1, attendanceOpens)
             assertEquals(1, dashboardOpens)
             assertEquals(1, examsOpens)
             assertEquals(1, leaveOpens)
+            assertEquals(1, insightsOpens)
         }
     }
 }
