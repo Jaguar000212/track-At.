@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.jaguar.attendancetracker.backend.reminders.OPEN_EXAM_REMINDER
 import com.jaguar.attendancetracker.navigation.Destinations
 import com.jaguar.attendancetracker.navigation.Navigation
 import com.jaguar.attendancetracker.ui.components.BottomBar
@@ -32,11 +33,12 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var openCampusToday by mutableStateOf(false)
+    private var launchShortcut by mutableStateOf<Destinations?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        openCampusToday = intent.action == OPEN_CAMPUS_BRIEF_TODAY
+        launchShortcut = if (savedInstanceState == null) intent.shortcutDestination()
+        else savedInstanceState.getString(PENDING_SHORTCUT)?.let { name -> Destinations.entries.find { it.name == name } }
         enableEdgeToEdge()
         setContent {
             App()
@@ -45,7 +47,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.action == OPEN_CAMPUS_BRIEF_TODAY) openCampusToday = true
+        intent.shortcutDestination()?.let { launchShortcut = it }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(PENDING_SHORTCUT, launchShortcut?.name)
     }
 
     override fun onStop() {
@@ -74,7 +81,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         LaunchedEffect(Unit) {
-            val subId = if (intent.action == OPEN_CAMPUS_BRIEF_TODAY) null else intent.extras?.getString("subjectId")
+            val subId = if (intent.shortcutDestination() != null) null else intent.extras?.getString("subjectId")
             if (subId != null) {
                 navController.navigate("${Destinations.SUBJECT.route}/$subId") {
                     popUpTo(Destinations.TODAY.route) {
@@ -84,15 +91,21 @@ class MainActivity : ComponentActivity() {
                 intent.removeExtra("subjectId")
             }
         }
-        LaunchedEffect(openCampusToday) {
-            if (openCampusToday) {
-                navController.navigate(Destinations.TODAY.route) {
-                    popUpTo(Destinations.TODAY.route) { inclusive = false }
-                    launchSingleTop = true
-                }
-                if (intent.action == OPEN_CAMPUS_BRIEF_TODAY) intent.action = null
-                openCampusToday = false
+        LaunchedEffect(launchShortcut) {
+            val destination = launchShortcut ?: return@LaunchedEffect
+            navController.navigate(destination.route) {
+                popUpTo(Destinations.TODAY.route) { inclusive = false }
+                launchSingleTop = true
             }
+            launchShortcut = null
         }
     }
+}
+
+private const val PENDING_SHORTCUT = "pending_launch_shortcut"
+
+private fun Intent.shortcutDestination(): Destinations? = when (action) {
+    OPEN_CAMPUS_BRIEF_TODAY -> Destinations.TODAY
+    OPEN_EXAM_REMINDER -> Destinations.EXAMS
+    else -> null
 }

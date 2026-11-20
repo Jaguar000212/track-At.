@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.glance.material3)
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.room.compiler)

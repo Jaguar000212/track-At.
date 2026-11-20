@@ -218,4 +218,7 @@
     <string name="rollover_pink">Pink</string>
     <string name="rollover_orange">Orange</string>
     <string name="rollover_gray">Gray</string>
+    <string name="exam_reminder_channel">Exam reminders</string>
+    <string name="exam_reminder_notification_title">Exam reminder</string>
+    <string name="exam_reminder_notification_text">Open Track-At to check your planner.</string>
 </resources>

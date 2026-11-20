@@ -16,6 +16,11 @@ interface ExamDao {
     @Query("UPDATE Exams SET title = :title, date = :date, semesterId = :semesterId WHERE id = :id")
     suspend fun edit(id: UUID, title: String, date: LocalDate?, semesterId: UUID?): Int
 
+    @Query("SELECT id, date FROM Exams WHERE id = :id")
+    suspend fun reminderExam(id: UUID): ExamReminderDate?
+
     @Query("SELECT * FROM Exams ORDER BY id")
     fun observeAll(): Flow<List<Exam>>
 }
+
+data class ExamReminderDate(val id: UUID, val date: LocalDate?)
