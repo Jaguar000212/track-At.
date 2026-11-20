@@ -40,3 +40,35 @@ Local Python policy tests and source/diff checks can run in the assistant worksp
 - The original debug instrumentation package assertion lacked the `.b` suffix; the baseline corrected that assertion; the separate Dev-channel phase then consistently moves debug builds and that assertion to `.dev`, leaving the public ID unchanged.
 
 Ready PRs touching build/channel/workflow configuration additionally compile/test/lint both explicit **unsigned** release configurations and inspect their APK identities. This selective check catches Dev suffix/versionCode mistakes without signing, tagging or publishing. Ordinary UI-only PRs retain the shorter debug gate. A classifier error takes the full path.
+
+## Phase 2: Today front door (Android)
+
+The new Today tab reads the current local day's saved attendance and eligible timetable slots.
+It does not create records. Use **Record attendance** to open Day View for today's date and
+its existing marking and **Extra Class** actions. No timetable is required to log an extra
+class, but a subject is still required. Historical dates remain in Day View.
+
+1. Fresh Dev install: Today shows the current local date and a useful empty state. Use the
+   subject dashboard shortcut, create a semester and subject, and return to Today. With no
+   timetable, open **Record attendance**, add an **Extra Class**, mark it, then go back.
+   Today shows the saved class and correct status; reopening Today alone must not create records.
+2. Add timetable entries for today, another weekday, and a future start date. Only eligible
+   entries appear. Open the marking flow and verify a timetable slot becomes one saved row,
+   not both rows. Mark one present, one absent, and one cancelled; verify textual status,
+   counts, and no duplicate of the cancelled slot. Verify a prior week's attendance does not
+   hide today's recurrence.
+3. Browse to a different day, return to Today, then use **Record attendance**: it must open
+   the current date. Background and resume after a date change; Today should refresh (while
+   continuously visible, allow up to 30 seconds).
+4. Open Dashboard, Schedule, Day and Today from the bottom bar and check selected states,
+   system Back, subject details, Help topics and import/export reachability. From the
+   overview widget use a subject shortcut, then Back; the same subject should open and
+   Back should return to Today.
+5. Verify TalkBack announces all four tab names, the selected tab, headings and status
+   text; verify both actions and scrolling at large font size on a narrow device, light
+   and dark appearance, landscape, and a wide window. Confirm Today does not depend on
+   status color to communicate attendance.
+
+JVM tests cover the Today projection. A Compose instrumentation test exercises the empty
+state and both actions; CI compiles it, but it must be executed separately on a device
+or emulator. This slice does not include a database migration or test a public APK upgrade.
