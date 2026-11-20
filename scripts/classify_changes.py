@@ -21,14 +21,24 @@ def changed_paths(base, head):
     return [p.decode("utf-8", errors="strict") for p in data.split(b"\0") if p]
 
 
+def channel_changes(paths):
+    return any(path.startswith((".github/", "release/", "gradle/"))
+               or path.endswith((".gradle", ".gradle.kts"))
+               or path in {"version.properties", "gradle.properties", "scripts/release_pipeline.py", "scripts/tag_policy.py", "scripts/sign_apk.sh", "scripts/verify_candidate.py", "scripts/verify_release_assets.py", "scripts/check_channel_apk.py"}
+               for path in paths)
+
+
 def main():
     try:
-        only_docs = docs_only(changed_paths(os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")))
+        paths = changed_paths(os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA"))
+        only_docs = docs_only(paths)
+        channels = channel_changes(paths)
     except (ValueError, UnicodeError, OSError, subprocess.SubprocessError):
         only_docs = False
+        channels = True
     value = "false" if only_docs else "true"
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-        output.write(f"android={value}\n")
+        output.write(f"android={value}\nchannels={str(channels).lower()}\n")
     print("Documentation-only change" if only_docs else "Full Android validation required")
 
 

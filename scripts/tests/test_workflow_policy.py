@@ -25,4 +25,6 @@ class WorkflowPolicyTest(unittest.TestCase):
         self.assertIn("!github.event.pull_request.draft && steps.changes.outputs.android != 'false'", text)
         self.assertIn('Draft: CI policy checks only', text)
         self.assertIn('Device tests are not executed', text)
-        self.assertNotIn(':app:assembleRelease', text)
+        self.assertIn('steps.changes.outputs.channels', text)
+        self.assertIn('-PtrackAtReleaseChannel=dev', text)
+        self.assertIn('-PtrackAtReleaseChannel=production', text)

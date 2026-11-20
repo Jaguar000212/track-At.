@@ -18,6 +18,13 @@ class ClassifierTest(unittest.TestCase):
             self.assertFalse(module.docs_only(["README.md", path]), path)
         self.assertFalse(module.docs_only([]))
 
+    def test_channel_configuration_changes(self):
+        self.assertTrue(module.channel_changes(["app/build.gradle.kts"]))
+        self.assertTrue(module.channel_changes(["version.properties"]))
+        self.assertTrue(module.channel_changes([".github/workflows/dev-build.yml"]))
+        self.assertFalse(module.channel_changes(["docs/testing.md"]))
+        self.assertFalse(module.channel_changes(["app/src/main/java/Screen.kt"]))
+
     def test_errors_require_android(self):
         for base, head in [(None, None), ("main", "a" * 40), (";bad", "b" * 40)]:
             with self.assertRaises(ValueError):
@@ -28,7 +35,7 @@ class ClassifierTest(unittest.TestCase):
             output = Path(directory) / "output"
             with patch.dict("os.environ", {"GITHUB_OUTPUT": str(output)}), patch.object(module, "changed_paths", side_effect=subprocess.TimeoutExpired("git", 30)):
                 module.main()
-            self.assertEqual("android=true\n", output.read_text())
+            self.assertEqual("android=true\nchannels=true\n", output.read_text())
 
     def test_rename_reports_both_paths(self):
         import os
