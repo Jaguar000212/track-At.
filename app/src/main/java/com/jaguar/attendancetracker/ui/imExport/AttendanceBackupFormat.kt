@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /** Pure codec for the existing attendance exports. Room migrations do not change this format. */
+internal class PlannerBackupRequiresPlannerRestore : IllegalArgumentException()
+
 internal object AttendanceBackupFormat {
     private val gson = GsonBuilder().registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
         .setPrettyPrinting().create()
@@ -26,6 +28,10 @@ internal object AttendanceBackupFormat {
 
     fun read(reader: Reader): BackupData {
         val jsonRoot = gson.fromJson(reader, JsonObject::class.java)
+        val format = jsonRoot.get("format")
+        if (format is JsonPrimitive && format.isString && format.asString == PlannerBackupFormat.FORMAT) {
+            throw PlannerBackupRequiresPlannerRestore()
+        }
         val jsonVersion = if (jsonRoot.has("version")) {
             jsonRoot.get("version").asInt
         } else {

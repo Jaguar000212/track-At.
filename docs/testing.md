@@ -113,10 +113,8 @@ duplicate names and IDs, malformed/unsupported inputs and broken parent
 references. The existing attendance-only import/export still uses its own
 unchanged v10 path.
 
-This is a draft wire format used only in tests. There is no planner backup
-file picker, user-facing preview or Board UI. Do not use the prototype
-as a user backup or make the Board accessible before the follow-up tests cover
-conflict handling, idempotence, failed restores, and the real atomic restore.
+Planner files and legacy attendance transfers are separate and neither is an
+encrypted vault. There is still no Board UI in this slice.
 
 The internal keep-local merge preview accepts a validated complete planner
 snapshot and a complete local snapshot. Its JVM tests cover inserts, identical
@@ -128,7 +126,7 @@ The internal Apply path uses the same preview and re-reads all five tables in a
 single Room transaction before writes. A stale preview writes nothing; accepted
 rows insert without replacing existing records. The snapshot and confirmation
 handle contain private records; do not log, serialize or persist them. This
-path still has no UI, public format commitment or legacy import changes.
+path is used only by the separate Planner backup screen, not by legacy attendance transfer.
 
 The existing selective API 29 step now also runs the three named internal apply
 tests in `PlannerRestoreApplyTest`. They verify that a repeated merge with a
@@ -140,3 +138,35 @@ attendance rows and accepted marks change those counts. Present/Absent count
 toward total (Present counts as attended); cancelled and unmarked rows do not.
 New subjects' counters reflect only accepted records. No attendance history,
 subject fields, or planner items are otherwise overwritten or deleted.
+
+
+## Planner backup Android file flow
+
+On Dev, open Dashboard → Import or export data → **Planner backup**. The
+complete file includes private data and is not encrypted. The system picker
+controls the chosen location; there is no automatic share/upload. Planner
+files are not attendance-transfer files (that import action directs you to
+Planner backup). Current legacy files still use the attendance transfer path.
+
+1. Cancel each picker, choose Restore and Cancel the preview, or leave the
+   screen while reviewing. Nothing should be added. Reopening should require a
+   fresh selection/review. Rotation never serializes the preview.
+2. Save a populated backup to a user-selected local test folder. Check file
+   contents and that the app only announces success after write/close. Try a
+   failing or revoked provider if available: report failure, not success (the
+   selected file may be incomplete; no automatic deletion).
+3. Restore on a separate test profile/install: review per-section counts and
+   Apply explicitly. Try same backup twice, a malformed/truncated file,
+   invalid UTF-8, unsupported version, and a legacy-only export; do not accept
+   any failed file or treat an empty/incomplete read as successful. Existing
+   conflicting records must remain local. If the app state changes before
+   Apply, choose the file again and review anew.
+4. Check narrow screen / large font, TalkBack headings and error announcements,
+   dismissal and focus return. Verify the existing attendance transfer and
+   subject/widget routes remain reachable. No Board editing UI in this phase.
+
+The selective API 29 CI step also executes two stream/Room tests and one
+Compose confirmation test. They cover UTF-8 bytes through
+in-memory streams, malformed UTF-8, null/failed-close streams, cancellation
+and explicit Apply. They do not drive DocumentsUI, a third-party file
+provider, in-place signed upgrades, or the entire navigation stack.

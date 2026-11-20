@@ -23,7 +23,7 @@ internal data class PlannerBackup(
 )
 
 internal object PlannerBackupFormat {
-    private const val FORMAT = "track-at-planner"
+    const val FORMAT = "track-at-planner"
     private const val VERSION = 1
     private const val MAX_CHARS = 8 * 1024 * 1024
     private const val MAX_DEPTH = 12

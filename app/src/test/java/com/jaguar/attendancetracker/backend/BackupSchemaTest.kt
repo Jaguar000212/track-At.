@@ -7,6 +7,7 @@ import com.jaguar.attendancetracker.backend.enums.*
 import com.jaguar.attendancetracker.ui.imExport.BackupData
 import com.jaguar.attendancetracker.ui.imExport.AttendanceBackupFormat
 import com.jaguar.attendancetracker.ui.imExport.LocalDateAdapter
+import com.jaguar.attendancetracker.ui.imExport.PlannerBackupRequiresPlannerRestore
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate
@@ -107,6 +108,13 @@ class BackupSchemaTest {
             assertEquals(if (version == 9) 7 else 0, restored.schedule.single().orderNo)
             assertNull(restored.attendance)
         }
+    }
+
+    @Test fun onlyExactPlannerDiscriminatorRedirectsLegacyImports() {
+        val planner = """{"format":"track-at-planner","version":1,"board":[]}"""
+        assertThrows(PlannerBackupRequiresPlannerRestore::class.java) { decode(planner) }
+        val otherFormat = """{"format":"other","version":999,"timestamp":42,"attendance":[]}"""
+        assertEquals(BackupData(999, 42, attendance = emptyList()), decode(otherFormat))
     }
 
     private fun encode(backup: BackupData) = StringBuilder().also {
