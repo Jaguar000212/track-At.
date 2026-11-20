@@ -32,7 +32,7 @@ def migration_changes(paths):
     package = "com/jaguar/attendancetracker/backend/"
     main = "app/src/main/java/" + package
     test = "app/src/androidTest/java/" + package
-    return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/"))
+    return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/"))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
                            "scripts/run_room_migration_tests.sh"}

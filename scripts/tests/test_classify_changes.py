@@ -41,7 +41,9 @@ class ClassifierTest(unittest.TestCase):
         prefix = "app/src/main/java/com/jaguar/attendancetracker/"
         self.assertTrue(module.migration_changes([prefix + "backend/migrations/Migration9-10.kt"]))
         self.assertTrue(module.migration_changes([prefix + "backend/AttendanceDatabase.kt"]))
+        self.assertTrue(module.migration_changes(["app/src/androidTest/assets/room/attendance-v10.sql"]))
         self.assertFalse(module.migration_changes(["docs/testing.md", prefix + "ui/today/TodayScreen.kt"]))
+        self.assertFalse(module.migration_changes([prefix + "ui/imExport/AttendanceBackupFormat.kt"]))
 
     def test_rename_reports_both_paths(self):
         import os

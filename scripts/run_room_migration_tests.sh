@@ -57,8 +57,13 @@ timeout 90 adb shell am instrument -w -r \
     "$runner" \
     | tr -d '\r' | tee "$results/instrumentation.txt"
 # adb can return zero on assertion failure or a runner startup error.
-grep -Eq '^OK \(2 tests\)$' "$results/instrumentation.txt"
+grep -Eq '^OK \(3 tests\)$' "$results/instrumentation.txt"
 grep -Fxq 'INSTRUMENTATION_CODE: -1' "$results/instrumentation.txt"
+for fixture in populatedV8PreservesAttendanceAndScheduleWithDefaultOrder \
+    populatedV9PreservesAttendanceAndScheduleWithExistingOrder \
+    populatedV10KeepsAttendanceAndSupportsBoardPersistence; do
+    grep -Fxq "INSTRUMENTATION_STATUS: test=$fixture" "$results/instrumentation.txt"
+done
 
 # Optional evidence only: launch the fresh debug app after the migration fixtures passed.
 # No test, build or job result depends on screenshot capture.
