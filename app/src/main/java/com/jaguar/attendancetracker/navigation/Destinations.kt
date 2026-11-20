@@ -21,6 +21,7 @@ enum class Destinations(
     INSIGHTS(R.string.insights_title, Icons.Outlined.Check, "/insights", false),
     LEAVE(R.string.leave_title, Icons.Outlined.Check, "/leave", false),
     EXAMS(R.string.exams_title, Icons.Outlined.Check, "/exams", false),
+    TERM_ROLLOVER(R.string.rollover_title, Icons.Outlined.Check, "/term-rollover", false),
     PLANNER_BACKUP(R.string.planner_backup_title, Icons.Outlined.Settings, "/planner-backup", false),
     HELP(R.string.nav_help, Icons.Outlined.Settings, "/help", false)
 }

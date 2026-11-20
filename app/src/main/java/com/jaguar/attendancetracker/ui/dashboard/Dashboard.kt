@@ -50,10 +50,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -64,6 +66,7 @@ import com.jaguar.attendancetracker.ui.components.EditSubjectBottomSheet
 import com.jaguar.attendancetracker.ui.components.SubjectCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
 import java.time.LocalDate
+import java.util.UUID
 
 
 @Composable
@@ -187,18 +190,23 @@ fun SemesterHeader(
 fun Dashboard(
     viewModel: DashboardViewModel = hiltViewModel(), navController: NavHostController
 ) {
+    val startRollover: (UUID) -> Unit = { term ->
+        navController.navigate("${Destinations.TERM_ROLLOVER.route}/$term") { launchSingleTop = true }
+    }
     SemesterBrowser { showArchived ->
         if (showArchived) {
             val archived by viewModel.archivedState.collectAsStateWithLifecycle()
-            ArchivedTerms(archived, viewModel::setSemesterArchived)
+            ArchivedTerms(archived, viewModel::setSemesterArchived, startRollover)
         } else {
-            ActiveDashboard(viewModel, navController)
+            ActiveDashboard(viewModel, navController, startRollover)
         }
     }
 }
 
 @Composable
-private fun ActiveDashboard(viewModel: DashboardViewModel, navController: NavHostController) {
+private fun ActiveDashboard(
+    viewModel: DashboardViewModel, navController: NavHostController, onRollover: (UUID) -> Unit,
+) {
     val haptic = LocalHapticFeedback.current
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var showAddSemesterDialog by remember { mutableStateOf(false) }
@@ -294,11 +302,12 @@ private fun ActiveDashboard(viewModel: DashboardViewModel, navController: NavHos
 
                             if (isExpanded) {
                                 item(key = "archive_${semester.id}") {
-                                    SemesterArchiveAction(
-                                        semester = semester,
-                                        onSetArchived = viewModel::setSemesterArchived,
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                    )
+                                    Column(Modifier.padding(horizontal = 16.dp)) {
+                                        SemesterArchiveAction(semester, viewModel::setSemesterArchived)
+                                        if (semesterWithSubjects.subjects.any { it.name.isNotBlank() }) {
+                                            TermRolloverAction(semester.id, onRollover)
+                                        }
+                                    }
                                 }
                                 if (semesterWithSubjects.subjects.isEmpty()) {
                                     item {
@@ -391,4 +400,9 @@ private fun ActiveDashboard(viewModel: DashboardViewModel, navController: NavHos
             }
         }
     }
+}
+
+@Composable
+internal fun TermRolloverAction(termId: UUID, onRollover: (UUID) -> Unit) {
+    TextButton(onClick = { onRollover(termId) }) { Text(stringResource(R.string.rollover_action)) }
 }

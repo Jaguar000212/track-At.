@@ -24,6 +24,7 @@ import com.jaguar.attendancetracker.ui.imExport.PlannerBackupScreen
 import com.jaguar.attendancetracker.ui.leave.LeaveScreen
 import com.jaguar.attendancetracker.ui.insights.InsightsScreen
 import com.jaguar.attendancetracker.ui.scheduleView.ScheduleView
+import com.jaguar.attendancetracker.ui.rollover.RolloverScreen
 import com.jaguar.attendancetracker.ui.subject.Subject
 import com.jaguar.attendancetracker.ui.today.Today
 
@@ -80,6 +81,10 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }
+        composable(
+            "${Destinations.TERM_ROLLOVER.route}/{termId}",
+            arguments = listOf(navArgument("termId") { type = NavType.StringType }),
+        ) { RolloverScreen(onDone = { navController.popBackStack() }) }
         composable(Destinations.DAYVIEW.route) {
             DayView()
         }

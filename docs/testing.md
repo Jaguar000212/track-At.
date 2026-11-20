@@ -414,16 +414,26 @@ saving must show an error without applying the draft. The API 29 tests cover
 the actual Room ordering writes, group boundaries and stale rejection;
 drag gestures and accessibility require hands-on testing.
 
-### Internal new-semester rollover
+### Reuse selected subjects in a new semester
 
-No rollover controls are exposed yet. The API 29 runner confirms that the
-internal preview writes nothing; confirmation creates only a new active
-semester and selected fresh subjects. Copies retain the previewed name/color,
-use the new start date and target, and have zero attendance and no personal
-notes, instructor, or room. Invalid imported colors use the default Pink
-shown in preview. Same semester names are allowed; identity is a fresh UUID.
-The original semester and courses, saved marks, timetable, Exams and Board
-remain intact and the result uses existing backup formats. Tests cover stale
-selection, confirming the same preview twice and rollback on a late insert
-failure. Preview and confirmation navigation will be verified after the UI
-is added.
+From the subject Dashboard, expand an Active term or open the Archived
+scope. A term with named subjects offers **Reuse subjects in a new semester**.
+Supply a name, check the start date, optionally set or clear the end date,
+and set the new attendance target. Subjects start unchecked. Review the new
+term and selected subjects before explicitly confirming. Back from review
+returns to the draft without writes. After confirmation, the new semester is
+in Active. The old term is never archived or edited.
+
+Use active and archived source fixtures; include notes, schedules, marks,
+a custom target and exams/tasks on the original. Check that only selected
+names and colors transfer, with fresh course and term IDs, new start date
+and target, zero attendance, and no other copied fields. Same names remain
+legal. Verify navigation including Back/cancel, portrait/landscape and large
+text/TalkBack; open both date pickers, cancel and clear an optional date, and
+try an end before start. Review invalid imported color as the explicitly
+shown default Pink. Rotate to retain the current navigation draft; process
+death does not persist drafts or pending confirmations.
+
+The focused API 29 tests use real Room: review versus confirmation, selected
+fields, duplicate confirmation, stale source, backup and late rollback. They
+do not drive the complete navigation or the actual date pickers.
