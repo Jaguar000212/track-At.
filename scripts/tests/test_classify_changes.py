@@ -1,0 +1,55 @@
+import importlib.util
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[2]
+spec = importlib.util.spec_from_file_location("classifier", ROOT / "scripts/classify_changes.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+
+class ClassifierTest(unittest.TestCase):
+    def test_narrow_allowlist(self):
+        self.assertTrue(module.docs_only(["README.md", "docs/testing.md"]))
+        for path in ["app/src/main/res/values/strings.xml", ".github/workflows/ci.yml", "build.gradle.kts", "scripts/check.py", "docs/build.sh", "docs/../app/code.md", "gradle.properties", "app/src/main/AndroidManifest.xml"]:
+            self.assertFalse(module.docs_only(["README.md", path]), path)
+        self.assertFalse(module.docs_only([]))
+
+    def test_errors_require_android(self):
+        for base, head in [(None, None), ("main", "a" * 40), (";bad", "b" * 40)]:
+            with self.assertRaises(ValueError):
+                module.changed_paths(base, head)
+
+    def test_main_falls_back_to_full_validation_on_diff_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "output"
+            with patch.dict("os.environ", {"GITHUB_OUTPUT": str(output)}), patch.object(module, "changed_paths", side_effect=subprocess.TimeoutExpired("git", 30)):
+                module.main()
+            self.assertEqual("android=true\n", output.read_text())
+
+    def test_rename_reports_both_paths(self):
+        import os
+        old = os.getcwd()
+        with tempfile.TemporaryDirectory() as directory:
+            try:
+                os.chdir(directory)
+                subprocess.run(["git", "init", "-q"], check=True)
+                subprocess.run(["git", "config", "user.email", "test@example.invalid"], check=True)
+                subprocess.run(["git", "config", "user.name", "Test"], check=True)
+                Path("code.kt").write_text("code")
+                subprocess.run(["git", "add", "."], check=True)
+                subprocess.run(["git", "commit", "-qm", "base"], check=True)
+                base = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+                Path("docs").mkdir()
+                Path("code.kt").rename("docs/note.md")
+                subprocess.run(["git", "add", "-A"], check=True)
+                subprocess.run(["git", "commit", "-qm", "rename"], check=True)
+                head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+                paths = module.changed_paths(base, head)
+                self.assertEqual(set(paths), {"code.kt", "docs/note.md"})
+                self.assertFalse(module.docs_only(paths))
+            finally:
+                os.chdir(old)

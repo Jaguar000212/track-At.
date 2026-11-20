@@ -1,0 +1,69 @@
+name: PR validation
+on:
+  pull_request:
+    branches: [dev]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+permissions:
+  contents: read
+concurrency:
+  group: track-at-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    name: PR checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check CI policy tests
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Classify changed files
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/classify_changes.py
+      - name: Explain validation scope
+        env:
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          ANDROID: ${{ steps.changes.outputs.android }}
+        run: |
+          if [[ "$IS_DRAFT" == "true" ]]; then
+            echo 'Draft: CI policy checks only. Mark ready for review to run Android validation.' >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$ANDROID" == "false" ]]; then
+            echo 'Documentation-only: policy checks passed; Android tasks intentionally skipped.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Ready code PR: debug build, JVM tests, lint and instrumentation compilation. Device tests are not executed.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/setup-java@v4
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        with:
+          cache-read-only: true
+      - uses: android-actions/setup-android@v3
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        with:
+          packages: platform-tools
+      - name: Install build SDK
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Build, unit tests and lint
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        run: bash ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+      - name: Upload diagnostic reports
+        if: ${{ always() && !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports-${{ github.event.pull_request.number }}
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: warn
+          retention-days: 7
