@@ -47,7 +47,8 @@ class ClassifierTest(unittest.TestCase):
         for path in ("backend/daos/PlannerRestoreDao.kt", "backend/repositories/PlannerRestoreRepository.kt",
                      "ui/imExport/PlannerMergePreview.kt", "ui/imExport/PlannerBackupFormat.kt",
                      "ui/imExport/PlannerBackupFiles.kt", "ui/imExport/PlannerBackupScreen.kt",
-                     "ui/imExport/PlannerBackupViewModel.kt"):
+                     "ui/imExport/PlannerBackupViewModel.kt", "backend/daos/BoardItemDao.kt",
+                     "ui/board/BoardScreen.kt", "ui/board/BoardViewModel.kt"):
             self.assertTrue(module.migration_changes([prefix + path]))
 
     def test_rename_reports_both_paths(self):
