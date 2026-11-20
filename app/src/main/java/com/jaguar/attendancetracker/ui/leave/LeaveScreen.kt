@@ -43,10 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.ui.components.fromPickerDateMillis
+import com.jaguar.attendancetracker.ui.components.toPickerDateMillis
 import kotlinx.coroutines.delay
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -136,18 +136,18 @@ internal fun LeaveContent(state: LeaveScreenState, today: LocalDate) {
         val maxDate = if (field == LeaveDateField.START) null else range.first.plusDays(MAX_LEAVE_RANGE_DAYS - 1)
         val selection = if (field == LeaveDateField.START) range.first else range.last
         val picker = rememberDatePickerState(
-            initialSelectedDateMillis = selection.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+            initialSelectedDateMillis = selection.toPickerDateMillis(),
             yearRange = today.year..maxOf(today.year + 10, selection.year + 1),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val value = utcTimeMillis.localDay()
+                    val value = utcTimeMillis.fromPickerDateMillis()
                     return value >= minDate && (maxDate == null || value <= maxDate)
                 }
             },
         )
         DatePickerDialog(onDismissRequest = { choosing = null }, confirmButton = {
             TextButton(onClick = {
-                picker.selectedDateMillis?.localDay()?.let { selected ->
+                picker.selectedDateMillis?.fromPickerDateMillis()?.let { selected ->
                     if (field == LeaveDateField.START) {
                         val candidate = LeaveDateRange(selected, range.last)
                         range = if (validLeaveRange(candidate, today)) candidate else LeaveDateRange(selected, selected)
@@ -213,5 +213,4 @@ private fun LeaveSubjectCard(
     }
 }
 
-private fun Long.localDay(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 private fun LocalDate.displayDate(): String = format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))

@@ -52,6 +52,11 @@ def migration_changes(paths):
                            "app/src/main/java/" + leave + "LeaveScenario.kt",
                            "app/src/main/java/" + leave + "LeaveViewModel.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/today/Today.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/dayView/DayView.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/components/EditSemesterBottomSheet.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/components/EditSubjectBottomSheet.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/components/PickerCalendarDate.kt",
+                           "app/src/androidTest/java/com/jaguar/attendancetracker/ui/components/PickerCalendarDateComposeTest.kt",
                            "app/src/androidTest/java/com/jaguar/attendancetracker/ui/today/TodayContentTest.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
                            "scripts/run_room_migration_tests.sh"}

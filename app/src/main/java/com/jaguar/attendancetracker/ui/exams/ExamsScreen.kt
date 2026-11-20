@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.ui.components.fromPickerDateMillis
+import com.jaguar.attendancetracker.ui.components.toPickerDateMillis
 import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -158,13 +158,13 @@ private fun ExamEditor(
             val years = 1900..2100
             val date = rememberDatePickerState(
                 initialSelectedDateMillis = draft.date?.takeIf { it.year in years }
-                    ?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli(),
+                    ?.toPickerDateMillis(),
                 yearRange = years,
             )
             DatePickerDialog(onDismissRequest = { picker = null }, confirmButton = {
                 TextButton(enabled = date.selectedDateMillis != null, onClick = {
                     date.selectedDateMillis?.let {
-                        change(draft.copy(date = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()))
+                        change(draft.copy(date = it.fromPickerDateMillis()))
                     }
                     picker = null
                 }) { Text(stringResource(R.string.exams_set_date)) }

@@ -53,11 +53,11 @@ timeout 45 adb install "$test_apk"
 timeout 10 adb shell pm list instrumentation "$app_id" | tr -d '\r' | tee "$results/registered-instrumentation.txt"
 grep -Fxq "instrumentation:$runner (target=$app_id)" "$results/registered-instrumentation.txt"
 timeout 90 adb shell am instrument -w -r \
-    -e class com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest,com.jaguar.attendancetracker.backend.migrations.PlannerRestoreApplyTest,com.jaguar.attendancetracker.backend.migrations.ExamBackupRestoreTest,com.jaguar.attendancetracker.ui.imExport.PlannerBackupFilesTest,com.jaguar.attendancetracker.ui.imExport.PlannerBackupContentTest,com.jaguar.attendancetracker.ui.board.BoardScreenTest,com.jaguar.attendancetracker.ui.board.BoardPersistenceTest,com.jaguar.attendancetracker.ui.exams.ExamsScreenTest,com.jaguar.attendancetracker.ui.today.TodayContentTest,com.jaguar.attendancetracker.ui.leave.LeavePlannerTest \
+    -e class com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest,com.jaguar.attendancetracker.backend.migrations.PlannerRestoreApplyTest,com.jaguar.attendancetracker.backend.migrations.ExamBackupRestoreTest,com.jaguar.attendancetracker.ui.imExport.PlannerBackupFilesTest,com.jaguar.attendancetracker.ui.imExport.PlannerBackupContentTest,com.jaguar.attendancetracker.ui.board.BoardScreenTest,com.jaguar.attendancetracker.ui.board.BoardPersistenceTest,com.jaguar.attendancetracker.ui.exams.ExamsScreenTest,com.jaguar.attendancetracker.ui.today.TodayContentTest,com.jaguar.attendancetracker.ui.leave.LeavePlannerTest,com.jaguar.attendancetracker.ui.components.PickerCalendarDateComposeTest \
     "$runner" \
     | tr -d '\r' | tee "$results/instrumentation.txt"
 # adb can return zero on assertion failure or a runner startup error.
-grep -Eq '^OK \(19 tests\)$' "$results/instrumentation.txt"
+grep -Eq '^OK \(21 tests\)$' "$results/instrumentation.txt"
 grep -Fxq 'INSTRUMENTATION_CODE: -1' "$results/instrumentation.txt"
 for fixture in populatedV8PreservesAttendanceAndScheduleWithDefaultOrder \
     populatedV9PreservesAttendanceAndScheduleWithExistingOrder \
@@ -77,7 +77,9 @@ for fixture in populatedV8PreservesAttendanceAndScheduleWithDefaultOrder \
     titleOnlyExamCanEditAndChooseAnArchivedSemester \
     emptyTodayOffersAttendanceExamsAndSubjectDashboardWithoutTimetable \
     leaveReadsRealRowsWithoutWritesAndUsesExactOccurrenceAndExamDates \
-    leaveWithoutTimetableRequiresExplicitZeroAndShowsExamsSeparately; do
+    leaveWithoutTimetableRequiresExplicitZeroAndShowsExamsSeparately \
+    unchangedSemesterStartAndEndStayOnTheirCalendarDaysInWesternZone \
+    unchangedSubjectStartStaysOnItsCalendarDayInWesternZone; do
     grep -Fxq "INSTRUMENTATION_STATUS: test=$fixture" "$results/instrumentation.txt"
 done
 

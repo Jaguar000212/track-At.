@@ -70,11 +70,10 @@ import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
 import com.jaguar.attendancetracker.backend.enums.StatusColor
 import com.jaguar.attendancetracker.ui.components.SessionCard
+import com.jaguar.attendancetracker.ui.components.fromPickerDateMillis
+import com.jaguar.attendancetracker.ui.components.toPickerDateMillis
 import com.jaguar.attendancetracker.ui.theme.AppTypography
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -97,8 +96,7 @@ fun DayView(
         uiState.date
     }
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = currentDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-            .toEpochMilli()
+        initialSelectedDateMillis = currentDate.toPickerDateMillis()
     )
 
     var showAddClassDialog by remember { mutableStateOf(false) }
@@ -401,10 +399,9 @@ fun DayView(
                             TextButton(
                                 onClick = {
                                     showDatePicker = false
-                                    viewModel.loadDate(date = datePickerState.selectedDateMillis?.let {
-                                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
-                                            .toLocalDate()
-                                    } ?: LocalDate.now())
+                                    viewModel.loadDate(
+                                        date = datePickerState.selectedDateMillis?.fromPickerDateMillis() ?: LocalDate.now()
+                                    )
                                     haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 }) {
                                 Text(

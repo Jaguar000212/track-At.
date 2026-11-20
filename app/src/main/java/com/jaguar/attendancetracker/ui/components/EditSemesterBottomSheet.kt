@@ -35,10 +35,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.ui.theme.AppTypography
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,20 +55,18 @@ fun EditSemesterBottomSheet(
 
     val startDatePickerState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Input,
-        initialSelectedDateMillis = startDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-            .toEpochMilli()
+        initialSelectedDateMillis = startDate.toPickerDateMillis()
     )
     startDatePickerState.selectedDateMillis?.let { millis ->
-        startDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        startDate = millis.fromPickerDateMillis()
     }
 
     val endDatePickerState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Input,
-        initialSelectedDateMillis = endDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-            .toEpochMilli()
+        initialSelectedDateMillis = endDate.toPickerDateMillis()
     )
     endDatePickerState.selectedDateMillis?.let { millis ->
-        endDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        endDate = millis.fromPickerDateMillis()
     }
 
     ModalBottomSheet({ onDismiss() }) {

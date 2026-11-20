@@ -46,10 +46,7 @@ import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.SubjectColor
 import com.jaguar.attendancetracker.ui.theme.AppTypography
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -79,11 +76,10 @@ fun EditSubjectBottomSheet(
     var showSemPicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Input,
-        initialSelectedDateMillis = startDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-            .toEpochMilli()
+        initialSelectedDateMillis = startDate.toPickerDateMillis()
     )
     datePickerState.selectedDateMillis?.let { millis ->
-        startDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        startDate = millis.fromPickerDateMillis()
     }
 
     ModalBottomSheet({ onDismiss() }) {
