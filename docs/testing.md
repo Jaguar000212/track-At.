@@ -243,3 +243,26 @@ and archived-term editing, v2 exam counts/v1 review text, the existing v1/v2
 Room/stream tests, and populated migration fixtures. Actual Android document
 provider, date picker selection, device rotation/navigation and accessibility
 checks remain manual.
+
+## Leave Planner calculation foundation
+
+The pure JVM projection accepts a prospective inclusive range up to 366 days,
+confirmed current attended/total counts, an attendance target, and effective
+occurrences with explicitly declared coverage. It does not touch storage.
+Current counts must be verified against counted Present/Absent attendance;
+contradictory or absent history and invalid targets cannot become a projection.
+Zero attendance history is unknown. A weekly template or an empty weekend
+does not prove full coverage; date/session/enrollment/semester boundaries and
+timetable exceptions must be considered before the future UI declares it.
+This occurrence identity describes timetable sessions; an unmapped extra
+class cannot be guessed from a null session ID. Keep automatic coverage
+partial or account for it only in a user-entered estimate until a separate
+stable extra-class occurrence identity is modeled.
+An explicit non-negative manual estimate can stand in for missing or ambiguous
+schedule information, and is labeled as manual rather than confirmed.
+
+JVM tests cover inclusive dates, weekends, unknown/partial coverage, duplicate
+or moved occurrences, cross-subject ID collisions, recorded or cancelled
+sessions, exact threshold comparisons, and integer bounds. This phase has no
+Leave UI, exam/Board conflict display or persisted plan, and does not modify
+attendance or mark any class absent.
