@@ -114,6 +114,15 @@ references. The existing attendance-only import/export still uses its own
 unchanged v10 path.
 
 This is a draft wire format used only in tests. There is no planner backup
-file picker, preview, restore transaction, or Board UI. Do not use the prototype
+file picker, user-facing preview, restore transaction, or Board UI. Do not use the prototype
 as a user backup or make the Board accessible before the follow-up tests cover
 conflict handling, idempotence, failed restores, and the real atomic restore.
+
+The internal keep-local merge preview accepts a validated complete planner
+snapshot and a complete local snapshot. Its JVM tests cover inserts, identical
+rows, conflicts and dependency blocks, including both cross-snapshot directions
+where an orphaned attendance reference would start pointing at another subject.
+It preserves genuine historical orphans and never retargets a UUID. Same-ID
+rows compare stored values, including cached subject totals. This is a pure
+plan, not a restore: no Room changes, stale-preview acceptance, recalculation,
+or UI are enabled.
