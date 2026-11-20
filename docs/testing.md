@@ -75,7 +75,7 @@ state and both actions; CI compiles it, but it must be executed separately on a 
 or emulator. This slice does not include a database migration or test a public APK upgrade.
 
 
-## Room migration: populated v8, v9 and v10 to v11
+## Room migration: populated v8, v9, v10 and v11 to v12
 
 For ready PRs that touch Room schema/migrations or their fixtures, the existing
 Linux PR check runs only the focused Room migration and internal restore tests on a single API 29
@@ -91,17 +91,20 @@ bash ./gradlew :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest,com.jaguar.attendancetracker.backend.migrations.PlannerRestoreApplyTest
 ```
 
-Three populated fixtures open through Room with the production migration chain.
+Four populated fixtures open through Room with the production migration chain.
 The v8 and v9 fixtures cover historical upgrades and verify that the Board
 table starts empty. The independent v10 fixture under
 `app/src/androidTest/assets/room/attendance-v10.sql` verifies that all four
 original tables keep their schema, indexes and populated rows; it also
 checks that Board entries with and without a due date survive a database
-reopen and do not alter attendance data. These emulator fixtures do not
+reopen and do not alter attendance data. The v11 fixture verifies all five
+existing tables and rows are unchanged, and that archiving preserves exam
+links while deleting a semester detaches exams without deleting them.
+These emulator fixtures do not
 prove a same-signed public APK upgrade.
 
-Board storage is internal. No UI exposes it and attendance JSON stays on
-wire format v10; do not treat that attendance export as a planner backup.
+Exam storage is internal. No Exam UI exposes it yet. Legacy attendance JSON
+stays at v10 and the visible Planner backup stays at v1 in this storage phase.
 No destructive fallback or signing changes.
 
 ## Internal planner backup format prototype
