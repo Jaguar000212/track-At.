@@ -308,3 +308,20 @@ Also recheck Board, Exams and Leave date selection. The JVM test restores
 its temporary test timezone and covers all three zones. The selective API 29
 tests exercise actual subject/semester edit sheets in a west zone, not
 manual calendar navigation or a stored-data correction.
+
+## Attendance Insights calculation
+
+The initial Insights aggregator is read-only and has no screen in this slice.
+It counts saved attendance across eight local Monday–Sunday calendar weeks;
+the final week stops at the supplied local date. All-subject scope includes
+historical and archived subjects; an explicit subject scope narrows the
+report. Present and Absent count toward the rate. Unmarked and Cancelled
+stay separate, and a week without marked records has no rate. No calendar
+or timetable entries are materialized for this report.
+
+A set of multiple regular rows with the same subject/session/calendar-day
+identity, or a regular row without that identity, is flagged as excluded.
+Independently saved Extra classes keep their own record IDs. The tests cover
+mixed/empty records, archived-inclusive versus scoped behavior, year/week
+boundaries, future exclusion and identity conflicts. Any later UI should show
+excluded-row counts and must not present them as absences or hide missing data.
