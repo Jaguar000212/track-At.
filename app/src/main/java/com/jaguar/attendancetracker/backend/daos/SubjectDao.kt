@@ -24,6 +24,9 @@ interface SubjectDao {
     @Delete
     suspend fun delete(subject: Subject)
 
+    @Query("SELECT id, name, color FROM Subjects WHERE semesterId = :term AND id IN (:ids)")
+    suspend fun rolloverTemplates(term: UUID, ids: List<UUID>): List<RolloverTemplateRow>
+
     @Query("SELECT * FROM Subjects")
     fun getAll(): Flow<List<Subject>>
 
@@ -42,3 +45,4 @@ interface SubjectDao {
     @Query("SELECT * FROM Subjects WHERE isEnded = 0")
     fun getSchedulable(): Flow<List<Subject>>
 }
+data class RolloverTemplateRow(val id: UUID, val name: String, val color: String)
