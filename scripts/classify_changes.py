@@ -34,10 +34,12 @@ def migration_changes(paths):
     test = "app/src/androidTest/java/" + package
     board = "com/jaguar/attendancetracker/ui/board/"
     exams = "com/jaguar/attendancetracker/ui/exams/"
+    leave = "com/jaguar/attendancetracker/ui/leave/"
     return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/",
                                     "app/src/androidTest/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackup",
                                     "app/src/main/java/" + board, "app/src/androidTest/java/" + board,
-                                    "app/src/main/java/" + exams, "app/src/androidTest/java/" + exams))
+                                    "app/src/main/java/" + exams, "app/src/androidTest/java/" + exams,
+                                    "app/src/androidTest/java/" + leave))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
                            main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt", main + "daos/ExamDao.kt",
                            main + "repositories/PlannerRestoreRepository.kt",
@@ -46,6 +48,9 @@ def migration_changes(paths):
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupFiles.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupScreen.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupViewModel.kt",
+                           "app/src/main/java/" + leave + "LeaveScreen.kt",
+                           "app/src/main/java/" + leave + "LeaveScenario.kt",
+                           "app/src/main/java/" + leave + "LeaveViewModel.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/today/Today.kt",
                            "app/src/androidTest/java/com/jaguar/attendancetracker/ui/today/TodayContentTest.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
