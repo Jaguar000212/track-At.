@@ -174,7 +174,6 @@ class ArchivedTermsTest {
         val term = Semester(name = "Confirm fixture", startDate = LocalDate.of(2025, 1, 1), endDate = null)
         val archive = context.getString(R.string.terms_archive_action)
         val unarchive = context.getString(R.string.terms_unarchive_action)
-        val activity = compose.activity
         val changes = mutableListOf<Boolean>()
         compose.setContent {
             var archived by rememberSaveable { mutableStateOf(false) }
@@ -186,7 +185,7 @@ class ArchivedTermsTest {
         }
         compose.onNodeWithText(archive).performClick()
         compose.onNodeWithText(context.getString(R.string.terms_archive_title, term.name)).assertIsDisplayed()
-        compose.runOnIdle { activity.onBackPressedDispatcher.onBackPressed() }
+        compose.onNodeWithText(context.getString(android.R.string.cancel)).performClick()
         compose.runOnIdle { assertEquals(emptyList<Boolean>(), changes) }
         compose.onNodeWithText(archive).performClick()
         compose.onNodeWithText(context.getString(R.string.terms_confirm_archive)).performClick()
