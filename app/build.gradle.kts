@@ -6,6 +6,30 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+// The tag workflow opts in explicitly; ordinary builds keep the source version.
+val ciChannel = providers.gradleProperty("trackAtReleaseChannel").orNull
+val ciCodeText = providers.gradleProperty("trackAtDevVersionCode").orNull
+require(ciChannel == null || ciChannel in setOf("dev", "production")) {
+    "trackAtReleaseChannel must be dev or production"
+}
+require((ciChannel == "dev") == (ciCodeText != null)) {
+    "trackAtDevVersionCode is required for dev and forbidden otherwise"
+}
+val devCode = ciCodeText?.let {
+    require(Regex("[1-9][0-9]{0,9}").matches(it)) { "Invalid Dev version code" }
+    requireNotNull(it.toIntOrNull()?.takeIf { code -> code <= 2_100_000_000 }) {
+        "Dev version code exceeds the Android distribution limit"
+    }
+}
+
+val sourceVersion = providers.fileContents(rootProject.layout.projectDirectory.file("version.properties")).asText.get()
+val versionMetadata = Regex("""versionName=((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))\r?\nversionCode=([1-9][0-9]{0,9})(?:\r?\n)?""")
+    .matchEntire(sourceVersion) ?: error("Invalid source version.properties")
+val publicVersionName = versionMetadata.groupValues[1]
+val publicVersionCode = requireNotNull(versionMetadata.groupValues[2].toIntOrNull()?.takeIf { it <= 2_100_000_000 }) {
+    "Public version code exceeds the Android distribution limit"
+}
+
 android {
     namespace = "com.jaguar.attendancetracker"
     compileSdk {
@@ -16,8 +40,8 @@ android {
         applicationId = "com.jaguar.attendancetracker"
         minSdk = 29
         targetSdk = 36
-        versionCode = 6
-        versionName = "6.0.0"
+        versionCode = publicVersionCode
+        versionName = publicVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,11 +53,15 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (ciChannel == null) signingConfigs.getByName("debug") else null
+            if (ciChannel == "dev") {
+                applicationIdSuffix = ".dev"
+                versionNameSuffix = "-dev"
+            }
         }
         getByName("debug") {
-            applicationIdSuffix = ".b"
-            versionNameSuffix = "b"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
         }
     }
     compileOptions {
@@ -48,6 +76,12 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        devCode?.let { code -> variant.outputs.forEach { it.versionCode.set(code) } }
     }
 }
 

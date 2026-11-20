@@ -1,0 +1,101 @@
+name: Public release
+run-name: Public release ${{ github.ref_name }}
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: track-at-production-publisher
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CHANNEL: production
+      APKSIGNER: /usr/local/lib/android/sdk/build-tools/36.0.0/apksigner
+      AAPT: /usr/local/lib/android/sdk/build-tools/36.0.0/aapt
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Resolve SDK tools
+        run: |
+          echo "APKSIGNER=$ANDROID_HOME/build-tools/36.0.0/apksigner" >> "$GITHUB_ENV"
+          echo "AAPT=$ANDROID_HOME/build-tools/36.0.0/aapt" >> "$GITHUB_ENV"
+      - name: Gate exact tag, channel, signer and provenance
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/release_pipeline.py prepare production
+      - name: Validate before signing
+        run: |
+          python3 -m unittest discover -s scripts/tests -v
+          bash ./gradlew --no-daemon --stacktrace -PtrackAtReleaseChannel=production  :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease :app:assembleDebugAndroidTest
+      - name: Sign with existing pinned channel key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.PUBLIC_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.PUBLIC_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PUBLIC_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PUBLIC_KEY_PASSWORD }}
+        run: bash scripts/sign_apk.sh
+      - name: Verify signed output and unchanged refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/release_pipeline.py finish "dist/track-at-$CHANNEL.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public-candidate-${{ github.run_id }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload diagnostic reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-reports-${{ github.run_id }}
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: warn
+          retention-days: 7
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: public-candidate-${{ github.run_id }}
+          path: dist/
+      - name: Stage verified candidate and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          python3 scripts/verify_candidate.py
+          gh release create "$TAG" dist/* --verify-tag --draft --title "$TAG" --notes "Source: $GITHUB_SHA. Includes APK, checksum and build provenance."
+          python3 scripts/verify_release_assets.py "$TAG"
+          gh release edit "$TAG" --draft=false --latest

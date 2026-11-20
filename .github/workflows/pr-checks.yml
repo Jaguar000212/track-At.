@@ -57,6 +57,16 @@ jobs:
       - name: Build, unit tests and lint
         if: ${{ !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
         run: bash ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+      - name: Validate unsigned channel configurations when affected
+        if: ${{ !github.event.pull_request.draft && steps.changes.outputs.channels != 'false' }}
+        env:
+          AAPT: /usr/local/lib/android/sdk/build-tools/36.0.0/aapt
+        run: |
+          export AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          bash ./gradlew --no-daemon -PtrackAtReleaseChannel=dev -PtrackAtDevVersionCode=1 :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
+          python3 scripts/check_channel_apk.py dev app/build/outputs/apk/release/app-release-unsigned.apk
+          bash ./gradlew --no-daemon -PtrackAtReleaseChannel=production :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
+          python3 scripts/check_channel_apk.py production app/build/outputs/apk/release/app-release-unsigned.apk
       - name: Upload diagnostic reports
         if: ${{ always() && !github.event.pull_request.draft && steps.changes.outputs.android != 'false' }}
         uses: actions/upload-artifact@v4
