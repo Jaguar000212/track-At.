@@ -5,6 +5,7 @@ import com.jaguar.attendancetracker.backend.entities.BoardItem
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
+import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import java.util.UUID
 
 internal enum class PlannerMergeOutcome {
@@ -19,6 +20,8 @@ internal enum class PlannerMergeBlockReason {
     SESSION_BLOCKED,
     SESSION_SUBJECT_MISMATCH,
     WOULD_MISLINK_LOCAL_ATTENDANCE,
+    INCONSISTENT_LOCAL_TOTALS,
+    INCONSISTENT_INCOMING_TOTALS,
 }
 
 internal data class PlannerMergeBlock(val reason: PlannerMergeBlockReason, val relatedId: UUID)
@@ -29,21 +32,30 @@ internal data class PlannerMergeRow<T>(
     val dependency: PlannerMergeBlock? = null,
 )
 
+internal data class PlannerSubjectTotals(val totalClasses: Int = 0, val attendedClasses: Int = 0) {
+    fun plus(records: PlannerSubjectTotals) = PlannerSubjectTotals(
+        Math.addExact(totalClasses, records.totalClasses),
+        Math.addExact(attendedClasses, records.attendedClasses),
+    )
+}
+
 internal data class PlannerMergePreview(
     val semesters: List<PlannerMergeRow<Semester>>,
     val subjects: List<PlannerMergeRow<Subject>>,
     val schedule: List<PlannerMergeRow<SessionRecord>>,
     val attendance: List<PlannerMergeRow<AttendanceRecord>>,
     val board: List<PlannerMergeRow<BoardItem>>,
+    val totalsAfterAcceptedAttendance: Map<UUID, PlannerSubjectTotals>,
 )
 
 /**
  * Plans a conservative keep-local preview from two complete snapshots. Incoming has already
  * passed the planner decoder. This does not apply changes or authorize any later write.
  *
- * Same-ID rows use exact stored field equality, including attendance totals on Subject.
- * The future write phase must separately decide derived-stat recomputation and re-plan inside
- * its own transaction; this preview has no side effects and never rewrites a reference.
+ * Subject user fields compare separately from cached aggregates. An inconsistent
+ * stored baseline is never reset: it blocks affected attendance instead. The
+ * write phase must re-plan inside a transaction and use only approved inserts
+ * and these two derived columns.
  */
 internal object PlannerMergePlanner {
     fun preview(local: PlannerBackup, incoming: PlannerBackup): PlannerMergePreview {
@@ -51,6 +63,19 @@ internal object PlannerMergePlanner {
         val incomingData = incoming.attendance
         val localSchedule = requireNotNull(localData.schedule).byId(SessionRecord::id)
         val localAttendance = requireNotNull(localData.attendance).byId(AttendanceRecord::id)
+        val incomingAttendance = requireNotNull(incomingData.attendance)
+        val localSubjects = requireNotNull(localData.subjects).byId(Subject::id)
+        val incomingSubjects = requireNotNull(incomingData.subjects).byId(Subject::id)
+        val localTotals = localAttendance.values.countedTotals()
+        val incomingTotals = incomingAttendance.countedTotals()
+        fun incomingTotalsBlock(id: UUID): PlannerMergeBlock? =
+            if (incomingSubjects.getValue(id).storedTotals() != incomingTotals.totals(id)) {
+                PlannerMergeBlock(PlannerMergeBlockReason.INCONSISTENT_INCOMING_TOTALS, id)
+            } else null
+        fun localTotalsBlock(id: UUID): PlannerMergeBlock? =
+            if (localSubjects[id]?.let { it.storedTotals() != localTotals.totals(id) } == true) {
+                PlannerMergeBlock(PlannerMergeBlockReason.INCONSISTENT_LOCAL_TOTALS, id)
+            } else null
         val localAttendanceBySession = localAttendance.values.filter { it.sessionId != null }
             .groupBy { it.sessionId }
         val semesters = plan(
@@ -63,9 +88,9 @@ internal object PlannerMergePlanner {
                 PlannerMergeBlock(PlannerMergeBlockReason.SEMESTER_CONFLICT, id)
             } else null
         val subjects = plan(
-            requireNotNull(incomingData.subjects), requireNotNull(localData.subjects).byId(Subject::id),
-            Subject::id,
-        ) { semesterBlock(it.semesterId) }
+            incomingSubjects.values.toList(), localSubjects, Subject::id,
+            same = { incomingItem, localItem -> incomingItem.authoredFields() == localItem.authoredFields() },
+        ) { semesterBlock(it.semesterId) ?: incomingTotalsBlock(it.id) }
         val subjectDecisions = subjects.associateBy { it.incoming.id }
         fun subjectBlock(id: UUID): PlannerMergeBlock? = when (subjectDecisions.getValue(id).outcome) {
             PlannerMergeOutcome.KEEP_LOCAL_CONFLICT ->
@@ -88,8 +113,9 @@ internal object PlannerMergePlanner {
         val effectiveSchedule = localSchedule + schedule.filter { it.outcome == PlannerMergeOutcome.INSERT }
             .associate { it.incoming.id to it.incoming }
 
-        val attendance = plan(requireNotNull(incomingData.attendance), localAttendance, AttendanceRecord::id) { item ->
-            subjectBlock(item.subjectId) ?: item.sessionId?.let { sessionId ->
+        val attendance = plan(incomingAttendance, localAttendance, AttendanceRecord::id) { item ->
+            subjectBlock(item.subjectId) ?: localTotalsBlock(item.subjectId)
+                ?: incomingTotalsBlock(item.subjectId) ?: item.sessionId?.let { sessionId ->
                 when (scheduleOutcomes[sessionId]) {
                     PlannerMergeOutcome.KEEP_LOCAL_CONFLICT ->
                         PlannerMergeBlock(PlannerMergeBlockReason.SESSION_CONFLICT, sessionId)
@@ -105,18 +131,39 @@ internal object PlannerMergePlanner {
             }
         }
         val board = plan(incoming.board, local.board.byId(BoardItem::id), BoardItem::id)
-        return PlannerMergePreview(semesters, subjects, schedule, attendance, board)
+        val acceptedMarks = attendance.filter { it.outcome == PlannerMergeOutcome.INSERT }
+            .map { it.incoming }.countedTotals()
+        val updates = acceptedMarks.mapValues { (id, counts) -> localTotals.totals(id).plus(counts) }
+        return PlannerMergePreview(semesters, subjects, schedule, attendance, board, updates)
+    }
+
+    private fun Subject.authoredFields() = copy(totalClasses = 0, attendedClasses = 0)
+    private fun Subject.storedTotals() = PlannerSubjectTotals(totalClasses, attendedClasses)
+    private fun Map<UUID, PlannerSubjectTotals>.totals(id: UUID) = get(id) ?: PlannerSubjectTotals()
+
+    private fun Iterable<AttendanceRecord>.countedTotals(): Map<UUID, PlannerSubjectTotals> {
+        val result = mutableMapOf<UUID, PlannerSubjectTotals>()
+        for (row in this) {
+            val present = when (row.status) {
+                AttendanceStatus.PRESENT -> 1
+                AttendanceStatus.ABSENT -> 0
+                else -> continue
+            }
+            result[row.subjectId] = result.totals(row.subjectId).plus(PlannerSubjectTotals(1, present))
+        }
+        return result
     }
 
     private fun <T> plan(
         incoming: List<T>,
         local: Map<UUID, T>,
         id: (T) -> UUID,
+        same: (T, T) -> Boolean = { a, b -> a == b },
         dependency: (T) -> PlannerMergeBlock? = { null },
     ): List<PlannerMergeRow<T>> = incoming.byId(id).entries.sortedBy { it.key }.map { (key, item) ->
         val retained = local[key]
         if (retained != null) {
-            val outcome = if (item == retained) PlannerMergeOutcome.UNCHANGED else PlannerMergeOutcome.KEEP_LOCAL_CONFLICT
+            val outcome = if (same(item, retained)) PlannerMergeOutcome.UNCHANGED else PlannerMergeOutcome.KEEP_LOCAL_CONFLICT
             PlannerMergeRow(item, outcome)
         } else {
             val block = dependency(item)

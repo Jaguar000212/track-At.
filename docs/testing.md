@@ -78,7 +78,7 @@ or emulator. This slice does not include a database migration or test a public A
 ## Room migration: populated v8, v9 and v10 to v11
 
 For ready PRs that touch Room schema/migrations or their fixtures, the existing
-Linux PR check runs only the focused Room migration class on a single API 29
+Linux PR check runs only the focused Room migration and internal restore tests on a single API 29
 emulator. It reuses the debug APKs already built by the normal job; no separate
 workflow, matrix, APK uploads, signing keys, or release is involved. The emulator
 step has a 12-minute limit and publishes test output with the existing reports.
@@ -88,7 +88,7 @@ On an Android emulator or a spare device, run:
 
 ```sh
 bash ./gradlew :app:connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest
+  -Pandroid.testInstrumentationRunnerArguments.class=com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest,com.jaguar.attendancetracker.backend.migrations.PlannerRestoreApplyTest
 ```
 
 Three populated fixtures open through Room with the production migration chain.
@@ -114,7 +114,7 @@ references. The existing attendance-only import/export still uses its own
 unchanged v10 path.
 
 This is a draft wire format used only in tests. There is no planner backup
-file picker, user-facing preview, restore transaction, or Board UI. Do not use the prototype
+file picker, user-facing preview or Board UI. Do not use the prototype
 as a user backup or make the Board accessible before the follow-up tests cover
 conflict handling, idempotence, failed restores, and the real atomic restore.
 
@@ -122,7 +122,21 @@ The internal keep-local merge preview accepts a validated complete planner
 snapshot and a complete local snapshot. Its JVM tests cover inserts, identical
 rows, conflicts and dependency blocks, including both cross-snapshot directions
 where an orphaned attendance reference would start pointing at another subject.
-It preserves genuine historical orphans and never retargets a UUID. Same-ID
-rows compare stored values, including cached subject totals. This is a pure
-plan, not a restore: no Room changes, stale-preview acceptance, recalculation,
-or UI are enabled.
+It preserves genuine historical orphans and never retargets a UUID.
+
+The internal Apply path uses the same preview and re-reads all five tables in a
+single Room transaction before writes. A stale preview writes nothing; accepted
+rows insert without replacing existing records. The snapshot and confirmation
+handle contain private records; do not log, serialize or persist them. This
+path still has no UI, public format commitment or legacy import changes.
+
+The existing selective API 29 step now also runs the three named internal apply
+tests in `PlannerRestoreApplyTest`. They verify that a repeated merge with a
+fresh preview is a no-op, a stale preview does not write, an inconsistent
+historical total does not prevent unrelated Board work, and a late SQLite
+trigger rolls back the entire restore. The only updates allowed are the two
+cached subject count columns when the source/local counts agree with their
+attendance rows and accepted marks change those counts. Present/Absent count
+toward total (Present counts as attended); cancelled and unmarked rows do not.
+New subjects' counters reflect only accepted records. No attendance history,
+subject fields, or planner items are otherwise overwritten or deleted.
