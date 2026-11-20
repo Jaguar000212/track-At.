@@ -33,9 +33,11 @@ def migration_changes(paths):
     main = "app/src/main/java/" + package
     test = "app/src/androidTest/java/" + package
     board = "com/jaguar/attendancetracker/ui/board/"
+    exams = "com/jaguar/attendancetracker/ui/exams/"
     return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/",
                                     "app/src/androidTest/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackup",
-                                    "app/src/main/java/" + board, "app/src/androidTest/java/" + board))
+                                    "app/src/main/java/" + board, "app/src/androidTest/java/" + board,
+                                    "app/src/main/java/" + exams, "app/src/androidTest/java/" + exams))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
                            main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt", main + "daos/ExamDao.kt",
                            main + "repositories/PlannerRestoreRepository.kt",
@@ -44,6 +46,8 @@ def migration_changes(paths):
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupFiles.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupScreen.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupViewModel.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/today/Today.kt",
+                           "app/src/androidTest/java/com/jaguar/attendancetracker/ui/today/TodayContentTest.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
                            "scripts/run_room_migration_tests.sh"}
                for path in paths)

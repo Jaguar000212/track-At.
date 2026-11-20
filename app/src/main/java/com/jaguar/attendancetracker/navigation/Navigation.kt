@@ -17,6 +17,7 @@ import androidx.navigation.navArgument
 import com.jaguar.attendancetracker.ui.board.BoardScreen
 import com.jaguar.attendancetracker.ui.dashboard.Dashboard
 import com.jaguar.attendancetracker.ui.dayView.DayView
+import com.jaguar.attendancetracker.ui.exams.ExamsScreen
 import com.jaguar.attendancetracker.ui.helpPage.HelpPage
 import com.jaguar.attendancetracker.ui.imExport.ImExport
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackupScreen
@@ -56,11 +57,15 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
                     // The Today shortcut opens today's date rather than restoring a historical tab.
                     navController.navigate(Destinations.DAYVIEW.route) { launchSingleTop = true }
                 },
+                openExams = {
+                    navController.navigate(Destinations.EXAMS.route) { launchSingleTop = true }
+                },
                 openDashboard = {
                     navController.navigate(Destinations.DASHBOARD.route) { launchSingleTop = true }
                 },
             )
         }
+        composable(Destinations.EXAMS.route) { ExamsScreen() }
         composable(Destinations.BOARD.route) { BoardScreen() }
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)

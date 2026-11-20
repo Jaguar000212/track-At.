@@ -16,15 +16,17 @@ class TodayContentTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun emptyTodayOffersAttendanceAndSubjectDashboardWithoutTimetable() {
+    fun emptyTodayOffersAttendanceExamsAndSubjectDashboardWithoutTimetable() {
         var attendanceOpens = 0
         var dashboardOpens = 0
+        var examsOpens = 0
         compose.setContent {
             UITheme {
                 TodayContent(
                     TodayState.Ready(LocalDate.of(2026, 11, 20), emptyList(), emptyList()),
                     openDayView = { attendanceOpens++ },
                     openDashboard = { dashboardOpens++ },
+                    openExams = { examsOpens++ },
                 )
             }
         }
@@ -32,9 +34,11 @@ class TodayContentTest {
         compose.onNodeWithText(resources.getString(R.string.today_empty)).assertIsDisplayed()
         compose.onNodeWithText(resources.getString(R.string.today_open_day_view)).performClick()
         compose.onNodeWithText(resources.getString(R.string.today_open_dashboard)).performClick()
+        compose.onNodeWithText(resources.getString(R.string.exams_title)).performClick()
         compose.runOnIdle {
             assertEquals(1, attendanceOpens)
             assertEquals(1, dashboardOpens)
+            assertEquals(1, examsOpens)
         }
     }
 }
