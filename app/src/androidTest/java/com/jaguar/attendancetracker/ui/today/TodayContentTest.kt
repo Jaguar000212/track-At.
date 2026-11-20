@@ -20,6 +20,7 @@ class TodayContentTest {
         var attendanceOpens = 0
         var dashboardOpens = 0
         var examsOpens = 0
+        var leaveOpens = 0
         compose.setContent {
             UITheme {
                 TodayContent(
@@ -27,6 +28,7 @@ class TodayContentTest {
                     openDayView = { attendanceOpens++ },
                     openDashboard = { dashboardOpens++ },
                     openExams = { examsOpens++ },
+                    openLeave = { leaveOpens++ },
                 )
             }
         }
@@ -35,10 +37,12 @@ class TodayContentTest {
         compose.onNodeWithText(resources.getString(R.string.today_open_day_view)).performClick()
         compose.onNodeWithText(resources.getString(R.string.today_open_dashboard)).performClick()
         compose.onNodeWithText(resources.getString(R.string.exams_title)).performClick()
+        compose.onNodeWithText(resources.getString(R.string.leave_title)).performClick()
         compose.runOnIdle {
             assertEquals(1, attendanceOpens)
             assertEquals(1, dashboardOpens)
             assertEquals(1, examsOpens)
+            assertEquals(1, leaveOpens)
         }
     }
 }

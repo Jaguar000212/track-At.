@@ -263,6 +263,30 @@ schedule information, and is labeled as manual rather than confirmed.
 
 JVM tests cover inclusive dates, weekends, unknown/partial coverage, duplicate
 or moved occurrences, cross-subject ID collisions, recorded or cancelled
-sessions, exact threshold comparisons, and integer bounds. This phase has no
-Leave UI, exam/Board conflict display or persisted plan, and does not modify
-attendance or mark any class absent.
+sessions, exact threshold comparisons, and integer bounds. The calculation has no persistence and never changes attendance.
+
+
+## Leave Planner UI
+
+Open **Today → Leave Planner**. Choose prospective inclusive whole dates,
+up to 366 days. The planner reads a consistent attendance/schedule/subject/
+semester/exam snapshot. Weekly entries and saved unmarked extras are shown
+as incomplete context, not a complete timetable. Archived/ended subjects
+or subjects outside their recorded dates are not projected. Date changes
+clear manual estimates. Leave is not saved, and no marks or reminders are made.
+
+1. Without a timetable, leave an estimate blank: no projection. Type 0
+   explicitly for a subject with verified attendance, then type a positive
+   whole number; compare current and projected fractions and threshold.
+   A missing/zero history or inconsistent cached counts must not produce a
+   reassuring result. No attendance should change after any scenario.
+2. Use a range including scheduled, marked and cancelled classes and saved
+   unmarked extras; only the scoped unmarked entries are counted for context.
+   Test weekends and recorded semester/subject/session dates.
+3. Dated exams overlapping the range appear even from archived terms or no
+   term. Undated exams have a separate uncertainty label. Board deadlines
+   are not included in this slice.
+4. Manual checks: real date picker, selection in time zones west of UTC,
+   range reset and Back, large text/TalkBack/IME scrolling and old routes.
+   The selective API 29 runner tests complete read-only Room fixtures and
+   Compose no-timetable manual zero/exam sections, not the full picker flow.

@@ -21,6 +21,7 @@ import com.jaguar.attendancetracker.ui.exams.ExamsScreen
 import com.jaguar.attendancetracker.ui.helpPage.HelpPage
 import com.jaguar.attendancetracker.ui.imExport.ImExport
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackupScreen
+import com.jaguar.attendancetracker.ui.leave.LeaveScreen
 import com.jaguar.attendancetracker.ui.scheduleView.ScheduleView
 import com.jaguar.attendancetracker.ui.subject.Subject
 import com.jaguar.attendancetracker.ui.today.Today
@@ -57,6 +58,9 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
                     // The Today shortcut opens today's date rather than restoring a historical tab.
                     navController.navigate(Destinations.DAYVIEW.route) { launchSingleTop = true }
                 },
+                openLeave = {
+                    navController.navigate(Destinations.LEAVE.route) { launchSingleTop = true }
+                },
                 openExams = {
                     navController.navigate(Destinations.EXAMS.route) { launchSingleTop = true }
                 },
@@ -65,6 +69,7 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
                 },
             )
         }
+        composable(Destinations.LEAVE.route) { LeaveScreen() }
         composable(Destinations.EXAMS.route) { ExamsScreen() }
         composable(Destinations.BOARD.route) { BoardScreen() }
         composable(Destinations.DASHBOARD.route) {
