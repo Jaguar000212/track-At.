@@ -3,6 +3,8 @@ package com.jaguar.attendancetracker.ui.imExport
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +19,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.jaguar.attendancetracker.R
@@ -39,6 +43,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ImExport(
+    openPlannerBackup: () -> Unit,
     viewModel: ImExportViewModel = hiltViewModel()
 ) {
     val haptic = LocalHapticFeedback.current
@@ -71,8 +76,17 @@ fun ImExport(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 84.dp)
         ) {
+            OutlinedButton(
+                onClick = openPlannerBackup,
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.planner_backup_title))
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Export Data", style = AppTypography.headlineMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(

@@ -39,6 +39,15 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
         return Pending(incoming, before)
     }
 
+    suspend fun createBackup(): String {
+        val snapshot = db.withTransaction { capture() }
+        return withContext(Dispatchers.Default) {
+            PlannerBackupFormat.encode(snapshot.copy(
+                attendance = snapshot.attendance.copy(timestamp = System.currentTimeMillis()),
+            ))
+        }
+    }
+
     private suspend fun capture() = PlannerBackup(
         attendance = BackupData(
             timestamp = 0,

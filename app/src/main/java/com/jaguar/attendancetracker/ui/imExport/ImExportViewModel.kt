@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.backend.repositories.ImportExportRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -87,6 +88,8 @@ class ImExportViewModel @Inject constructor(
                     }
                 }
                 Toast.makeText(context, "Import Successful!", Toast.LENGTH_SHORT).show()
+            } catch (_: PlannerBackupRequiresPlannerRestore) {
+                Toast.makeText(context, R.string.planner_backup_use_planner, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 e.printStackTrace()
                 val message = if (e.message?.contains("Constraint") == true) {

@@ -27,4 +27,34 @@
         <item quantity="one">%d class to mark</item>
         <item quantity="other">%d classes to mark</item>
     </plurals>
+    <string name="planner_backup_title">Planner backup</string>
+    <string name="planner_backup_scope">Save or restore a complete planner backup. It includes active and archived semesters, subjects, timetable, attendance and Board items. It is separate from the attendance transfer options.</string>
+    <string name="planner_backup_privacy">The file is not encrypted and may contain personal information. You choose where to save it. Track-At does not share or upload it automatically.</string>
+    <string name="planner_backup_save">Save planner backup</string>
+    <string name="planner_backup_open">Choose backup to restore</string>
+    <string name="planner_backup_reading">Checking backup…</string>
+    <string name="planner_backup_writing">Saving backup…</string>
+    <string name="planner_backup_applying">Applying restore…</string>
+    <string name="planner_backup_preview">Review restore</string>
+    <string name="planner_backup_keep_local">Nothing has changed yet. Applying adds new items and keeps your existing data when there is a conflict. Attendance totals can update when new marks are added.</string>
+    <string name="planner_backup_block_explanation">Blocked items are not added. They can depend on conflicting records or attendance totals that do not match the available records.</string>
+    <string name="planner_backup_row">%1$s: %2$d to add, %3$d unchanged, %4$d conflicts kept, %5$d blocked</string>
+    <string name="planner_backup_apply">Apply restore</string>
+    <string name="planner_backup_cancel">Cancel</string>
+    <string name="planner_backup_close">Close</string>
+    <string name="planner_backup_saved">Planner backup saved.</string>
+    <string name="planner_backup_applied">Restore applied. Conflicting records were kept.</string>
+    <string name="planner_backup_no_changes">There are no new items to add.</string>
+    <string name="planner_backup_stale">Your data changed. Choose the backup again to review an updated preview. Nothing was added.</string>
+    <string name="planner_backup_invalid">This is not a valid supported planner backup. No data was changed.</string>
+    <string name="planner_backup_picker_failed">Could not open the file picker or use that selection.</string>
+    <string name="planner_backup_read_failed">Could not read the backup file. No data was changed.</string>
+    <string name="planner_backup_write_failed">Could not save the backup. The selected file may be incomplete.</string>
+    <string name="planner_backup_restore_failed">Could not finish restoring. No data was changed.</string>
+    <string name="planner_backup_semesters">Semesters</string>
+    <string name="planner_backup_subjects">Subjects</string>
+    <string name="planner_backup_schedule">Timetable</string>
+    <string name="planner_backup_attendance">Attendance</string>
+    <string name="planner_backup_board">Board items</string>
+    <string name="planner_backup_use_planner">Use Planner backup to restore this file. No data was changed.</string>
 </resources>

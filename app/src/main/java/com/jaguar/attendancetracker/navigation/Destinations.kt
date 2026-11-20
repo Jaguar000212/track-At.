@@ -16,5 +16,6 @@ enum class Destinations(
     SUBJECT(R.string.nav_subject, Icons.AutoMirrored.Outlined.List, "/subject", false),
     SETTINGS(R.string.nav_settings, Icons.Outlined.Settings, "/settings", false),
     IM_EXPORT(R.string.nav_import_export, Icons.Outlined.Settings, "/im-export", false),
+    PLANNER_BACKUP(R.string.planner_backup_title, Icons.Outlined.Settings, "/planner-backup", false),
     HELP(R.string.nav_help, Icons.Outlined.Settings, "/help", false)
 }
