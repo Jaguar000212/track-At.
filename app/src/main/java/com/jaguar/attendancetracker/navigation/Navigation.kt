@@ -14,6 +14,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.jaguar.attendancetracker.ui.board.BoardScreen
 import com.jaguar.attendancetracker.ui.dashboard.Dashboard
 import com.jaguar.attendancetracker.ui.dayView.DayView
 import com.jaguar.attendancetracker.ui.helpPage.HelpPage
@@ -60,6 +61,7 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
                 },
             )
         }
+        composable(Destinations.BOARD.route) { BoardScreen() }
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }

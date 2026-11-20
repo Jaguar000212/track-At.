@@ -57,4 +57,27 @@
     <string name="planner_backup_attendance">Attendance</string>
     <string name="planner_backup_board">Board items</string>
     <string name="planner_backup_use_planner">Use Planner backup to restore this file. No data was changed.</string>
+    <string name="board_title">Board</string>
+    <string name="board_description">Keep track of assignments, errands and anything else. A title is all you need.</string>
+    <string name="board_add">Add task</string>
+    <string name="board_open_tasks">Open</string>
+    <string name="board_done_tasks">Done</string>
+    <string name="board_open_empty">No open tasks. Add one whenever you’re ready.</string>
+    <string name="board_done_empty">Completed tasks will appear here.</string>
+    <string name="board_edit">Edit task</string>
+    <string name="board_edit_named">Edit task: %1$s</string>
+    <string name="board_reopen">Reopen task</string>
+    <string name="board_reopen_named">Reopen task: %1$s</string>
+    <string name="board_complete">Mark done</string>
+    <string name="board_complete_named">Mark done: %1$s</string>
+    <string name="board_task_title">Task title</string>
+    <string name="board_no_due">No due date</string>
+    <string name="board_due_display">Due %1$s</string>
+    <string name="board_pick_date">Choose due date</string>
+    <string name="board_remove_date">Remove due date</string>
+    <string name="board_set_date">Set due date</string>
+    <string name="board_save">Save task</string>
+    <string name="board_cancel">Cancel</string>
+    <string name="board_load_error">Could not load Board tasks.</string>
+    <string name="board_write_error">Could not save that change. Try again.</string>
 </resources>

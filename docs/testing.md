@@ -114,7 +114,7 @@ references. The existing attendance-only import/export still uses its own
 unchanged v10 path.
 
 Planner files and legacy attendance transfers are separate and neither is an
-encrypted vault. There is still no Board UI in this slice.
+encrypted vault. Board items are included in the complete planner backup.
 
 The internal keep-local merge preview accepts a validated complete planner
 snapshot and a complete local snapshot. Its JVM tests cover inserts, identical
@@ -163,10 +163,33 @@ Planner backup). Current legacy files still use the attendance transfer path.
    Apply, choose the file again and review anew.
 4. Check narrow screen / large font, TalkBack headings and error announcements,
    dismissal and focus return. Verify the existing attendance transfer and
-   subject/widget routes remain reachable. No Board editing UI in this phase.
+   subject/widget routes remain reachable.
 
 The selective API 29 CI step also executes two stream/Room tests and one
 Compose confirmation test. They cover UTF-8 bytes through
 in-memory streams, malformed UTF-8, null/failed-close streams, cancellation
 and explicit Apply. They do not drive DocumentsUI, a third-party file
 provider, in-place signed upgrades, or the entire navigation stack.
+
+
+## Board MVP
+
+1. On a fresh Dev build without semesters, subjects or timetable, open
+   **Board** and add a title-only task. Blank titles cannot be saved. Cancel a
+   draft and verify the list is unchanged.
+2. Edit the task, add/remove its due date, mark it done, find it under **Done**
+   and choose **Reopen task**. Verify that status changes do not alter the
+   title/date and edits on completed tasks do not reopen them.
+3. Close/reopen the app; the saved task and due date should persist. Save a
+   Planner backup and restore on another test install/profile. Confirm the
+   same Board items and statuses appear; no timetable is created. Recheck
+   Today, Day, Schedule, Dashboard and system Back; use handset large font,
+   TalkBack, dark mode, and a standalone picker check including a time zone
+   west of UTC (the stored due date should be the selected calendar day).
+4. No delete, reminders, courses, attachments or sharing from Board.
+   Draft editor contents are in memory; backing out or recreating the screen
+   can discard unsaved changes. Saved tasks remain unaffected.
+
+The same selective API 29 job adds one Board Compose workflow test and one
+Room/file-stream round trip. The emulator uses controlled streams, not the
+real system picker or a third-party file provider.
