@@ -54,7 +54,8 @@ class, but a subject is still required. Historical dates remain in Day View.
    Today shows the saved class and correct status; reopening Today alone must not create records.
 2. Add timetable entries for today, another weekday, and a future start date. Only eligible
    entries appear. Open the marking flow and verify a timetable slot becomes one saved row,
-   not both rows. Mark one present, one absent, and one cancelled; verify textual status,
+   not both rows, and the number of classes to mark stays the same until a status changes.
+   Mark one present, one absent, and one cancelled; verify textual status,
    counts, and no duplicate of the cancelled slot. Verify a prior week's attendance does not
    hide today's recurrence.
 3. Browse to a different day, return to Today, then use **Record attendance**: it must open

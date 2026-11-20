@@ -29,7 +29,7 @@ class TodayStateTest {
 
         assertEquals(listOf(present, absent, unmarked), state.records)
         assertEquals(2, state.markedCount)
-        assertEquals(1, state.unmarkedCount)
+        assertEquals(1, state.pendingCount)
         assertEquals(emptyList<SessionsWithSubject>(), state.scheduled)
     }
 
@@ -48,7 +48,7 @@ class TodayStateTest {
         assertEquals(listOf(first, later), state.scheduled)
         assertEquals(listOf(cancelledRecord), state.records)
         assertEquals(0, state.markedCount)
-        assertEquals(0, state.unmarkedCount)
+        assertEquals(2, state.pendingCount)
     }
 
     @Test
@@ -59,6 +59,25 @@ class TodayStateTest {
 
         assertEquals(emptyList<AttendanceWithSubject>(), state.records)
         assertEquals(listOf(slot), state.scheduled)
+    }
+
+    @Test
+    fun pendingCountStaysStableWhenDayViewMaterializesScheduledRows() {
+        val slot = session()
+        val timetable = listOf(slot)
+        val beforeOpeningDay = todaySnapshot(date, emptyList(), timetable)
+        val afterOpeningDay = todaySnapshot(date, listOf(record(sessionId = slot.session.id)), timetable)
+        val afterMarking = todaySnapshot(
+            date, listOf(record(AttendanceStatus.PRESENT, slot.session.id)), timetable,
+        )
+        val afterCancelling = todaySnapshot(
+            date, listOf(record(AttendanceStatus.CANCELLED, slot.session.id)), timetable,
+        )
+
+        assertEquals(1, beforeOpeningDay.pendingCount)
+        assertEquals(1, afterOpeningDay.pendingCount)
+        assertEquals(0, afterMarking.pendingCount)
+        assertEquals(0, afterCancelling.pendingCount)
     }
 
     private fun session(

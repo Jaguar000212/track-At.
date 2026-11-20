@@ -15,7 +15,7 @@ internal sealed interface TodayState {
         val records: List<AttendanceWithSubject>,
         val scheduled: List<SessionsWithSubject>,
     ) : TodayState {
-        val unmarkedCount = records.count { it.record.status == null }
+        val pendingCount = records.count { it.record.status == null } + scheduled.size
         val markedCount = records.count {
             it.record.status == AttendanceStatus.PRESENT || it.record.status == AttendanceStatus.ABSENT
         }

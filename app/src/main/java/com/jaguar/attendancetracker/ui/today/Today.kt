@@ -72,15 +72,15 @@ internal fun TodayContent(
                             state.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
                             style = MaterialTheme.typography.bodyLarge,
                         )
-                        if (state is TodayState.Ready && state.records.isNotEmpty()) {
+                        if (state is TodayState.Ready) {
                             if (state.markedCount > 0) Text(
                                 pluralStringResource(
                                     R.plurals.today_marked, state.markedCount, state.markedCount,
                                 ),
                             )
-                            if (state.unmarkedCount > 0) Text(
+                            if (state.pendingCount > 0) Text(
                                 pluralStringResource(
-                                    R.plurals.today_unmarked, state.unmarkedCount, state.unmarkedCount,
+                                    R.plurals.today_pending, state.pendingCount, state.pendingCount,
                                 ),
                             )
                         }

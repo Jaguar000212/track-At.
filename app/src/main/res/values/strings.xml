@@ -23,8 +23,8 @@
         <item quantity="one">%d class marked</item>
         <item quantity="other">%d classes marked</item>
     </plurals>
-    <plurals name="today_unmarked">
-        <item quantity="one">%d saved class not marked</item>
-        <item quantity="other">%d saved classes not marked</item>
+    <plurals name="today_pending">
+        <item quantity="one">%d class to mark</item>
+        <item quantity="other">%d classes to mark</item>
     </plurals>
 </resources>
