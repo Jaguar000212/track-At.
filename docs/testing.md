@@ -103,3 +103,17 @@ prove a same-signed public APK upgrade.
 Board storage is internal. No UI exposes it and attendance JSON stays on
 wire format v10; do not treat that attendance export as a planner backup.
 No destructive fallback or signing changes.
+
+## Internal planner backup format prototype
+
+JVM codec tests cover a complete planner snapshot (attendance JSON v10 plus
+Board rows, including archived terms and undated tasks), exact stable IDs,
+nullable fields, and empty versus missing collections. They also check
+duplicate names and IDs, malformed/unsupported inputs and broken parent
+references. The existing attendance-only import/export still uses its own
+unchanged v10 path.
+
+This is a draft wire format used only in tests. There is no planner backup
+file picker, preview, restore transaction, or Board UI. Do not use the prototype
+as a user backup or make the Board accessible before the follow-up tests cover
+conflict handling, idempotence, failed restores, and the real atomic restore.
