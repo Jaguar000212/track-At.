@@ -1,0 +1,179 @@
+package com.jaguar.attendancetracker.backend.migrations
+
+import android.database.sqlite.SQLiteDatabase
+import androidx.room.Room
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.jaguar.attendancetracker.backend.AttendanceDatabase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.UUID
+
+@RunWith(AndroidJUnit4::class)
+class LegacyAttendanceMigrationTest {
+    @Test
+    fun populatedV8PreservesAttendanceAndScheduleWithDefaultOrder() = verifyMigration(8, 0)
+
+    @Test
+    fun populatedV9PreservesAttendanceAndScheduleWithExistingOrder() = verifyMigration(9, 7)
+
+    private fun verifyMigration(fromVersion: Int, expectedOrder: Int) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val name = "legacy-migration-${UUID.randomUUID()}.db"
+        try {
+            val file = context.getDatabasePath(name)
+            file.parentFile?.mkdirs()
+            SQLiteDatabase.openOrCreateDatabase(file, null).use { legacy ->
+                legacy.setForeignKeyConstraintsEnabled(true)
+                createFixture(legacy, fromVersion)
+                legacy.version = fromVersion
+            }
+
+            Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
+                .addMigrations(Migration8TO9, Migration9TO10)
+                .build().use { room ->
+                    // Opening through Room runs its actual migration transaction and schema validation.
+                    val db = room.openHelper.writableDatabase
+                    assertEquals(10, db.version)
+                    assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
+                    assertRows(db, "PRAGMA foreign_key_check", emptyList())
+                    assertRows(
+                        db,
+                        """
+                        SELECT hex(s.id), s.name, sem.name, s.startDate, s.isEnded, s.color,
+                            s.professor, s.roomNo, s.notes, s.totalClasses, s.attendedClasses,
+                            s.minAttendance, sem.targetAttendance, sem.isArchived, sem.endDate
+                        FROM Subjects s JOIN Semesters sem ON sem.id = s.semesterId ORDER BY s.name
+                        """.trimIndent(),
+                        listOf(
+                            listOf(SUBJECT_B, "Art", "Semester 4", "20001", "1", "BLUE",
+                                null, "B7", "notes", "0", "0", "80", "75", "0", null),
+                            listOf(SUBJECT_A, "Math", "Semester 2", "20000", "0", "PINK",
+                                "Professor", null, null, "2", "1", "70", "75", "0", null),
+                        ),
+                    )
+                    assertRows(
+                        db,
+                        "SELECT hex(id), hex(subjectId), orderNo, dayOfWeek, startDate FROM SessionRecords",
+                        listOf(listOf(SESSION, SUBJECT_A, expectedOrder.toString(), "2", "20002")),
+                    )
+                    assertRows(
+                        db,
+                        """
+                        SELECT hex(id), hex(subjectId), CASE WHEN sessionId IS NULL THEN NULL
+                            ELSE hex(sessionId) END, date, status, classType
+                        FROM AttendanceRecords ORDER BY date
+                        """.trimIndent(),
+                        listOf(
+                            listOf(PRESENT, SUBJECT_A, SESSION, "20003", "PRESENT", "REGULAR"),
+                            listOf(ABSENT, SUBJECT_A, SESSION, "20010", "ABSENT", "REGULAR"),
+                            listOf(CANCELLED, SUBJECT_A, SESSION, "20017", "CANCELLED", "REGULAR"),
+                            listOf(EXTRA, SUBJECT_B, null, "20018", null, "EXTRA"),
+                        ),
+                    )
+
+                    for (table in listOf("SessionRecords", "AttendanceRecords")) {
+                        assertRows(
+                            db,
+                            "SELECT \"table\", \"from\", \"to\", on_update, on_delete FROM pragma_foreign_key_list('$table')",
+                            listOf(listOf("Subjects", "subjectId", "id", "NO ACTION", "CASCADE")),
+                        )
+                        assertRows(
+                            db,
+                            "SELECT name, \"unique\" FROM pragma_index_list('$table') WHERE origin = 'c'",
+                            listOf(listOf("index_${table}_subjectId", "0")),
+                        )
+                        assertRows(
+                            db, "SELECT name FROM pragma_index_info('index_${table}_subjectId')",
+                            listOf(listOf("subjectId")),
+                        )
+                    }
+                    assertRows(
+                        db,
+                        "SELECT name FROM sqlite_master WHERE name LIKE '_migration_9_10_%' OR name = 'Subjects_Old'",
+                        emptyList(),
+                    )
+
+                    // Verify the rebuilt constraints actually cascade only to the deleted parent.
+                    db.execSQL("DELETE FROM Subjects WHERE id = X'$SUBJECT_A'")
+                    assertRows(db, "SELECT hex(id) FROM SessionRecords", emptyList())
+                    assertRows(db, "SELECT hex(id) FROM AttendanceRecords", listOf(listOf(EXTRA)))
+                    assertRows(db, "PRAGMA foreign_key_check", emptyList())
+                }
+        } finally {
+            assertTrue("Temporary fixture database must be removed", context.deleteDatabase(name) ||
+                !context.getDatabasePath(name).exists())
+        }
+    }
+
+    private fun createFixture(db: SQLiteDatabase, version: Int) {
+        // Historical v9 entities are in 6cafe359 (immediately before the semester redesign).
+        // v8 differs by the missing orderNo column; production 8→9 adds the default of zero.
+        db.execSQL("""
+            CREATE TABLE Subjects (
+                id BLOB NOT NULL PRIMARY KEY, name TEXT NOT NULL, semester INTEGER NOT NULL,
+                startDate INTEGER NOT NULL, isEnded INTEGER NOT NULL, color TEXT NOT NULL,
+                professor TEXT, roomNo TEXT, notes TEXT, totalClasses INTEGER NOT NULL,
+                attendedClasses INTEGER NOT NULL, minAttendance INTEGER NOT NULL
+            )
+        """.trimIndent())
+        val orderColumn = if (version == 9) "orderNo INTEGER NOT NULL DEFAULT 0," else ""
+        db.execSQL("""
+            CREATE TABLE SessionRecords (
+                id BLOB NOT NULL PRIMARY KEY, subjectId BLOB NOT NULL, $orderColumn
+                dayOfWeek INTEGER NOT NULL, startDate INTEGER NOT NULL,
+                FOREIGN KEY(subjectId) REFERENCES Subjects(id) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE AttendanceRecords (
+                id BLOB NOT NULL PRIMARY KEY, subjectId BLOB NOT NULL, sessionId BLOB, date INTEGER NOT NULL,
+                status TEXT, classType TEXT NOT NULL,
+                FOREIGN KEY(subjectId) REFERENCES Subjects(id) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("CREATE INDEX index_SessionRecords_subjectId ON SessionRecords(subjectId)")
+        db.execSQL("CREATE INDEX index_AttendanceRecords_subjectId ON AttendanceRecords(subjectId)")
+        db.execSQL("""
+            INSERT INTO Subjects VALUES
+             (X'$SUBJECT_A', 'Math', 2, 20000, 0, 'PINK', 'Professor', NULL, NULL, 2, 1, 70),
+             (X'$SUBJECT_B', 'Art', 4, 20001, 1, 'BLUE', NULL, 'B7', 'notes', 0, 0, 80)
+        """.trimIndent())
+        if (version == 9) {
+            db.execSQL("INSERT INTO SessionRecords VALUES (X'$SESSION', X'$SUBJECT_A', 7, 2, 20002)")
+        } else {
+            db.execSQL("INSERT INTO SessionRecords VALUES (X'$SESSION', X'$SUBJECT_A', 2, 20002)")
+        }
+        db.execSQL("""
+            INSERT INTO AttendanceRecords VALUES
+             (X'$PRESENT', X'$SUBJECT_A', X'$SESSION', 20003, 'PRESENT', 'REGULAR'),
+             (X'$ABSENT', X'$SUBJECT_A', X'$SESSION', 20010, 'ABSENT', 'REGULAR'),
+             (X'$CANCELLED', X'$SUBJECT_A', X'$SESSION', 20017, 'CANCELLED', 'REGULAR'),
+             (X'$EXTRA', X'$SUBJECT_B', NULL, 20018, NULL, 'EXTRA')
+        """.trimIndent())
+    }
+
+    private fun assertRows(db: SupportSQLiteDatabase, sql: String, expected: List<List<String?>>) {
+        db.query(sql).use { cursor ->
+            for (row in expected) {
+                assertTrue(sql, cursor.moveToNext())
+                assertEquals(sql, row, List(cursor.columnCount) { cursor.getString(it) })
+            }
+            assertFalse(sql, cursor.moveToNext())
+        }
+    }
+
+    private companion object {
+        const val SUBJECT_A = "00000000000000000000000000000001"
+        const val SUBJECT_B = "00000000000000000000000000000002"
+        const val SESSION = "00000000000000000000000000000003"
+        const val PRESENT = "00000000000000000000000000000004"
+        const val ABSENT = "00000000000000000000000000000005"
+        const val CANCELLED = "00000000000000000000000000000006"
+        const val EXTRA = "00000000000000000000000000000007"
+    }
+}

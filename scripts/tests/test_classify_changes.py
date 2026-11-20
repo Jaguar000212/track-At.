@@ -35,7 +35,13 @@ class ClassifierTest(unittest.TestCase):
             output = Path(directory) / "output"
             with patch.dict("os.environ", {"GITHUB_OUTPUT": str(output)}), patch.object(module, "changed_paths", side_effect=subprocess.TimeoutExpired("git", 30)):
                 module.main()
-            self.assertEqual("android=true\nchannels=true\n", output.read_text())
+            self.assertEqual("android=true\nchannels=true\nmigrations=true\n", output.read_text())
+
+    def test_migration_emulator_scope(self):
+        prefix = "app/src/main/java/com/jaguar/attendancetracker/"
+        self.assertTrue(module.migration_changes([prefix + "backend/migrations/Migration9-10.kt"]))
+        self.assertTrue(module.migration_changes([prefix + "backend/AttendanceDatabase.kt"]))
+        self.assertFalse(module.migration_changes(["docs/testing.md", prefix + "ui/today/TodayScreen.kt"]))
 
     def test_rename_reports_both_paths(self):
         import os
