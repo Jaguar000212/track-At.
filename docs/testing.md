@@ -488,3 +488,36 @@ lock-screen privacy, cold/warm tap, WorkManager delay/Doze, device
 reboot/calendar clock changes, and a backup restore to a device without
 local consent. Check the merged manifest for the notification declaration,
 default AndroidX initializer and no exact-alarm permission.
+
+### Exam reminder setup (explicit opt-in)
+
+This slice takes the local reminder runtime live from dated Exams cards only.
+Opening an exam, editing its title, returning from Android Settings, and restoring
+a Planner/attendance backup do not create work or opt an exam in.
+
+- From a dated card, open **Reminder**. If future, verify day-before 18:00 with
+  date, time, fixed originating zone, and reviewed UTC offset. Cancel without
+  arming. If the suggestion has passed, verify neither date nor time is
+  implicitly chosen and that both need an explicit picker confirmation.
+- On API 33+, **Enable reminder** is the only path that opens the OS grant dialog.
+  Deny or cancel and confirm no new reminder was scheduled. Confirm again in
+  the same draft: show Settings instead of a second system prompt. Rotate during
+  review or grant and verify only the same live reviewed choice can be applied.
+  Return from notification Settings: status may refresh, but no reminder is
+  enabled or replaced until the user confirms. Check app and channel blocking.
+- Enable and update, verify only the current one-time request is reported as
+  queued. Edit the title and confirm it is retained. Change or clear the exam
+  date, check the warning and disabled state; date changes never re-arm it.
+  Explicit **Turn off reminder** cancels the current one. Switch device time zone
+  and verify an existing reminder still shows its original fixed zone and offset.
+- Restore v1/v2 on the same device and on a fresh install: inserted exams have
+  no local consent. A same-device unchanged exam can retain existing consent.
+  Verify notification text stays generic and opens Exams cold and warm.
+- Android can delay delivery or skip it; no exact alarms or periodic repair
+  jobs. Verify late cutoff and Android 33+ readiness on device; the API 29
+  Compose fixture simulates permission denial, not a real permission dialog.
+
+The API 29 focused suite adds a dated-card review and denied-not-scheduled
+fixture. JVM tests pin past-suggestion input and live permission token
+matching; test the physical picker, rotation, channel, and real delivery
+separately. Existing Room schemas and backup formats are unchanged.

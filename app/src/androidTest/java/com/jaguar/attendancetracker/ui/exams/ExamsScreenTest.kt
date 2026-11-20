@@ -5,10 +5,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.jaguar.attendancetracker.backend.reminders.ExamReminderPolicy
+import com.jaguar.attendancetracker.backend.reminders.ReminderChoice
+import com.jaguar.attendancetracker.backend.reminders.ReminderExam
+import java.time.Instant
+import java.time.ZoneId
+import java.util.UUID
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
@@ -73,5 +82,49 @@ class ExamsScreenTest {
             assertEquals(term.id, records.value.single().semesterId)
             assertNull(records.value.single().date)
         }
+    }
+
+    @Test fun datedCardReviewsReminderAndDenialNeverLooksScheduled() {
+        val dated = Exam(title = "Dated fixture", date = LocalDate.of(2026, 11, 21))
+        val undated = Exam(title = "Undated fixture")
+        val zone = ZoneId.of("Asia/Kolkata")
+        val item = ReminderExam(dated.id, dated.date)
+        val time = (ExamReminderPolicy.suggest(item, zone, Instant.parse("2026-11-19T00:00:00Z"))
+            as ReminderChoice.Available).time
+        val editor = mutableStateOf<ReminderEditorState?>(null)
+        var explicitClicks = 0
+        compose.setContent {
+            MaterialTheme {
+                ExamsContent(ExamsState.Ready(listOf(dated, undated), emptyList()), null,
+                    edit = {}, change = {}, cancel = {}, save = {},
+                    openReminder = {
+                        editor.value = ReminderEditorState(UUID(0, 2), item, zone, time.local.toLocalDate(),
+                            time.local.toLocalTime(), ReminderChoice.Available(time), replacing = false)
+                    },
+                )
+                editor.value?.let {
+                    ExamReminderDialog(it, false, {}, {}, close = { editor.value = null }, disable = {},
+                        enable = {
+                            explicitClicks++
+                            editor.value = it.copy(notice = ReminderFeedback.PERMISSION_DENIED)
+                        },
+                        settings = {},
+                    )
+                }
+            }
+        }
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        val named = resources.getString(R.string.exam_reminder_named, dated.title)
+        compose.onNodeWithTag("exam-list").performScrollToNode(hasContentDescription(named))
+        compose.onNodeWithContentDescription(named).performClick()
+        compose.onNodeWithText(resources.getString(R.string.exam_reminder_zone, zone.id)).assertIsDisplayed()
+        compose.runOnIdle { assertEquals(0, explicitClicks) }
+        compose.onNodeWithText(resources.getString(R.string.exam_reminder_enable)).performClick()
+        compose.onNodeWithText(resources.getString(R.string.exam_reminder_permission_denied)).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(resources.getString(R.string.exam_reminder_scheduled)).assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, explicitClicks) }
+        compose.onNodeWithText(resources.getString(android.R.string.cancel)).performClick()
+        compose.onNodeWithContentDescription(resources.getString(R.string.exam_reminder_named, undated.title))
+            .assertDoesNotExist()
     }
 }

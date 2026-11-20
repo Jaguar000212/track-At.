@@ -6,6 +6,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -19,6 +22,7 @@ import javax.inject.Singleton
 
 internal interface ReminderJobs {
     suspend fun replace(ticket: ReminderTicket, scheduled: Instant)
+    suspend fun pending(ticket: ReminderTicket): Boolean
     suspend fun cancel(examId: UUID)
 }
 
@@ -29,6 +33,10 @@ internal interface ReminderNotice {
 }
 
 internal enum class ReminderEnable { SCHEDULED, STALE_OR_INVALID, NOTIFICATIONS_OFF }
+
+internal data class ReminderStatus(
+    val examDate: LocalDate, val time: ReminderTime, val queued: Boolean, val notificationsAllowed: Boolean,
+)
 
 @Singleton
 internal class ExamReminderCoordinator(
@@ -47,6 +55,23 @@ internal class ExamReminderCoordinator(
     )
 
     private val lock = Mutex()
+    private val changes = MutableStateFlow(0L)
+    val revisions = changes.asStateFlow()
+
+    suspend fun statuses(ids: List<UUID>): Map<UUID, ReminderStatus> = withContext(Dispatchers.IO) {
+        lock.withLock {
+            buildMap {
+                for (id in ids) {
+                    val consent = files.current(id) ?: continue
+                    val validity = ExamReminderPolicy.delivery(consent.ticket, readExam(id), consent, clock.instant())
+                    if (validity == ReminderDelivery.TOO_EARLY || validity == ReminderDelivery.ELIGIBLE) {
+                        put(id, ReminderStatus(consent.examDate, consent.time, jobs.pending(consent.ticket),
+                            notice.allowed(createChannel = false)))
+                    }
+                }
+            }
+        }
+    }
 
     /** Future UI can call this only from an explicit confirmed, already-previewed decision. */
     suspend fun enable(reviewedExam: ReminderExam, reviewedTime: ReminderTime): ReminderEnable = serialized {
@@ -87,7 +112,9 @@ internal class ExamReminderCoordinator(
             if (result == ReminderDelivery.STALE || result == ReminderDelivery.NO_CONSENT) return@withLock
             // This one-time request has run, even if the device clock or permission now
             // disallows posting. Consume it so later UI cannot show this spent work as active.
-            if (files.claim(ticket) && result == ReminderDelivery.ELIGIBLE) {
+            if (files.claim(ticket)) {
+                changes.update { it + 1 }
+                if (result != ReminderDelivery.ELIGIBLE) return@withLock
                 // A clock change during the file commit must not post early or too late.
                 val finalTime = clock.instant()
                 if (finalTime >= consent.time.scheduled && finalTime < consent.time.expiresAt &&
@@ -112,6 +139,8 @@ internal class ExamReminderCoordinator(
     }
 
     private suspend fun <T> serialized(action: suspend () -> T): T = withContext(Dispatchers.IO) {
-        lock.withLock { withContext(NonCancellable) { action() } }
+        lock.withLock { withContext(NonCancellable) {
+            try { action() } finally { changes.update { it + 1 } }
+        } }
     }
 }

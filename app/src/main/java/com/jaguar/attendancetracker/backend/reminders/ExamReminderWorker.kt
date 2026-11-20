@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
@@ -13,6 +14,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -29,11 +31,18 @@ internal interface ExamReminderWorkerEntryPoint {
 
 internal class WorkManagerReminderJobs(private val context: Context) : ReminderJobs {
     private fun name(id: UUID) = "exam-reminder:$id"
+    private fun revisionTag(ticket: ReminderTicket) = "revision:${ticket.revision}"
+
+    override suspend fun pending(ticket: ReminderTicket): Boolean =
+        WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(name(ticket.examId)).first().any {
+            revisionTag(ticket) in it.tags && (it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING)
+        }
 
     override suspend fun replace(ticket: ReminderTicket, scheduled: Instant) {
         val delay = requireNotNull(reminderDelayMillis(Instant.now(), scheduled)) { "Reminder delay is not representable" }
         val request = OneTimeWorkRequestBuilder<ExamReminderWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+            .addTag(revisionTag(ticket))
             .setInputData(workDataOf(EXAM to ticket.examId.toString(), REVISION to ticket.revision.toString()))
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(name(ticket.examId), ExistingWorkPolicy.REPLACE, request).await()
