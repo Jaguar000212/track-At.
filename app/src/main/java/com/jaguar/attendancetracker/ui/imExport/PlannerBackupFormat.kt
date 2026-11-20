@@ -9,6 +9,7 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
 import java.io.Reader
@@ -16,15 +17,19 @@ import java.io.StringReader
 import java.time.LocalDate
 import java.util.UUID
 
-/** Internal format proposal. Not used by the existing export or restore UI. */
+internal enum class PlannerBackupVersion(val wireVersion: Int) { V1(1), V2(2) }
+
+/** Null exams means a v1 snapshot; an empty array is valid v2 and does not delete local exams. */
 internal data class PlannerBackup(
     val attendance: BackupData,
     val board: List<BoardItem>,
-)
+    val exams: List<Exam>? = null,
+) {
+    val version: PlannerBackupVersion get() = if (exams == null) PlannerBackupVersion.V1 else PlannerBackupVersion.V2
+}
 
 internal object PlannerBackupFormat {
     const val FORMAT = "track-at-planner"
-    private const val VERSION = 1
     private const val MAX_CHARS = 8 * 1024 * 1024
     private const val MAX_DEPTH = 12
     private val gson = GsonBuilder().registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
@@ -34,7 +39,7 @@ internal object PlannerBackupFormat {
     fun encode(backup: PlannerBackup): String {
         val root = JsonObject().apply {
             addProperty("format", FORMAT)
-            addProperty("version", VERSION)
+            addProperty("version", backup.version.wireVersion)
             add("attendance", gson.toJsonTree(backup.attendance))
             add("board", JsonArray().apply {
                 for (item in backup.board) {
@@ -46,6 +51,18 @@ internal object PlannerBackupFormat {
                     })
                 }
             })
+            backup.exams?.let { exams ->
+                add("exams", JsonArray().apply {
+                    for (exam in exams) {
+                        add(JsonObject().apply {
+                            addProperty("id", exam.id.toString())
+                            addProperty("title", exam.title)
+                            exam.date?.let { addProperty("date", it.toString()) }
+                            exam.semesterId?.let { addProperty("semesterId", it.toString()) }
+                        })
+                    }
+                })
+            }
         }
         validate(root)
         return gson.toJson(root).also {
@@ -67,13 +84,28 @@ internal object PlannerBackupFormat {
                 isDone = item["isDone"].flag(),
             )
         }
-        return PlannerBackup(attendance, board)
+        val exams = root["exams"]?.asJsonArray?.map {
+            val item = it.obj()
+            Exam(
+                id = item["id"].uuid(),
+                title = item["title"].string(),
+                date = item.nullable("date")?.date(),
+                semesterId = item.nullable("semesterId")?.uuid(),
+            )
+        }
+        return PlannerBackup(attendance, board, exams)
     }
 
     private fun validate(root: JsonObject) {
-        root.fields(setOf("format", "version", "attendance", "board"))
+        val baseFields = setOf("format", "version", "attendance", "board")
+        require(root.has("format") && root.has("version")) { "Missing planner backup fields" }
         require(root["format"].string() == FORMAT) { "Unknown planner backup format" }
-        require(root["version"].integer() == VERSION.toLong()) { "Unsupported planner backup version" }
+        val version = when (root["version"].integer()) {
+            1L -> PlannerBackupVersion.V1
+            2L -> PlannerBackupVersion.V2
+            else -> errorFormat("Unsupported planner backup version")
+        }
+        root.fields(if (version == PlannerBackupVersion.V2) baseFields + "exams" else baseFields)
         val attendance = root["attendance"].obj()
         attendance.fields(setOf("version", "timestamp", "semesters", "subjects", "schedule", "attendance"))
         require(attendance["version"].integer() == ATTENDANCE_BACKUP_VERSION.toLong()) {
@@ -137,6 +169,15 @@ internal object PlannerBackupFormat {
             require(it["title"].string().isNotBlank()) { "Board item title is required" }
             it.nullable("dueDate")?.date()
             it["isDone"].flag()
+        }
+        if (version == PlannerBackupVersion.V2) {
+            root["exams"].rows(required = setOf("id", "title"), optional = setOf("date", "semesterId")) {
+                require(it["title"].string().isNotBlank()) { "Exam title is required" }
+                it.nullable("date")?.date()
+                it.nullable("semesterId")?.uuid()?.let { semester ->
+                    require(semester in semesters) { "Exam is missing its semester" }
+                }
+            }
         }
     }
 

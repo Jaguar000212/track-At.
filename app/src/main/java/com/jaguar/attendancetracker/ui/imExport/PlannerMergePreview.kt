@@ -2,6 +2,7 @@ package com.jaguar.attendancetracker.ui.imExport
 
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -45,6 +46,7 @@ internal data class PlannerMergePreview(
     val schedule: List<PlannerMergeRow<SessionRecord>>,
     val attendance: List<PlannerMergeRow<AttendanceRecord>>,
     val board: List<PlannerMergeRow<BoardItem>>,
+    val exams: List<PlannerMergeRow<Exam>>,
     val totalsAfterAcceptedAttendance: Map<UUID, PlannerSubjectTotals>,
 )
 
@@ -131,10 +133,14 @@ internal object PlannerMergePlanner {
             }
         }
         val board = plan(incoming.board, local.board.byId(BoardItem::id), BoardItem::id)
+        val exams = incoming.exams?.let { incomingExams ->
+            val localExams = requireNotNull(local.exams).byId(Exam::id)
+            plan(incomingExams, localExams, Exam::id) { item -> item.semesterId?.let(::semesterBlock) }
+        }.orEmpty()
         val acceptedMarks = attendance.filter { it.outcome == PlannerMergeOutcome.INSERT }
             .map { it.incoming }.countedTotals()
         val updates = acceptedMarks.mapValues { (id, counts) -> localTotals.totals(id).plus(counts) }
-        return PlannerMergePreview(semesters, subjects, schedule, attendance, board, updates)
+        return PlannerMergePreview(semesters, subjects, schedule, attendance, board, exams, updates)
     }
 
     private fun Subject.authoredFields() = copy(totalClasses = 0, attendedClasses = 0)

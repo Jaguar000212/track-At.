@@ -12,7 +12,10 @@ import java.io.OutputStreamWriter
 import java.nio.charset.CodingErrorAction
 
 /** Local file transport. No persisted permissions, temporary files or network operations here. */
-internal class PlannerBackupFiles(private val restore: PlannerRestoreRepository) {
+internal class PlannerBackupFiles(
+    private val restore: PlannerRestoreRepository,
+    private val version: PlannerBackupVersion = PlannerBackupVersion.V1,
+) {
     suspend fun read(open: () -> InputStream?): PreparedPlannerRestore = withContext(Dispatchers.IO) {
         val decoder = Charsets.UTF_8.newDecoder()
             .onMalformedInput(CodingErrorAction.REPORT)
@@ -20,11 +23,11 @@ internal class PlannerBackupFiles(private val restore: PlannerRestoreRepository)
         val input = open() ?: throw IOException("Planner backup input unavailable")
         // The strict codec bounds the decoded stream; UTF-8 decoding cannot inflate the
         // raw input beyond four bytes per decoded character (plus a small read buffer).
-        InputStreamReader(input, decoder).use { restore.prepare(it) }
+        InputStreamReader(input, decoder).use { restore.prepare(it, supportedVersion = version) }
     }
 
     suspend fun write(open: () -> OutputStream?) {
-        val backup = restore.createBackup()
+        val backup = restore.createBackup(version)
         withContext(Dispatchers.IO) {
             val encoder = Charsets.UTF_8.newEncoder()
                 .onMalformedInput(CodingErrorAction.REPORT)
