@@ -1,16 +1,21 @@
 package com.jaguar.attendancetracker.backend.migrations
 
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
+import com.jaguar.attendancetracker.backend.entities.BoardItem
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDate
 import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
@@ -20,6 +25,94 @@ class LegacyAttendanceMigrationTest {
 
     @Test
     fun populatedV9PreservesAttendanceAndScheduleWithExistingOrder() = verifyMigration(9, 7)
+
+    @Test
+    fun populatedV10KeepsAttendanceAndSupportsBoardPersistence() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val name = "board-migration-${UUID.randomUUID()}.db"
+        val oldTables = listOf("Semesters", "Subjects", "SessionRecords", "AttendanceRecords")
+        val oldSchema = """
+            SELECT name, sql FROM sqlite_master WHERE tbl_name IN
+                ('Semesters','Subjects','SessionRecords','AttendanceRecords') ORDER BY name
+        """.trimIndent()
+        val board = BoardItem(title = "Submit assignment")
+        val dated = BoardItem(title = "Prepare slides", dueDate = LocalDate.of(2026, 11, 25))
+
+        try {
+            val file = context.getDatabasePath(name)
+            file.parentFile?.mkdirs()
+            val (expectedSchema, expectedRows) = SQLiteDatabase.openOrCreateDatabase(file, null)
+                .use { legacy ->
+                    legacy.setForeignKeyConstraintsEnabled(true)
+                    // Independent checked-in v10 fixture; does not use current migration code.
+                    instrumentation.context.assets.open("room/attendance-v10.sql").bufferedReader().use {
+                        it.readText().split(';').map(String::trim).filter(String::isNotEmpty)
+                            .forEach { statement -> legacy.execSQL(statement) }
+                    }
+                    legacy.version = 10
+                    val schema = legacy.rawQuery(oldSchema, null).use(::snapshot)
+                    val rows = oldTables.associateWith { table ->
+                        legacy.rawQuery("SELECT * FROM $table ORDER BY id", null).use(::snapshot)
+                            .also { assertTrue("Fixture $table must be populated", it.isNotEmpty()) }
+                    }
+                    schema to rows
+                }
+
+            fun open() = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
+                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11).build()
+
+            val migrated = open()
+            try {
+                val db = migrated.openHelper.writableDatabase
+                assertEquals(11, db.version)
+                assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
+                assertRows(db, "PRAGMA foreign_key_check", emptyList())
+                assertEquals(expectedSchema, db.query(oldSchema).use(::snapshot))
+                expectedRows.forEach { (table, rows) ->
+                    assertEquals(table, rows, db.query("SELECT * FROM $table ORDER BY id").use(::snapshot))
+                }
+                assertRows(db, "SELECT id FROM BoardItems", emptyList())
+                runBlocking {
+                    migrated.boardItemDao().insert(board)
+                    migrated.boardItemDao().insert(dated)
+                    migrated.boardItemDao().update(board.copy(isDone = true))
+                }
+                // Planner writes should not alter records in the legacy tables either.
+                expectedRows.forEach { (table, rows) ->
+                    assertEquals(table, rows, db.query("SELECT * FROM $table ORDER BY id").use(::snapshot))
+                }
+            } finally {
+                migrated.close()
+            }
+
+            val reopened = open()
+            try {
+                val saved = runBlocking { reopened.boardItemDao().observeAll().first() }
+                assertEquals(setOf(board.copy(isDone = true), dated), saved.toSet())
+            } finally {
+                reopened.close()
+            }
+        } finally {
+            assertTrue("Temporary fixture database must be removed", context.deleteDatabase(name) ||
+                !context.getDatabasePath(name).exists())
+        }
+    }
+
+    private fun snapshot(cursor: Cursor): List<List<Any?>> = buildList {
+        while (cursor.moveToNext()) {
+            add(List(cursor.columnCount) { index ->
+                when (cursor.getType(index)) {
+                    Cursor.FIELD_TYPE_NULL -> null
+                    Cursor.FIELD_TYPE_INTEGER -> cursor.getLong(index)
+                    Cursor.FIELD_TYPE_FLOAT -> cursor.getDouble(index)
+                    Cursor.FIELD_TYPE_BLOB -> cursor.getBlob(index).toList()
+                    Cursor.FIELD_TYPE_STRING -> cursor.getString(index)
+                    else -> error("Unexpected SQLite column type")
+                }
+            })
+        }
+    }
 
     private fun verifyMigration(fromVersion: Int, expectedOrder: Int) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -34,12 +127,13 @@ class LegacyAttendanceMigrationTest {
             }
 
             val room = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
-                .addMigrations(Migration8TO9, Migration9TO10)
+                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11)
                 .build()
             try {
                     // Opening through Room runs its actual migration transaction and schema validation.
                     val db = room.openHelper.writableDatabase
-                    assertEquals(10, db.version)
+                    assertEquals(11, db.version)
+                    assertRows(db, "SELECT id FROM BoardItems", emptyList())
                     assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
                     assertRows(db, "PRAGMA foreign_key_check", emptyList())
                     assertRows(

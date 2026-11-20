@@ -75,7 +75,7 @@ state and both actions; CI compiles it, but it must be executed separately on a 
 or emulator. This slice does not include a database migration or test a public APK upgrade.
 
 
-## Historical Room migration: v8 and v9 to v10
+## Room migration: populated v8, v9 and v10 to v11
 
 For ready PRs that touch Room schema/migrations or their fixtures, the existing
 Linux PR check runs only the focused Room migration class on a single API 29
@@ -91,7 +91,15 @@ bash ./gradlew :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.jaguar.attendancetracker.backend.migrations.LegacyAttendanceMigrationTest
 ```
 
-The two populated legacy fixtures open through Room with the production
-migration chain. They target historical v8/v9 upgrade behavior, not the separate
-in-place test of a same-signed public v6.0.0 (already v10) APK upgrade. There is
-no database version bump, destructive fallback, or backup format change.
+Three populated fixtures open through Room with the production migration chain.
+The v8 and v9 fixtures cover historical upgrades and verify that the Board
+table starts empty. The independent v10 fixture under
+`app/src/androidTest/assets/room/attendance-v10.sql` verifies that all four
+original tables keep their schema, indexes and populated rows; it also
+checks that Board entries with and without a due date survive a database
+reopen and do not alter attendance data. These emulator fixtures do not
+prove a same-signed public APK upgrade.
+
+Board storage is internal. No UI exposes it and attendance JSON stays on
+wire format v10; do not treat that attendance export as a planner backup.
+No destructive fallback or signing changes.
