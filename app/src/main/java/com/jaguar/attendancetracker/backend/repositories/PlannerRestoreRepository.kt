@@ -5,6 +5,7 @@ import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.ui.imExport.BackupData
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackup
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackupFormat
+import com.jaguar.attendancetracker.ui.imExport.PlannerBackupVersion
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeOutcome
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergePlanner
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergePreview
@@ -24,23 +25,29 @@ internal enum class PlannerRestoreResult {
 internal interface PreparedPlannerRestore {
     val preview: PlannerMergePreview
 
-    /** Call only after explicit confirmation; not currently connected to any UI. */
+    /** Call only after explicit confirmation. */
     suspend fun apply(): PlannerRestoreResult
 }
 
 internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
     private val dao get() = db.plannerRestoreDao()
 
-    suspend fun prepare(source: Reader): PreparedPlannerRestore {
+    // The visible file UI uses the V1 default until it can review exam counts.
+    suspend fun prepare(
+        source: Reader, supportedVersion: PlannerBackupVersion = PlannerBackupVersion.V1,
+    ): PreparedPlannerRestore {
         // The caller owns and closes the Reader. A future file transport must report malformed
         // UTF-8 instead of replacing it before the strict planner decoder sees the text.
         val incoming = withContext(Dispatchers.IO) { PlannerBackupFormat.decode(source) }
-        val before = db.withTransaction { capture() }
+        require(incoming.version.wireVersion <= supportedVersion.wireVersion) {
+            "Unsupported planner backup version"
+        }
+        val before = db.withTransaction { capture(incoming.version) }
         return Pending(incoming, before)
     }
 
-    suspend fun createBackup(): String {
-        val snapshot = db.withTransaction { capture() }
+    suspend fun createBackup(version: PlannerBackupVersion = PlannerBackupVersion.V1): String {
+        val snapshot = db.withTransaction { capture(version) }
         return withContext(Dispatchers.Default) {
             PlannerBackupFormat.encode(snapshot.copy(
                 attendance = snapshot.attendance.copy(timestamp = System.currentTimeMillis()),
@@ -48,7 +55,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
         }
     }
 
-    private suspend fun capture() = PlannerBackup(
+    private suspend fun capture(version: PlannerBackupVersion) = PlannerBackup(
         attendance = BackupData(
             timestamp = 0,
             semesters = dao.semesters(),
@@ -57,6 +64,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             attendance = dao.attendance(),
         ),
         board = dao.board(),
+        exams = if (version == PlannerBackupVersion.V2) dao.exams() else null,
     )
 
     private inner class Pending(
@@ -66,7 +74,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
         override val preview = PlannerMergePlanner.preview(before, incoming)
 
         override suspend fun apply(): PlannerRestoreResult = db.withTransaction {
-            val current = capture()
+            val current = capture(incoming.version)
             // Compare the entire actual state, not just counts or visible outcomes. If any
             // retained row changed, confirm a new preview even if the same rows would insert.
             if (before != current) return@withTransaction PlannerRestoreResult.STALE_PREVIEW
@@ -78,8 +86,9 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             val sessions = fresh.schedule.inserts()
             val attendance = fresh.attendance.inserts()
             val board = fresh.board.inserts()
+            val exams = fresh.exams.inserts()
             if (semesters.isEmpty() && subjects.isEmpty() && sessions.isEmpty() &&
-                attendance.isEmpty() && board.isEmpty()
+                attendance.isEmpty() && board.isEmpty() && exams.isEmpty()
             ) return@withTransaction PlannerRestoreResult.NOTHING_TO_APPLY
 
             if (semesters.isNotEmpty()) dao.insertSemesters(semesters)
@@ -94,6 +103,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             }
             // A failure in any write propagates out of withTransaction and rolls back everything.
             if (board.isNotEmpty()) dao.insertBoard(board)
+            if (exams.isNotEmpty()) dao.insertExams(exams)
             PlannerRestoreResult.APPLIED
         }
     }

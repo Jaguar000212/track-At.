@@ -2,6 +2,7 @@ package com.jaguar.attendancetracker.ui.imExport
 
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -164,6 +165,21 @@ class PlannerMergePreviewTest {
         assertEquals(INSERT, plan.subjects.single().outcome)
         assertBlock(plan.attendance.first(), SESSION_SUBJECT_MISMATCH, mathSlot.id)
         assertEquals(mapOf(math.id to PlannerSubjectTotals(1, 0)), plan.totalsAfterAcceptedAttendance)
+    }
+
+    @Test fun examsKeepLocalConflictsAndBlockOnlyNewLinkedRowsWithConflictingParents() {
+        val kept = Exam(id(21), "Kept local")
+        val attached = Exam(id(22), "New attached", date, term.id)
+        val independent = Exam(id(23), "New undated")
+        val local = snapshot(terms = listOf(term.copy(name = "Renamed"))).copy(exams = listOf(kept))
+        val incoming = snapshot(terms = listOf(term)).copy(exams = listOf(kept, attached, independent,
+            Exam(id(24), "Kept locally under another title")))
+        val decorated = local.copy(exams = listOf(kept, Exam(id(24), "Local title")))
+        val plan = PlannerMergePlanner.preview(decorated, incoming)
+        assertEquals(UNCHANGED, plan.exams[0].outcome)
+        assertBlock(plan.exams[1], SEMESTER_CONFLICT, term.id)
+        assertEquals(INSERT, plan.exams[2].outcome)
+        assertEquals(KEEP_LOCAL_CONFLICT, plan.exams[3].outcome)
     }
 
     private fun assertBlock(row: PlannerMergeRow<*>, reason: PlannerMergeBlockReason, id: UUID) {

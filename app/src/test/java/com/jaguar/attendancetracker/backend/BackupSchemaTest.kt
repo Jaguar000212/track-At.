@@ -111,8 +111,14 @@ class BackupSchemaTest {
     }
 
     @Test fun onlyExactPlannerDiscriminatorRedirectsLegacyImports() {
-        val planner = """{"format":"track-at-planner","version":1,"board":[]}"""
-        assertThrows(PlannerBackupRequiresPlannerRestore::class.java) { decode(planner) }
+        for (planner in listOf(
+            """{"format":"track-at-planner","version":1,"board":[]}""",
+            """{"format":"track-at-planner","version":2,"attendance":{"version":10,"timestamp":42,
+                "semesters":[],"subjects":[],"schedule":[],"attendance":[]},"board":[],"exams":[]}""",
+            """{"format":"track-at-planner","exams":[]}""",
+        )) {
+            assertThrows(PlannerBackupRequiresPlannerRestore::class.java) { decode(planner) }
+        }
         val otherFormat = """{"format":"other","version":999,"timestamp":42,"attendance":[]}"""
         assertEquals(BackupData(999, 42, attendance = emptyList()), decode(otherFormat))
     }

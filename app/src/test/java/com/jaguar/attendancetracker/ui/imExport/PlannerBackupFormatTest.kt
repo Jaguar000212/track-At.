@@ -4,6 +4,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -150,6 +151,37 @@ class PlannerBackupFormatTest {
             override fun close() = Unit
         }
         assertThrows(IllegalArgumentException::class.java) { PlannerBackupFormat.decode(reader) }
+    }
+
+    @Test fun v2RequiresCompleteExamArrayAndPreservesOptionalFields() {
+        val v2 = full.copy(exams = listOf(
+            Exam(id(20), "Math final", date, id(1)),
+            Exam(id(21), "Undated exam"),
+        ))
+        val json = PlannerBackupFormat.encode(v2)
+        val parsed = JsonParser.parseString(json).asJsonObject
+        assertEquals("track-at-planner", parsed["format"].asString)
+        assertEquals(2, parsed["version"].asInt)
+        assertEquals(v2, PlannerBackupFormat.decode(json.reader()))
+        assertEquals(PlannerBackupVersion.V1, PlannerBackupFormat.decode(PlannerBackupFormat.encode(full).reader()).version)
+        val emptyV2 = full.copy(exams = emptyList())
+        assertEquals(emptyV2, PlannerBackupFormat.decode(PlannerBackupFormat.encode(emptyV2).reader()))
+
+        fun rejectV2(change: (JsonObject) -> Unit) {
+            val node = parsed.deepCopy().also(change)
+            assertThrows(IllegalArgumentException::class.java) {
+                PlannerBackupFormat.decode(node.toString().reader())
+            }
+        }
+        rejectV2 { it.remove("exams") }
+        rejectV2 { it.add("exams", com.google.gson.JsonNull.INSTANCE) }
+        rejectV2 { it.addProperty("version", 1) }
+        rejectV2 { it.addProperty("version", 3) }
+        rejectV2 { it.getAsJsonArray("exams").add(it.getAsJsonArray("exams")[0]) }
+        rejectV2 { it.getAsJsonArray("exams")[0].asJsonObject.addProperty("semesterId", id(99).toString()) }
+        rejectV2 { it.getAsJsonArray("exams")[0].asJsonObject.addProperty("date", "2025-02-29") }
+        rejectV2 { it.getAsJsonArray("exams")[0].asJsonObject.addProperty("title", " ") }
+        rejectV2 { it.getAsJsonArray("exams")[0].asJsonObject.addProperty("reminder", true) }
     }
 
     private fun reject(change: (JsonObject) -> Unit) {

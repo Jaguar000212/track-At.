@@ -196,3 +196,21 @@ provider, in-place signed upgrades, or the entire navigation stack.
 The same selective API 29 job adds one Board Compose workflow test and one
 Room/file-stream round trip. The emulator uses controlled streams, not the
 real system picker or a third-party file provider.
+
+
+## Internal Planner v2 exam compatibility
+
+The visible Planner backup screen still writes and accepts Planner v1 only.
+Its attendance section remains the legacy v10 JSON. Version 2 is internal
+pending a later supported UI with exam preview counts; it keeps the same
+`track-at-planner` discriminator, requires a complete exams array, and cannot
+be opened by older builds that only understand Planner v1. The legacy
+attendance-transfer importer recognizes both planner versions as separate.
+
+The API 29 gate validates that Planner v1 adds attendance and Board data
+without modifying dated or undated local exams, and that exam-only changes
+do not stale a v1 plan. Internal Planner v2 tests use actual Room and controlled
+file streams to check complete exam round trips, stable IDs, keep-local
+conflicts, exam-only staleness, idempotent repeat, empty-by-design exams
+sections, and an intentional late exam insert failure rolling back all writes.
+No Exams editor, reminder, or visible file version change is in this phase.

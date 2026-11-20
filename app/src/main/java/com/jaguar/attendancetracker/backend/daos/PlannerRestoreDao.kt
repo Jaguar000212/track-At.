@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -28,6 +29,12 @@ interface PlannerRestoreDao {
 
     @Query("SELECT * FROM BoardItems ORDER BY id")
     suspend fun board(): List<BoardItem>
+
+    @Query("SELECT * FROM Exams ORDER BY id")
+    suspend fun exams(): List<Exam>
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertExams(rows: List<Exam>)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSemesters(rows: List<Semester>)
