@@ -10,19 +10,27 @@ sudo chgrp "$(id -gn)" /dev/kvm
 sudo chmod g+rw /dev/kvm
 sdkmanager emulator "$image"
 avd=track-at-room-ci
-avdmanager create avd --force -n "$avd" -k "$image" <<< 'no'
-"$ANDROID_HOME/emulator/emulator" -avd "$avd" -port 5554 -accel on -no-window -no-audio \
+export ANDROID_USER_HOME="$RUNNER_TEMP/track-at-android"
+export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+mkdir -p "$ANDROID_AVD_HOME"
+avdmanager create avd --force -n "$avd" -k "$image" --path "$ANDROID_AVD_HOME/$avd.avd" <<< 'no'
+emulator="$ANDROID_HOME/emulator/emulator"
+"$emulator" -list-avds | grep -Fx "$avd"
+"$emulator" -avd "$avd" -port 5554 -accel on -no-window -no-audio \
     -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$results/emulator.log" 2>&1 &
 emulator_pid=$!
 export ANDROID_SERIAL=emulator-5554
 cleanup() {
+    if ! kill -0 "$emulator_pid" 2>/dev/null; then
+        tail -60 "$results/emulator.log" >&2 || true
+    fi
     timeout 10 adb logcat -d -t 500 > "$results/logcat.txt" 2>&1 || true
     timeout 5 adb emu kill >/dev/null 2>&1 || true
     kill "$emulator_pid" 2>/dev/null || true
 }
 trap cleanup EXIT
-timeout 180 adb wait-for-device
-for attempt in {1..75}; do
+for attempt in {1..90}; do
     if [[ "$(timeout 5 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)" == 1 ]]; then break; fi
     kill -0 "$emulator_pid"
     sleep 2
