@@ -36,14 +36,21 @@ def migration_changes(paths):
     exams = "com/jaguar/attendancetracker/ui/exams/"
     leave = "com/jaguar/attendancetracker/ui/leave/"
     insights = "com/jaguar/attendancetracker/ui/insights/"
+    widget = "com/jaguar/attendancetracker/ui/widget/CampusBrief"
     return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/",
                                     "app/src/androidTest/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackup",
                                     "app/src/main/java/" + board, "app/src/androidTest/java/" + board,
                                     "app/src/main/java/" + exams, "app/src/androidTest/java/" + exams,
                                     "app/src/androidTest/java/" + leave,
-                                    "app/src/main/java/" + insights, "app/src/androidTest/java/" + insights))
+                                    "app/src/main/java/" + insights, "app/src/androidTest/java/" + insights,
+                                    "app/src/main/java/" + widget, "app/src/androidTest/java/" + widget))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
                            main + "daos/AttendanceRecordDao.kt",
+                           main + "daos/CampusBriefDao.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/MainActivity.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/CampusBriefWidgetReceiver.kt",
+                           "app/src/main/res/xml/campus_brief_widget_info.xml",
+                           "app/src/main/AndroidManifest.xml",
                            main + "daos/PlannerRestoreDao.kt", main + "daos/BoardItemDao.kt", main + "daos/ExamDao.kt",
                            main + "repositories/PlannerRestoreRepository.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerMergePreview.kt",

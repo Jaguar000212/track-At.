@@ -1,0 +1,12 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/campus_brief_description"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="148dp"
+    android:minHeight="116dp"
+    android:minResizeWidth="148dp"
+    android:minResizeHeight="116dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />
