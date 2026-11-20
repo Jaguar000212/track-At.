@@ -23,6 +23,7 @@ internal enum class PlannerRestoreResult {
  * Never log it, save it in instance state, serialize it, or persist it.
  */
 internal interface PreparedPlannerRestore {
+    val version: PlannerBackupVersion
     val preview: PlannerMergePreview
 
     /** Call only after explicit confirmation. */
@@ -32,7 +33,7 @@ internal interface PreparedPlannerRestore {
 internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
     private val dao get() = db.plannerRestoreDao()
 
-    // The visible file UI uses the V1 default until it can review exam counts.
+    // Opt into newer versions only where the complete preview is shown.
     suspend fun prepare(
         source: Reader, supportedVersion: PlannerBackupVersion = PlannerBackupVersion.V1,
     ): PreparedPlannerRestore {
@@ -71,6 +72,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
         private val incoming: PlannerBackup,
         private val before: PlannerBackup,
     ) : PreparedPlannerRestore {
+        override val version = incoming.version
         override val preview = PlannerMergePlanner.preview(before, incoming)
 
         override suspend fun apply(): PlannerRestoreResult = db.withTransaction {

@@ -36,10 +36,11 @@ import java.time.format.FormatStyle
 internal fun Today(
     openDayView: () -> Unit,
     openDashboard: () -> Unit,
+    openExams: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    TodayContent(state, openDayView, openDashboard)
+    TodayContent(state, openDayView, openDashboard, openExams)
 }
 
 @Composable
@@ -47,6 +48,7 @@ internal fun TodayContent(
     state: TodayState,
     openDayView: () -> Unit,
     openDashboard: () -> Unit,
+    openExams: () -> Unit,
 ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
@@ -90,6 +92,11 @@ internal fun TodayContent(
             item {
                 Button(onClick = openDayView, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.today_open_day_view))
+                }
+            }
+            item {
+                OutlinedButton(onClick = openExams, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.exams_title))
                 }
             }
             when (state) {

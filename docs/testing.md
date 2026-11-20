@@ -103,8 +103,8 @@ links while deleting a semester detaches exams without deleting them.
 These emulator fixtures do not
 prove a same-signed public APK upgrade.
 
-Exam storage is internal. No Exam UI exposes it yet. Legacy attendance JSON
-stays at v10 and the visible Planner backup stays at v1 in this storage phase.
+The Exams migration is additive. Legacy attendance exports stay at v10; the
+separate Planner backup includes Exams as of Planner v2.
 No destructive fallback or signing changes.
 
 ## Internal planner backup format prototype
@@ -198,11 +198,11 @@ Room/file-stream round trip. The emulator uses controlled streams, not the
 real system picker or a third-party file provider.
 
 
-## Internal Planner v2 exam compatibility
+## Planner v2 exam compatibility
 
-The visible Planner backup screen still writes and accepts Planner v1 only.
-Its attendance section remains the legacy v10 JSON. Version 2 is internal
-pending a later supported UI with exam preview counts; it keeps the same
+The visible Planner backup screen writes v2 and accepts both v1 and v2.
+Its attendance section remains legacy v10 JSON. V2 shows exam preview counts
+and v1 states that it has no exams section. V2 keeps the same
 `track-at-planner` discriminator, requires a complete exams array, and cannot
 be opened by older builds that only understand Planner v1. The legacy
 attendance-transfer importer recognizes both planner versions as separate.
@@ -213,4 +213,33 @@ do not stale a v1 plan. Internal Planner v2 tests use actual Room and controlled
 file streams to check complete exam round trips, stable IDs, keep-local
 conflicts, exam-only staleness, idempotent repeat, empty-by-design exams
 sections, and an intentional late exam insert failure rolling back all writes.
-No Exams editor, reminder, or visible file version change is in this phase.
+No reminder settings or scheduling are added.
+
+
+## Exams MVP
+
+1. From **Today → Exams**, add an exam with a title only before creating any
+   timetable or semester. It appears under **Undated**, with **Date TBD** and
+   **No semester**. Blank titles cannot be saved. Edit the title and choose
+   or clear date and semester, verifying dated exams show under **Scheduled**.
+2. Link an archived semester and verify its archived label, while no semester
+   remains a valid choice. Archive should retain the link; deleting a semester
+   should detach the exam instead of deleting it. Do not delete real semester
+   data just to test this; use a test profile/fixture.
+3. Rotate while editing; unsaved title/date/semester should remain in memory
+   during ordinary configuration recreation. The active date/semester chooser
+   can return to the editor. Drafts are not written to disk or recovered after
+   process death. Cancel/Back should not save an editing draft.
+4. Save a Planner backup and verify its warning that older Dev builds cannot
+   open v2. Restore a v2 file and review the Exam counts before Apply; restore
+   a v1 file and verify it explicitly says exams stay unchanged. Check the
+   real Android DocumentsUI, selected provider, TalkBack, large fonts, narrow
+   navigation and Back, and a date selection west of UTC.
+5. Board, Day, Schedule, Dashboard, the subject/widget entry points, and legacy
+   attendance v10 transfer remain usable. No reminder scheduling or exam deletion.
+
+The single selective API 29 step covers the Today entry action, title-only
+and archived-term editing, v2 exam counts/v1 review text, the existing v1/v2
+Room/stream tests, and populated migration fixtures. Actual Android document
+provider, date picker selection, device rotation/navigation and accessibility
+checks remain manual.

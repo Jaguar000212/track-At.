@@ -28,7 +28,7 @@
         <item quantity="other">%d classes to mark</item>
     </plurals>
     <string name="planner_backup_title">Planner backup</string>
-    <string name="planner_backup_scope">Save or restore a complete planner backup. It includes active and archived semesters, subjects, timetable, attendance and Board items. It is separate from the attendance transfer options.</string>
+    <string name="planner_backup_scope">Save or restore a complete planner backup. It includes active and archived semesters, subjects, timetable, attendance, Board items and exams. It is separate from the attendance transfer options.</string>
     <string name="planner_backup_privacy">The file is not encrypted and may contain personal information. You choose where to save it. Track-At does not share or upload it automatically.</string>
     <string name="planner_backup_save">Save planner backup</string>
     <string name="planner_backup_open">Choose backup to restore</string>
@@ -80,4 +80,27 @@
     <string name="board_cancel">Cancel</string>
     <string name="board_load_error">Could not load Board tasks.</string>
     <string name="board_write_error">Could not save that change. Try again.</string>
+    <string name="planner_backup_v2_compatibility">New Planner backups use version 2 to include exams. Older Dev builds cannot restore version 2 files. This build can still restore Planner version 1 files.</string>
+    <string name="planner_backup_no_exam_section">This older backup has no exams section. Your exams will not change.</string>
+    <string name="exams_title">Exams</string>
+    <string name="exams_intro">Add an exam as soon as you know its title. A date and semester are optional.</string>
+    <string name="exams_add">Add exam</string>
+    <string name="exams_edit">Edit exam</string>
+    <string name="exams_edit_named">Edit exam: %1$s</string>
+    <string name="exams_exam_title">Exam title</string>
+    <string name="exams_scheduled">Scheduled</string>
+    <string name="exams_undated">Undated</string>
+    <string name="exams_date_tbd">Date TBD</string>
+    <string name="exams_choose_date">Choose date</string>
+    <string name="exams_set_date">Set date</string>
+    <string name="exams_clear_date">Clear date</string>
+    <string name="exams_choose_semester">Choose semester</string>
+    <string name="exams_no_semester">No semester</string>
+    <string name="exams_missing_semester">That semester is no longer available. Choose another or No semester.</string>
+    <string name="exams_archived_semester">%1$s (archived)</string>
+    <string name="exams_save">Save exam</string>
+    <string name="exams_cancel">Cancel</string>
+    <string name="exams_empty">No exams yet. Add one now and fill in the details later.</string>
+    <string name="exams_load_failed">Could not load exams.</string>
+    <string name="exams_save_failed">Could not save the exam. Check the selected semester and try again.</string>
 </resources>
