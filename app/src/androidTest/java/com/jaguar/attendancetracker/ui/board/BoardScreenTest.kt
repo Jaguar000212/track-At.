@@ -47,7 +47,8 @@ class BoardScreenTest {
         compose.onNodeWithText(original).assertIsDisplayed()
 
         compose.onNodeWithContentDescription(resources.getString(R.string.board_edit_named, original)).performClick()
-        compose.onNode(hasSetTextAction()).performTextClearance().performTextInput(edited)
+        compose.onNode(hasSetTextAction()).performTextClearance()
+        compose.onNode(hasSetTextAction()).performTextInput(edited)
         compose.onNodeWithText(save).performClick()
         compose.onNodeWithText(edited).assertIsDisplayed()
 
