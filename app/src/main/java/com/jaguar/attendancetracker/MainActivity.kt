@@ -37,7 +37,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        launchShortcut = intent.shortcutDestination()
+        launchShortcut = if (savedInstanceState == null) intent.shortcutDestination()
+        else savedInstanceState.getString(PENDING_SHORTCUT)?.let { name -> Destinations.entries.find { it.name == name } }
         enableEdgeToEdge()
         setContent {
             App()
@@ -46,10 +47,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.shortcutDestination()?.let {
-            setIntent(intent)
-            launchShortcut = it
-        }
+        intent.shortcutDestination()?.let { launchShortcut = it }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(PENDING_SHORTCUT, launchShortcut?.name)
     }
 
     override fun onStop() {
@@ -94,11 +97,12 @@ class MainActivity : ComponentActivity() {
                 popUpTo(Destinations.TODAY.route) { inclusive = false }
                 launchSingleTop = true
             }
-            if (intent.shortcutDestination() == destination) intent.action = null
             launchShortcut = null
         }
     }
 }
+
+private const val PENDING_SHORTCUT = "pending_launch_shortcut"
 
 private fun Intent.shortcutDestination(): Destinations? = when (action) {
     OPEN_CAMPUS_BRIEF_TODAY -> Destinations.TODAY

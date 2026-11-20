@@ -2,11 +2,13 @@ package com.jaguar.attendancetracker.ui.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.lifecycle.Lifecycle
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.CampusBriefWidgetReceiver
@@ -29,6 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
@@ -98,6 +101,7 @@ class CampusBriefWidgetTest {
         compose.onNodeWithText(context.getString(R.string.exams_title)).performClick()
         compose.onNodeWithText(context.getString(R.string.exams_intro)).assertIsDisplayed()
         val activity = compose.activity
+        val originalLaunch = Intent(activity.intent)
         compose.runOnIdle { activity.startActivity(start) }
         compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.exams_intro)).assertDoesNotExist()
@@ -109,8 +113,14 @@ class CampusBriefWidgetTest {
         assertNull(reminder.data)
         compose.runOnIdle { activity.startActivity(reminder) }
         compose.onNodeWithText(context.getString(R.string.exams_intro)).assertIsDisplayed()
-        compose.runOnIdle { activity.onBackPressedDispatcher.onBackPressed() }
+        assertSame(activity, compose.activity)
+        compose.runOnIdle {
+            assertEquals(Lifecycle.State.RESUMED, activity.lifecycle.currentState)
+            assertTrue(originalLaunch.filterEquals(activity.intent))
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
         compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.exams_intro)).assertDoesNotExist()
     }
 
     private fun record(subjectId: UUID, date: LocalDate, status: AttendanceStatus?) =
