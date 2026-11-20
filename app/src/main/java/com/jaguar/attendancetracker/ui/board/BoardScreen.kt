@@ -46,11 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.ui.components.fromPickerDateMillis
+import com.jaguar.attendancetracker.ui.components.toPickerDateMillis
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.UUID
@@ -185,12 +185,12 @@ private fun BoardEditorDialog(
         val selectableYears = 1900..2100
         val picker = rememberDatePickerState(
             initialSelectedDateMillis = dueDate?.takeIf { it.year in selectableYears }
-                ?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli(),
+                ?.toPickerDateMillis(),
             yearRange = selectableYears,
         )
         DatePickerDialog(onDismissRequest = { showDatePicker = false }, confirmButton = {
             TextButton(enabled = picker.selectedDateMillis != null, onClick = {
-                picker.selectedDateMillis?.let { dueDate = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+                picker.selectedDateMillis?.let { dueDate = it.fromPickerDateMillis() }
                 showDatePicker = false
             }) { Text(stringResource(R.string.board_set_date)) }
         }, dismissButton = {

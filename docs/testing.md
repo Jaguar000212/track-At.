@@ -290,3 +290,21 @@ clear manual estimates. Leave is not saved, and no marks or reminders are made.
    range reset and Back, large text/TalkBack/IME scrolling and old routes.
    The selective API 29 runner tests complete read-only Room fixtures and
    Compose no-timetable manual zero/exam sections, not the full picker flow.
+
+
+## Date-only picker regression
+
+A Material date picker returns UTC midnight for the chosen calendar day. Use
+that calendar day unchanged when opening Day View or editing subject/semester
+dates. The device zone still determines paths based on “today”. Existing
+stored dates are never adjusted or rewritten automatically.
+
+Use a test profile west of UTC (e.g. America/Los_Angeles), then compare UTC and
+Asia/Kolkata. Choose winter and summer dates in Day View; the title and shown
+records must match the selected calendar day. Open and save an existing
+subject and semester without editing their dates; dates must not move.
+Change each date, cancel a separate edit, and clear an optional end date.
+Also recheck Board, Exams and Leave date selection. The JVM test restores
+its temporary test timezone and covers all three zones. The selective API 29
+tests exercise actual subject/semester edit sheets in a west zone, not
+manual calendar navigation or a stored-data correction.
