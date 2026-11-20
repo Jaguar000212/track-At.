@@ -34,6 +34,10 @@ def migration_changes(paths):
     test = "app/src/androidTest/java/" + package
     return any(path.startswith((main + "migrations/", main + "entities/", main + "typeConverters/", test + "migrations/", "app/src/androidTest/assets/room/"))
                or path in {main + "AttendanceDatabase.kt", main + "CONSTANTS.kt",
+                           main + "daos/PlannerRestoreDao.kt",
+                           main + "repositories/PlannerRestoreRepository.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerMergePreview.kt",
+                           "app/src/main/java/com/jaguar/attendancetracker/ui/imExport/PlannerBackupFormat.kt",
                            "app/src/main/java/com/jaguar/attendancetracker/dependencies/DatabaseModule.kt",
                            "scripts/run_room_migration_tests.sh"}
                for path in paths)

@@ -44,6 +44,9 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(module.migration_changes(["app/src/androidTest/assets/room/attendance-v10.sql"]))
         self.assertFalse(module.migration_changes(["docs/testing.md", prefix + "ui/today/TodayScreen.kt"]))
         self.assertFalse(module.migration_changes([prefix + "ui/imExport/AttendanceBackupFormat.kt"]))
+        for path in ("backend/daos/PlannerRestoreDao.kt", "backend/repositories/PlannerRestoreRepository.kt",
+                     "ui/imExport/PlannerMergePreview.kt", "ui/imExport/PlannerBackupFormat.kt"):
+            self.assertTrue(module.migration_changes([prefix + path]))
 
     def test_rename_reports_both_paths(self):
         import os

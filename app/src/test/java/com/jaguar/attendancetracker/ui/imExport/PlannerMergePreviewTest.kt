@@ -7,6 +7,8 @@ import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
+import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason.INCONSISTENT_INCOMING_TOTALS
+import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason.INCONSISTENT_LOCAL_TOTALS
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason.SEMESTER_CONFLICT
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason.SESSION_BLOCKED
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason.SESSION_CONFLICT
@@ -80,9 +82,9 @@ class PlannerMergePreviewTest {
         assertEquals(UNCHANGED, plan.attendance.single().outcome)
     }
 
-    @Test fun subjectDifferenceIncludesStoredTotalsAndScheduleDifferenceBlocksNewDependents() {
+    @Test fun authoredSubjectDifferenceAndScheduleDifferenceBlockNewDependents() {
         val incoming = snapshot(listOf(term), listOf(math), listOf(mathSlot), listOf(mathAttendance))
-        val localChangedSubject = snapshot(listOf(term), listOf(math.copy(totalClasses = 10)))
+        val localChangedSubject = snapshot(listOf(term), listOf(math.copy(notes = "Private local notes")))
         val subjectPlan = PlannerMergePlanner.preview(localChangedSubject, incoming)
         assertEquals(KEEP_LOCAL_CONFLICT, subjectPlan.subjects.single().outcome)
         assertBlock(subjectPlan.schedule.single(), SUBJECT_CONFLICT, math.id)
@@ -123,6 +125,47 @@ class PlannerMergePreviewTest {
         assertEquals(emptyList<PlannerMergeRow<SessionRecord>>(), plan.schedule)
     }
 
+    @Test fun consistentDerivedDifferencesMergeAndCountOnlyAcceptedMarkedRows() {
+        val local = snapshot(listOf(term), listOf(math), attendance = listOf(mathAttendance))
+        val absentExtra = mathAttendance.copy(id = id(11), sessionId = null,
+            status = AttendanceStatus.ABSENT, classType = ClassType.EXTRA)
+        val cancelled = mathAttendance.copy(id = id(12), status = AttendanceStatus.CANCELLED)
+        val unmarked = mathAttendance.copy(id = id(13), status = null)
+        val incoming = snapshot(listOf(term), listOf(math), attendance = listOf(absentExtra, cancelled, unmarked))
+        val plan = PlannerMergePlanner.preview(local, incoming)
+        assertEquals(UNCHANGED, plan.subjects.single().outcome)
+        assertEquals(mapOf(math.id to PlannerSubjectTotals(2, 1)), plan.totalsAfterAcceptedAttendance)
+    }
+
+    @Test fun sourceOrLocalInconsistentTotalsBlockAffectedAttendanceButNotBoard() {
+        val incoming = snapshot(listOf(term), listOf(math), attendance = listOf(mathAttendance), board = listOf(task))
+        val staleLocal = snapshot(listOf(term), listOf(math.copy(totalClasses = 99)), preserveStoredTotals = true)
+        val localMismatch = PlannerMergePlanner.preview(staleLocal, incoming)
+        assertBlock(localMismatch.attendance.single(), INCONSISTENT_LOCAL_TOTALS, math.id)
+        assertEquals(INSERT, localMismatch.board.single().outcome)
+        assertEquals(emptyMap<UUID, PlannerSubjectTotals>(), localMismatch.totalsAfterAcceptedAttendance)
+
+        val staleIncoming = snapshot(listOf(term), listOf(math), attendance = listOf(mathAttendance),
+            board = listOf(task), preserveStoredTotals = true)
+        val sourceMismatch = PlannerMergePlanner.preview(snapshot(listOf(term), listOf(math)), staleIncoming)
+        assertBlock(sourceMismatch.attendance.single(), INCONSISTENT_INCOMING_TOTALS, math.id)
+        assertEquals(INSERT, sourceMismatch.board.single().outcome)
+        val sourceMismatchNewSubject = PlannerMergePlanner.preview(snapshot(), staleIncoming)
+        assertBlock(sourceMismatchNewSubject.subjects.single(), INCONSISTENT_INCOMING_TOTALS, math.id)
+        assertBlock(sourceMismatchNewSubject.attendance.single(), SUBJECT_BLOCKED, math.id)
+    }
+
+    @Test fun acceptedSubsetForNewSubjectDoesNotCarryBlockedSourceMarksIntoTotals() {
+        val local = snapshot(listOf(term), listOf(art), listOf(artSlot))
+        val safeExtra = mathAttendance.copy(id = id(12), sessionId = null,
+            status = AttendanceStatus.ABSENT, classType = ClassType.EXTRA)
+        val incoming = snapshot(listOf(term), listOf(math), attendance = listOf(mathAttendance, safeExtra))
+        val plan = PlannerMergePlanner.preview(local, incoming)
+        assertEquals(INSERT, plan.subjects.single().outcome)
+        assertBlock(plan.attendance.first(), SESSION_SUBJECT_MISMATCH, mathSlot.id)
+        assertEquals(mapOf(math.id to PlannerSubjectTotals(1, 0)), plan.totalsAfterAcceptedAttendance)
+    }
+
     private fun assertBlock(row: PlannerMergeRow<*>, reason: PlannerMergeBlockReason, id: UUID) {
         assertEquals(BLOCKED_DEPENDENCY, row.outcome)
         assertEquals(PlannerMergeBlock(reason, id), row.dependency)
@@ -137,8 +180,18 @@ class PlannerMergePreviewTest {
         schedule: List<SessionRecord> = emptyList(),
         attendance: List<AttendanceRecord> = emptyList(),
         board: List<BoardItem> = emptyList(),
-    ) = PlannerBackup(BackupData(timestamp = 42, semesters = terms, subjects = subjects,
-        schedule = schedule, attendance = attendance), board)
+        preserveStoredTotals: Boolean = false,
+    ): PlannerBackup {
+        val baselines = if (preserveStoredTotals) subjects else subjects.map { subject ->
+            val records = attendance.filter { it.subjectId == subject.id }
+            subject.copy(
+                totalClasses = records.count { it.status == AttendanceStatus.PRESENT || it.status == AttendanceStatus.ABSENT },
+                attendedClasses = records.count { it.status == AttendanceStatus.PRESENT },
+            )
+        }
+        return PlannerBackup(BackupData(timestamp = 42, semesters = terms, subjects = baselines,
+            schedule = schedule, attendance = attendance), board)
+    }
 
     private fun id(n: Int): UUID = UUID(0, n.toLong())
 }
