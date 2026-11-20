@@ -23,9 +23,8 @@ class AttendanceRepository @Inject constructor(
         attendanceRecordDao.deleteBySubject(subjectId)
     }
 
-    suspend fun addAttendance(record: AttendanceRecord) {
-        attendanceRecordDao.insert(record)
-    }
+    suspend fun addAttendance(record: AttendanceRecord): Boolean =
+        attendanceRecordDao.insertOperational(record)
 
     private suspend fun updateSubjectStats(subjectId: UUID) {
         val total = attendanceRecordDao.countTotalClasses(subjectId)

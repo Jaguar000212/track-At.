@@ -160,11 +160,22 @@
     <string name="campus_brief_open_today">Open Today</string>
     <string name="terms_active">Active</string>
     <string name="terms_archived">Archived</string>
-    <string name="terms_archive_intro">Archived semesters and their saved attendance totals. This view does not edit records.</string>
+    <string name="terms_archive_intro">Archived semesters and their saved attendance totals. Existing records are kept when you unarchive.</string>
     <string name="terms_archive_empty">No archived semesters.</string>
     <string name="terms_archive_load_error">Could not load archived semesters.</string>
     <string name="terms_archive_dates">%1$s to %2$s</string>
     <string name="terms_archive_start">Started %1$s</string>
     <string name="terms_archive_subjects_empty">No subjects in this semester.</string>
     <string name="terms_archive_saved_totals">Saved totals: %1$d attended of %2$d</string>
+    <string name="terms_archive_action">Archive semester</string>
+    <string name="terms_unarchive_action">Unarchive semester</string>
+    <string name="terms_confirm_archive">Confirm archive</string>
+    <string name="terms_confirm_unarchive">Confirm unarchive</string>
+    <string name="terms_archive_title">Archive %1$s?</string>
+    <string name="terms_unarchive_title">Unarchive %1$s?</string>
+    <string name="terms_archive_detail">This stops new attendance for this semester on any date. Saved attendance and timetable are kept. You can unarchive it later.</string>
+    <string name="terms_unarchive_detail">This moves the semester to Active and makes it eligible for new attendance again. Saved attendance and timetable stay unchanged.</string>
+    <string name="extra_unavailable_title">Class not added</string>
+    <string name="extra_unavailable_message">This subject is no longer eligible for extra classes. Choose an ongoing subject from an active semester.</string>
+    <string name="extra_no_eligible_subjects">Extra classes require an ongoing subject in an active semester.</string>
 </resources>

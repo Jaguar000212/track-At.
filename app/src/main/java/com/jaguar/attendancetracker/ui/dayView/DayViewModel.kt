@@ -47,43 +47,23 @@ class DayViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            ensureAttendanceRecordsExist(_currentDate.value)
+            ensureOperationalAttendanceForDate(_currentDate.value, attendanceRepo, scheduleRepo)
         }
     }
 
     fun loadDate(date: LocalDate) {
         _currentDate.value = date
         viewModelScope.launch {
-            ensureAttendanceRecordsExist(date)
+            ensureOperationalAttendanceForDate(date, attendanceRepo, scheduleRepo)
         }
     }
 
-    fun getSubjects(): Flow<List<Subject>> {
-        return scheduleRepo.getSchedulableSubjects()
-    }
+    val subjects: Flow<List<Subject>> = scheduleRepo.getExtraClassSubjects()
 
-    private suspend fun ensureAttendanceRecordsExist(date: LocalDate) {
-        val dayOfWeek = date.dayOfWeek.value
+    private val _extraRejected = MutableStateFlow(false)
+    val extraRejected: StateFlow<Boolean> = _extraRejected
 
-        val sessions = scheduleRepo.getSessionsByDay(dayOfWeek).sortedBy { it.orderNo }
-        val existingRecords = attendanceRepo.getAttendanceByDate(date)
-        val recordedSessionIds = existingRecords.map { it.sessionId }.toSet()
-
-        sessions.forEach { session ->
-            if (session.id !in recordedSessionIds && session.startDate <= date) {
-                attendanceRepo.addAttendance(
-                    AttendanceRecord(
-                        id = UUID.randomUUID(),
-                        sessionId = session.id,
-                        date = date,
-                        status = null,
-                        subjectId = session.subjectId,
-                        classType = ClassType.REGULAR
-                    )
-                )
-            }
-        }
-    }
+    fun dismissExtraRejected() { _extraRejected.value = false }
 
     fun markPresent(record: AttendanceWithSubject) {
         viewModelScope.launch { attendanceRepo.markPresent(record) }
@@ -98,6 +78,35 @@ class DayViewModel @Inject constructor(
     }
 
     fun addExtraClass(record: AttendanceRecord) {
-        viewModelScope.launch { attendanceRepo.addAttendance(record) }
+        viewModelScope.launch {
+            if (!attendanceRepo.addAttendance(record)) _extraRejected.value = true
+        }
+    }
+}
+
+internal suspend fun ensureOperationalAttendanceForDate(
+    date: LocalDate,
+    attendanceRepo: AttendanceRepository,
+    scheduleRepo: ScheduleRepository,
+) {
+    val dayOfWeek = date.dayOfWeek.value
+
+    val sessions = scheduleRepo.getSessionsByDay(dayOfWeek).sortedBy { it.orderNo }
+    val existingRecords = attendanceRepo.getAttendanceByDate(date)
+    val recordedSessionIds = existingRecords.map { it.sessionId }.toSet()
+
+    sessions.forEach { session ->
+        if (session.id !in recordedSessionIds && session.startDate <= date) {
+            attendanceRepo.addAttendance(
+                AttendanceRecord(
+                    id = UUID.randomUUID(),
+                    sessionId = session.id,
+                    date = date,
+                    status = null,
+                    subjectId = session.subjectId,
+                    classType = ClassType.REGULAR
+                )
+            )
+        }
     }
 }

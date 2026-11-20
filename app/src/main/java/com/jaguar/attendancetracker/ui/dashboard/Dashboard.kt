@@ -190,7 +190,7 @@ fun Dashboard(
     SemesterBrowser { showArchived ->
         if (showArchived) {
             val archived by viewModel.archivedState.collectAsStateWithLifecycle()
-            ArchivedTerms(archived)
+            ArchivedTerms(archived, viewModel::setSemesterArchived)
         } else {
             ActiveDashboard(viewModel, navController)
         }
@@ -293,6 +293,13 @@ private fun ActiveDashboard(viewModel: DashboardViewModel, navController: NavHos
                             }
 
                             if (isExpanded) {
+                                item(key = "archive_${semester.id}") {
+                                    SemesterArchiveAction(
+                                        semester = semester,
+                                        onSetArchived = viewModel::setSemesterArchived,
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                    )
+                                }
                                 if (semesterWithSubjects.subjects.isEmpty()) {
                                     item {
                                         Text(

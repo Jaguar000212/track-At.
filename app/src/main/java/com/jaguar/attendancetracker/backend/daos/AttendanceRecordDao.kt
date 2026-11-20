@@ -9,6 +9,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.entities.AttendanceWithSubject
+import com.jaguar.attendancetracker.backend.enums.ClassType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.util.UUID
@@ -20,6 +21,26 @@ interface AttendanceRecordDao {
 
     @Insert
     suspend fun insert(record: AttendanceRecord)
+
+    @Query("""
+        SELECT EXISTS(SELECT 1 FROM Subjects s JOIN Semesters t ON t.id = s.semesterId
+        WHERE s.id = :subjectId AND t.isArchived = 0 AND (:requireOngoing = 0 OR s.isEnded = 0))
+    """)
+    suspend fun isOperationalSubjectEligible(subjectId: UUID, requireOngoing: Boolean): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM AttendanceRecords WHERE date = :date AND sessionId = :sessionId)")
+    suspend fun hasMaterializedSession(date: LocalDate, sessionId: UUID): Boolean
+
+    /** Serialize the eligibility check with archive updates and the new record insert. */
+    @Transaction
+    suspend fun insertOperational(record: AttendanceRecord): Boolean {
+        val extra = record.classType == ClassType.EXTRA
+        if (!isOperationalSubjectEligible(record.subjectId, requireOngoing = extra)) return false
+        val session = record.sessionId
+        if (!extra && session != null && hasMaterializedSession(record.date, session)) return false
+        insert(record)
+        return true
+    }
 
     @Update
     suspend fun update(record: AttendanceRecord)

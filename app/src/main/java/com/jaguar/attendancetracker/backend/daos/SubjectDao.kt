@@ -33,6 +33,12 @@ interface SubjectDao {
     @Query("SELECT * FROM Subjects WHERE id IN (SELECT subjectId FROM SessionRecords)")
     fun getScheduled(): Flow<List<Subject>>
 
+    @Query("""
+        SELECT s.* FROM Subjects s JOIN Semesters t ON t.id = s.semesterId
+        WHERE s.isEnded = 0 AND t.isArchived = 0 ORDER BY s.name, s.id
+    """)
+    fun getExtraClassSubjects(): Flow<List<Subject>>
+
     @Query("SELECT * FROM Subjects WHERE isEnded = 0")
     fun getSchedulable(): Flow<List<Subject>>
 }

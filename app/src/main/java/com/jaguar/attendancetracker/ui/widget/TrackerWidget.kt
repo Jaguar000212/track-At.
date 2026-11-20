@@ -47,7 +47,7 @@ class TrackerWidget : GlanceAppWidget() {
 
         val today = LocalDate.now()
         val subjectsFlow = repos.scheduleRepo().getAllSubjects()
-        val sessionsWithSubjectsFlow = repos.scheduleRepo().getSessionsWithSubjects()
+        val sessionsWithSubjectsFlow = repos.scheduleRepo().getOperationalSessionsWithSubjects()
         val attendanceFlow = repos.attendanceRepo().getAttendanceWithSubjects(today)
 
         val colors = ColorProviders(
@@ -64,7 +64,7 @@ class TrackerWidget : GlanceAppWidget() {
             val todayClasses = remember(allSessions, todayAttendance) {
                 val dayOfWeek = today.dayOfWeek.value
 
-                val scheduledForToday = allSessions.filter { it.session.dayOfWeek == dayOfWeek }
+                val scheduledForToday = allSessions.filter { it.session.dayOfWeek == dayOfWeek && it.session.startDate <= today }
                     .sortedBy { it.session.orderNo }
 
                 val attendanceMap = todayAttendance.associateBy { it.record.sessionId }

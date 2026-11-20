@@ -11,14 +11,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
@@ -29,6 +32,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.backend.entities.Semester
+import java.util.UUID
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -56,7 +61,10 @@ internal fun SemesterBrowser(content: @Composable (showArchived: Boolean) -> Uni
 }
 
 @Composable
-internal fun ArchivedTerms(state: DashboardState) {
+internal fun ArchivedTerms(
+    state: DashboardState,
+    onSetArchived: ((UUID, Boolean) -> Unit)? = null,
+) {
     when (state) {
         DashboardState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -89,6 +97,9 @@ internal fun ArchivedTerms(state: DashboardState) {
                                     } ?: stringResource(R.string.terms_archive_start, semester.startDate.format(dateFormat)),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
+                                if (onSetArchived != null) {
+                                    SemesterArchiveAction(semester, onSetArchived)
+                                }
                                 if (subjects.isEmpty()) {
                                     Text(stringResource(R.string.terms_archive_subjects_empty), style = MaterialTheme.typography.bodySmall)
                                 }
@@ -109,5 +120,38 @@ internal fun ArchivedTerms(state: DashboardState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+internal fun SemesterArchiveAction(
+    semester: Semester,
+    onSetArchived: (UUID, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Never restore a pending confirmation unattended across a scope change or process restart.
+    var confirm by remember(semester.id, semester.isArchived) { mutableStateOf(false) }
+    val action = stringResource(if (semester.isArchived) R.string.terms_unarchive_action else R.string.terms_archive_action)
+    TextButton(onClick = { confirm = true }, modifier = modifier) { Text(action) }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = {
+                Text(stringResource(
+                    if (semester.isArchived) R.string.terms_unarchive_title else R.string.terms_archive_title,
+                    semester.name,
+                ))
+            },
+            text = { Text(stringResource(if (semester.isArchived) R.string.terms_unarchive_detail else R.string.terms_archive_detail)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirm = false
+                    onSetArchived(semester.id, !semester.isArchived)
+                }) { Text(stringResource(if (semester.isArchived) R.string.terms_confirm_unarchive else R.string.terms_confirm_archive)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }) { Text(stringResource(android.R.string.cancel)) }
+            },
+        )
     }
 }

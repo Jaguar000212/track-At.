@@ -38,8 +38,18 @@ interface SessionRecordDao {
     @Query("SELECT * FROM SessionRecords WHERE subjectId = :subjectId order by dayOfWeek")
     suspend fun getBySubject(subjectId: UUID): List<SessionRecord>
 
-    @Query("SELECT * FROM SessionRecords WHERE dayOfWeek = :day")
-    suspend fun getByDay(day: Int): List<SessionRecord>
+    @Query("""
+        SELECT r.* FROM SessionRecords r JOIN Subjects s ON s.id = r.subjectId
+        JOIN Semesters t ON t.id = s.semesterId WHERE r.dayOfWeek = :day AND t.isArchived = 0
+    """)
+    suspend fun getOperationalByDay(day: Int): List<SessionRecord>
+
+    @Transaction
+    @Query("""
+        SELECT r.* FROM SessionRecords r JOIN Subjects s ON s.id = r.subjectId
+        JOIN Semesters t ON t.id = s.semesterId WHERE t.isArchived = 0 ORDER BY r.dayOfWeek, r.orderNo
+    """)
+    fun getOperationalWithSubjects(): Flow<List<SessionsWithSubject>>
 
     @Transaction
     @Query("SELECT * FROM SessionRecords ORDER BY dayOfWeek, orderNo")

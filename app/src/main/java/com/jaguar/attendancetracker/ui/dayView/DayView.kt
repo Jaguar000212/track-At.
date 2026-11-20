@@ -62,9 +62,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jaguar.attendancetracker.R
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
@@ -84,7 +86,18 @@ fun DayView(
 ) {
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val subjects by viewModel.getSubjects().collectAsStateWithLifecycle(emptyList())
+    val subjects by viewModel.subjects.collectAsStateWithLifecycle(emptyList())
+    val extraRejected by viewModel.extraRejected.collectAsStateWithLifecycle()
+    if (extraRejected) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExtraRejected,
+            title = { Text(stringResource(R.string.extra_unavailable_title)) },
+            text = { Text(stringResource(R.string.extra_unavailable_message)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissExtraRejected) { Text(stringResource(android.R.string.ok)) }
+            },
+        )
+    }
     val listState = rememberLazyListState()
     val isAtTop by remember {
         derivedStateOf {
@@ -296,7 +309,7 @@ fun DayView(
                                 )
                             }, text = {
                                 Text(
-                                    "Please add a subject before adding a class.",
+                                    stringResource(R.string.extra_no_eligible_subjects),
                                     style = AppTypography.bodyMedium,
                                 )
                             }, confirmButton = {
@@ -323,7 +336,7 @@ fun DayView(
                                     }
                                 },
                                 confirmButton = {
-                                    TextButton({
+                                    TextButton(enabled = subjects.any { it.id == subjectId }, onClick = {
                                         viewModel.addExtraClass(
                                             AttendanceRecord(
                                                 subjectId = subjectId,
