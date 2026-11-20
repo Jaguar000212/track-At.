@@ -413,3 +413,17 @@ If that day's timetable or term status changes while an order is pending,
 saving must show an error without applying the draft. The API 29 tests cover
 the actual Room ordering writes, group boundaries and stale rejection;
 drag gestures and accessibility require hands-on testing.
+
+### Internal new-semester rollover
+
+No rollover controls are exposed yet. The API 29 runner confirms that the
+internal preview writes nothing; confirmation creates only a new active
+semester and selected fresh subjects. Copies retain the previewed name/color,
+use the new start date and target, and have zero attendance and no personal
+notes, instructor, or room. Invalid imported colors use the default Pink
+shown in preview. Same semester names are allowed; identity is a fresh UUID.
+The original semester and courses, saved marks, timetable, Exams and Board
+remain intact and the result uses existing backup formats. Tests cover stale
+selection, confirming the same preview twice and rollback on a late insert
+failure. Preview and confirmation navigation will be verified after the UI
+is added.
