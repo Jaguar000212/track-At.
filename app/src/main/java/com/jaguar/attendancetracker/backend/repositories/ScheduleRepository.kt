@@ -3,6 +3,9 @@ package com.jaguar.attendancetracker.backend.repositories
 import com.jaguar.attendancetracker.backend.daos.SemesterDao
 import com.jaguar.attendancetracker.backend.daos.SessionRecordDao
 import com.jaguar.attendancetracker.backend.daos.SubjectDao
+import com.jaguar.attendancetracker.backend.daos.TimetableEntry
+import com.jaguar.attendancetracker.backend.daos.TimetableGroup
+import com.jaguar.attendancetracker.backend.daos.TimetableOrderRow
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SemesterWithSubjects
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
@@ -24,8 +27,7 @@ class ScheduleRepository @Inject constructor(
 
     fun getExtraClassSubjects(): Flow<List<Subject>> = subjectDao.getExtraClassSubjects()
 
-    fun getSessionsWithSubjects(): Flow<List<SessionsWithSubject>> =
-        sessionRecordDao.getWithSubjects()
+    fun observeTimetable(): Flow<List<TimetableEntry>> = sessionRecordDao.observeTimetable()
 
     fun getActiveSemesters(): Flow<List<SemesterWithSubjects>> =
         semesterDao.getActiveSemestersWithSubjects()
@@ -51,9 +53,10 @@ class ScheduleRepository @Inject constructor(
         sessionRecordDao.insert(sessionRecord)
     }
 
-    suspend fun updateSessionOrder(sessions: List<SessionRecord>) {
-        sessionRecordDao.updateAll(sessions)
-    }
+    suspend fun reorderSessions(
+        expectedByDay: Map<Int, List<TimetableOrderRow>>,
+        orderByGroup: Map<TimetableGroup, List<UUID>>,
+    ): Boolean = sessionRecordDao.reorderGroups(expectedByDay, orderByGroup)
 
     suspend fun deleteSession(sessionRecord: SessionRecord) {
         sessionRecordDao.delete(sessionRecord)

@@ -23,8 +23,60 @@ interface SessionRecordDao {
     @Update
     suspend fun update(record: SessionRecord)
 
-    @Update
-    suspend fun updateAll(records: List<SessionRecord>)
+    @Transaction
+    @Query("""
+        SELECT r.*, t.id AS termId, t.isArchived AS archived FROM SessionRecords r
+        JOIN Subjects s ON s.id = r.subjectId JOIN Semesters t ON t.id = s.semesterId
+    """)
+    fun observeTimetable(): Flow<List<TimetableEntry>>
+
+    @Query("""
+        SELECT r.*, t.id AS termId, t.isArchived AS archived FROM SessionRecords r
+        JOIN Subjects s ON s.id = r.subjectId JOIN Semesters t ON t.id = s.semesterId
+        WHERE r.dayOfWeek IN (:days)
+    """)
+    suspend fun readTimetableOrder(days: Set<Int>): List<TimetableOrderRow>
+
+    @Query("""
+        UPDATE SessionRecords SET orderNo = :orderNo WHERE id = :id AND subjectId IN (
+          SELECT s.id FROM Subjects s JOIN Semesters t ON t.id = s.semesterId WHERE t.isArchived = :archived
+        )
+    """)
+    suspend fun updateScopedOrder(id: UUID, orderNo: Int, archived: Boolean)
+
+    @Transaction
+    suspend fun reorderGroups(
+        expectedByDay: Map<Int, List<TimetableOrderRow>>,
+        orderByGroup: Map<TimetableGroup, List<UUID>>,
+    ): Boolean {
+        if (orderByGroup.isEmpty()) return true
+        val changedDays = orderByGroup.keys.mapTo(HashSet()) { it.day }
+        if (expectedByDay.keys != changedDays) return false
+        val actualByDay = readTimetableOrder(changedDays).groupBy { it.session.dayOfWeek }
+        if (actualByDay.keys != expectedByDay.keys) return false
+        // Check all affected weekdays before any write, including their opposite group.
+        if (actualByDay.any { (day, actual) -> actual.toSet() != expectedByDay.getValue(day).toSet() }) return false
+        if (orderByGroup.any { (group, desired) ->
+                val ids = actualByDay.getValue(group.day).filter { it.group == group }.map { it.session.id }.toSet()
+                desired.size != ids.size || desired.toSet() != ids
+            }
+        ) return false
+        val currentOrders = actualByDay.mapValues { (_, day) ->
+            day.associate { it.session.id to it.session.orderNo }.toMutableMap()
+        }
+        for ((group, desired) in orderByGroup.entries.sortedWith(compareBy({ it.key.day }, { it.key.archived }))) {
+            val actual = actualByDay.getValue(group.day)
+            val orders = currentOrders.getValue(group.day)
+            val reserved = actual.filter { it.group != group }.map { orders.getValue(it.session.id) }
+            for ((id, orderNo) in orderAssignments(desired, reserved)) {
+                if (orders[id] != orderNo) {
+                    updateScopedOrder(id, orderNo, group.archived)
+                    orders[id] = orderNo
+                }
+            }
+        }
+        return true
+    }
 
     @Delete
     suspend fun delete(record: SessionRecord)
@@ -51,7 +103,4 @@ interface SessionRecordDao {
     """)
     fun getOperationalWithSubjects(): Flow<List<SessionsWithSubject>>
 
-    @Transaction
-    @Query("SELECT * FROM SessionRecords ORDER BY dayOfWeek, orderNo")
-    fun getWithSubjects(): Flow<List<SessionsWithSubject>>
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,18 +31,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -55,14 +57,15 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jaguar.attendancetracker.backend.entities.SessionRecord
-import com.jaguar.attendancetracker.backend.entities.Subject
+import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.backend.daos.TimetableEntry
+import com.jaguar.attendancetracker.backend.daos.group
 import com.jaguar.attendancetracker.ui.components.AddSessionBottomSheet
 import com.jaguar.attendancetracker.ui.components.ScheduleCard
 import com.jaguar.attendancetracker.ui.theme.AppTypography
@@ -104,6 +107,18 @@ fun ScheduleView(
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val reorderError by viewModel.reorderError.collectAsStateWithLifecycle()
+    reorderError?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissReorderError,
+            title = { Text(stringResource(R.string.timetable_order_not_saved)) },
+            text = { Text(stringResource(if (error == ScheduleViewModel.ReorderError.STALE)
+                R.string.timetable_order_stale else R.string.timetable_order_error)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissReorderError) { Text(stringResource(android.R.string.ok)) }
+            },
+        )
+    }
     val haptic = LocalHapticFeedback.current
     val listState = rememberLazyListState()
     val isAtTop by remember {
@@ -114,7 +129,9 @@ fun ScheduleView(
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
-            targetState = uiState, transitionSpec = {
+            targetState = uiState,
+            contentKey = { if (it is ScheduleState.Success) "timetable" else it::class },
+            transitionSpec = {
                 fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
             }, label = "ScheduleStateAnimation", modifier = Modifier.fillMaxSize()
         ) { targetState ->
@@ -143,7 +160,21 @@ fun ScheduleView(
 
                 is ScheduleState.Success -> {
                     var showAddScheduleDialog by remember { mutableStateOf(false) }
-                    var isEditMode by remember { mutableStateOf(false) }
+                    var baseline by remember { mutableStateOf<List<TimetableEntry>?>(null) }
+                    var draft by remember { mutableStateOf<List<TimetableEntry>?>(null) }
+                    val isEditMode = draft != null
+                    val entries = draft ?: targetState.sessionRecords
+                    fun move(fromKey: Any, toKey: Any): Boolean {
+                        val current = draft ?: targetState.sessionRecords
+                        val from = current.indexOfFirst { it.order.session.id == fromKey }
+                        val to = current.indexOfFirst { it.order.session.id == toKey }
+                        if (from !in current.indices || to !in current.indices || from == to ||
+                            current[from].order.group != current[to].order.group
+                        ) return false
+                        if (baseline == null) baseline = current
+                        draft = current.toMutableList().apply { add(to, removeAt(from)) }
+                        return true
+                    }
 
                     val shakeRotation = if (isEditMode) {
                         val infiniteTransition =
@@ -161,40 +192,20 @@ fun ScheduleView(
                         0f
                     }
 
-                    val subjects: List<Subject> = targetState.sessionRecords.map { it.subject }
-                    val subjectMap = remember(subjects) {
-                        subjects.associateBy { it.id }
-                    }
-
-                    var sessions: List<SessionRecord> by remember { mutableStateOf(emptyList()) }
-                    LaunchedEffect(targetState) {
-                        sessions = targetState.sessionRecords.map { it.session }
-                    }
                     val reorderableLazyColumnState =
                         rememberReorderableLazyListState(listState) { from, to ->
-                            val fromIndex = sessions.indexOfFirst { it.id == from.key }
-                            val toIndex = sessions.indexOfFirst { it.id == to.key }
-
-                            if (fromIndex != -1 && toIndex != -1) {
-                                sessions = sessions.toMutableList().apply {
-                                    add(toIndex, removeAt(fromIndex))
-                                }
+                            if (move(from.key, to.key)) {
+                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                             }
-
-                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         }
 
-                    val sessionsByDay = remember(sessions) {
-                        sessions.groupBy { it.dayOfWeek }
-                    }
-                    val expandedDays = remember(sessionsByDay) {
-                        mutableStateMapOf<Int, Boolean>().apply {
-                            sessionsByDay.keys.forEach { put(it, true) }
-                        }
-                    }
+                    val entriesByDay = remember(entries) { entries.groupBy { it.order.session.dayOfWeek } }
+                    val expandedDays = remember { mutableStateMapOf<Int, Boolean>() }
+                    val moveUp = stringResource(R.string.timetable_move_up)
+                    val moveDown = stringResource(R.string.timetable_move_down)
 
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (sessions.isEmpty()) {
+                        if (entries.isEmpty()) {
                             Text(
                                 "No sessions yet.",
                                 style = AppTypography.bodyMedium,
@@ -206,110 +217,63 @@ fun ScheduleView(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                sessionsByDay.toSortedMap().forEach { (day, daySessions) ->
+                                entriesByDay.toSortedMap().forEach { (day, dayEntries) ->
                                     item(key = "header_$day") {
                                         DayHeader(
                                             day = day,
-                                            expanded = expandedDays[day] == true,
+                                            expanded = expandedDays[day] != false,
                                             onToggle = {
                                                 expandedDays[day] = !(expandedDays[day] ?: true)
                                             })
                                     }
 
-                                    if (expandedDays[day] == true) {
-                                        itemsIndexed(
-                                            items = daySessions,
-                                            key = { _, session -> session.id }) { _, session ->
+                                    if (expandedDays[day] != false) {
+                                        items(dayEntries, key = { it.order.session.id }) { entry ->
+                                            val session = entry.order.session
                                             ReorderableItem(
                                                 state = reorderableLazyColumnState,
                                                 key = session.id,
-                                                modifier = Modifier.animateItem()
+                                                modifier = Modifier.animateItem(),
                                             ) {
-                                                val interactionSource =
-                                                    remember { MutableInteractionSource() }
-
-                                                Box(
-                                                    modifier = Modifier.then(
-                                                        if (isEditMode) {
-                                                            Modifier
-                                                                .rotate(shakeRotation)
-                                                                .draggableHandle(
-                                                                    onDragStarted = {
-                                                                        haptic.performHapticFeedback(
-                                                                            HapticFeedbackType.LongPress
-                                                                        )
-                                                                    },
-                                                                    onDragStopped = {
-                                                                        haptic.performHapticFeedback(
-                                                                            HapticFeedbackType.GestureEnd
-                                                                        )
-                                                                    },
-                                                                    interactionSource = interactionSource,
-                                                                )
-                                                        } else {
-                                                            Modifier.pointerInput(Unit) {
-                                                                detectTapGestures(onLongPress = {
-                                                                    isEditMode = true
-                                                                    haptic.performHapticFeedback(
-                                                                        HapticFeedbackType.LongPress
-                                                                    )
-                                                                }, onTap = {})
-                                                            }
-                                                        })) {
+                                                val interactionSource = remember { MutableInteractionSource() }
+                                                Column(
+                                                    modifier = if (isEditMode) {
+                                                        Modifier.rotate(shakeRotation).draggableHandle(
+                                                            onDragStarted = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+                                                            onDragStopped = { haptic.performHapticFeedback(HapticFeedbackType.GestureEnd) },
+                                                            interactionSource = interactionSource,
+                                                        )
+                                                    } else {
+                                                        Modifier.pointerInput(entries) {
+                                                            detectTapGestures(onLongPress = {
+                                                                baseline = entries
+                                                                draft = entries
+                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            })
+                                                        }
+                                                    },
+                                                ) {
+                                                    if (entry.order.archived) {
+                                                        Text(
+                                                            stringResource(R.string.timetable_archived_session),
+                                                            style = AppTypography.labelMedium,
+                                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                                        )
+                                                    }
+                                                    val index = entries.indexOfFirst { it.order.session.id == session.id }
+                                                    val actions = buildList {
+                                                        entries.getOrNull(index - 1)?.order?.takeIf { it.group == entry.order.group }?.let { previous ->
+                                                            add(CustomAccessibilityAction(moveUp) { move(session.id, previous.session.id) })
+                                                        }
+                                                        entries.getOrNull(index + 1)?.order?.takeIf { it.group == entry.order.group }?.let { next ->
+                                                            add(CustomAccessibilityAction(moveDown) { move(session.id, next.session.id) })
+                                                        }
+                                                    }
                                                     ScheduleCard(
                                                         sessionRecord = session,
-                                                        subject = subjectMap[session.subjectId]!!,
-                                                        onDelete = {
-                                                            viewModel.deleteSession(it)
-                                                        },
-                                                        modifier = Modifier
-                                                            .semantics {
-                                                                customActions = listOf(
-                                                                    CustomAccessibilityAction(
-                                                                        label = "Move Up",
-                                                                        action = {
-                                                                            val globalIndex =
-                                                                                sessions.indexOfFirst { it.id == session.id }
-                                                                            if (globalIndex > 0) {
-                                                                                sessions =
-                                                                                    sessions.toMutableList()
-                                                                                        .apply {
-                                                                                            add(
-                                                                                                globalIndex - 1,
-                                                                                                removeAt(
-                                                                                                    globalIndex
-                                                                                                )
-                                                                                            )
-                                                                                        }
-                                                                                true
-                                                                            } else {
-                                                                                false
-                                                                            }
-                                                                        }),
-                                                                    CustomAccessibilityAction(
-                                                                        label = "Move Down",
-                                                                        action = {
-                                                                            val globalIndex =
-                                                                                sessions.indexOfFirst { it.id == session.id }
-                                                                            if (globalIndex != -1 && globalIndex < sessions.size - 1) {
-                                                                                sessions =
-                                                                                    sessions.toMutableList()
-                                                                                        .apply {
-                                                                                            add(
-                                                                                                globalIndex + 1,
-                                                                                                removeAt(
-                                                                                                    globalIndex
-                                                                                                )
-                                                                                            )
-                                                                                        }
-                                                                                true
-                                                                            } else {
-                                                                                false
-                                                                            }
-                                                                        }),
-                                                                )
-                                                            }
-                                                            .clearAndSetSemantics { },
+                                                        subject = entry.subject,
+                                                        onDelete = viewModel::deleteSession,
+                                                        modifier = Modifier.semantics { customActions = actions },
                                                     )
                                                 }
                                             }
@@ -356,10 +320,11 @@ fun ScheduleView(
                         ) {
                             FloatingActionButton(
                                 onClick = {
-                                    val updated =
-                                        sessions.mapIndexed { i, s -> s.copy(orderNo = i) }
-                                    viewModel.updateSessionOrder(updated)
-                                    isEditMode = false
+                                    val before = baseline
+                                    val after = draft
+                                    if (before != null && after != null) viewModel.updateSessionOrder(before, after)
+                                    draft = null
+                                    baseline = null
                                 },
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = "Done")

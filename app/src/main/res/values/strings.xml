@@ -178,4 +178,10 @@
     <string name="extra_unavailable_title">Class not added</string>
     <string name="extra_unavailable_message">This subject is no longer eligible for extra classes. Choose an ongoing subject from an active semester.</string>
     <string name="extra_no_eligible_subjects">Extra classes require an ongoing subject in an active semester.</string>
+    <string name="timetable_archived_session">Archived semester</string>
+    <string name="timetable_move_up">Move up in group</string>
+    <string name="timetable_move_down">Move down in group</string>
+    <string name="timetable_order_not_saved">Order not saved</string>
+    <string name="timetable_order_stale">This weekday changed while you were reordering. Check the latest timetable and try again.</string>
+    <string name="timetable_order_error">The order could not be saved. Try again.</string>
 </resources>
