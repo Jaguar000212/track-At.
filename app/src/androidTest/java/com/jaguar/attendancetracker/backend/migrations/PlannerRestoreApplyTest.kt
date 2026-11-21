@@ -13,15 +13,19 @@ import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
+import com.jaguar.attendancetracker.backend.repositories.ImportExportRepository
 import com.jaguar.attendancetracker.backend.repositories.PlannerRestoreRepository
 import com.jaguar.attendancetracker.backend.repositories.PlannerRestoreResult
+import com.jaguar.attendancetracker.ui.imExport.AttendanceBackupFormat
 import com.jaguar.attendancetracker.ui.imExport.BackupData
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackup
 import com.jaguar.attendancetracker.ui.imExport.PlannerBackupFormat
+import com.jaguar.attendancetracker.ui.imExport.PlannerBackupVersion
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeBlockReason
 import com.jaguar.attendancetracker.ui.imExport.PlannerMergeOutcome
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -120,6 +124,73 @@ class PlannerRestoreApplyTest {
         assertTrue(dao.schedule().isEmpty())
         assertTrue(dao.attendance().isEmpty())
         assertEquals(listOf(kept), dao.board())
+    }
+
+    @Test
+    fun partialLegacyBackupCountsCannotInventMarksDuringPlannerRestore() = withDb { source, sourceDao ->
+        val legacy = AttendanceBackupFormat.read("""
+            {
+              "version": 9, "timestamp": 42,
+              "subjects": [{
+                "id": "${math.id}", "name": "Math", "semester": 2, "startDate": "2024-02-29",
+                "isEnded": false, "color": "PINK", "notes": "Synthetic notes",
+                "totalClasses": 2, "attendedClasses": 1, "minAttendance": 75
+              }],
+              "schedule": [{
+                "id": "${session.id}", "subjectId": "${math.id}",
+                "orderNo": 0, "dayOfWeek": 4, "startDate": "2024-02-29"
+              }]
+            }
+        """.trimIndent().reader())
+        assertNull(legacy.attendance)
+        val legacyTerm = requireNotNull(legacy.semesters).single()
+        val legacySubject = requireNotNull(legacy.subjects).single()
+        val slot = requireNotNull(legacy.schedule).single()
+        assertEquals("Semester 2", legacyTerm.name)
+        assertEquals(legacyTerm.id, legacySubject.semesterId)
+        assertEquals(legacySubject.id, slot.subjectId)
+        ImportExportRepository(source, source.attendanceRecordDao(), source.subjectDao(),
+            source.sessionRecordDao(), source.semesterDao()).upsertDataInTransaction(
+            legacy.semesters, legacy.subjects, legacy.schedule, legacy.attendance,
+        )
+        val stored = sourceDao.subjects().single()
+        assertEquals(2, stored.totalClasses)
+        assertEquals(1, stored.attendedClasses)
+        assertEquals("Synthetic notes", stored.notes)
+        assertEquals(listOf(slot), sourceDao.schedule())
+        assertTrue(sourceDao.attendance().isEmpty())
+        sourceDao.insertBoard(listOf(added))
+        val planner = PlannerRestoreRepository(source).createBackup(PlannerBackupVersion.V2)
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val target = Room.inMemoryDatabaseBuilder(context, AttendanceDatabase::class.java).build()
+        try {
+            val targetDao = target.plannerRestoreDao()
+            val pending = PlannerRestoreRepository(target).prepare(planner.reader(), PlannerBackupVersion.V2)
+            assertEquals(PlannerBackupVersion.V2, pending.version)
+            assertEquals(PlannerMergeOutcome.INSERT, pending.preview.semesters.single().outcome)
+            assertEquals(PlannerMergeOutcome.INSERT, pending.preview.board.single().outcome)
+            assertEquals(PlannerMergeOutcome.BLOCKED_DEPENDENCY, pending.preview.subjects.single().outcome)
+            assertEquals(PlannerMergeBlockReason.INCONSISTENT_INCOMING_TOTALS,
+                pending.preview.subjects.single().dependency?.reason)
+            assertEquals(PlannerMergeOutcome.BLOCKED_DEPENDENCY, pending.preview.schedule.single().outcome)
+            assertEquals(PlannerMergeBlockReason.SUBJECT_BLOCKED, pending.preview.schedule.single().dependency?.reason)
+            assertTrue(pending.preview.attendance.isEmpty())
+            assertTrue(targetDao.semesters().isEmpty())
+            assertTrue(targetDao.board().isEmpty())
+
+            assertEquals(PlannerRestoreResult.APPLIED, pending.apply())
+            assertEquals(listOf(legacyTerm), targetDao.semesters())
+            assertEquals(listOf(added), targetDao.board())
+            assertTrue(targetDao.subjects().isEmpty())
+            assertTrue(targetDao.schedule().isEmpty())
+            assertTrue(targetDao.attendance().isEmpty())
+            assertEquals(listOf(stored), sourceDao.subjects())
+            assertEquals(listOf(slot), sourceDao.schedule())
+            assertTrue(sourceDao.attendance().isEmpty())
+        } finally {
+            target.close()
+        }
     }
 
     private fun backup(subject: Subject, attendance: List<AttendanceRecord>, board: List<BoardItem>) =

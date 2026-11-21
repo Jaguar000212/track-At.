@@ -1,39 +1,40 @@
 package com.jaguar.attendancetracker.ui.helpPage
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import com.jaguar.attendancetracker.R
 
 enum class HelpTopics(
-    val title: String, val description: String, val icon: Any, val pageNo: Int
+    @param:StringRes val title: Int, @param:StringRes val description: Int, val icon: Any, val pageNo: Int
 ) {
     DASHBOARD(
-        "Dashboard",
-        "This is where you can see all your subjects and their attendance details. You can also add new subjects here.",
+        R.string.help_topic_dashboard_title,
+        R.string.help_topic_dashboard_summary,
         Icons.Outlined.Home,
         1
     ),
     SCHEDULE(
-        "Schedule Details",
-        "Here you can see your schedule for the week. You can also add new classes to your schedule.",
+        R.string.help_topic_schedule_title,
+        R.string.help_topic_schedule_summary,
         R.drawable.schedule_view,
         2
     ),
     DAY(
-        "Day View",
-        "This page shows you the attendance details for a specific day. You can see which classes you attended and which ones you missed.",
+        R.string.help_topic_day_title,
+        R.string.help_topic_day_summary,
         R.drawable.day_view,
         3
     ),
     SUBJECT(
-        "Subject Details",
-        "This page shows you detailed information about a specific subject, including attendance records and statistics.",
+        R.string.help_topic_subject_title,
+        R.string.help_topic_subject_summary,
         R.drawable.subject,
         4
     ),
     IM_EXPORT(
-        "Import/Export",
-        "This feature allows you to backup your data or import data from another device. Keep your attendance records safe!",
+        R.string.nav_import_export,
+        R.string.help_topic_backup_summary,
         R.drawable.import_export,
         5
     )

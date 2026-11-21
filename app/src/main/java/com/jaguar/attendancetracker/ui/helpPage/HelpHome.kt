@@ -23,6 +23,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.jaguar.attendancetracker.ui.theme.AppTypography
@@ -64,13 +65,13 @@ fun HelpHome(changePage: (Int) -> Unit) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = topic.title,
+                    text = stringResource(topic.title),
                     style = AppTypography.bodyLarge,
                     textDecoration = TextDecoration.Underline,
                 )
             }
             Text(
-                text = topic.description,
+                text = stringResource(topic.description),
                 style = AppTypography.bodyMedium,
                 modifier = Modifier.padding(start = 32.dp)
             )

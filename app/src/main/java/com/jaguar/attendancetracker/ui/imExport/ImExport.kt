@@ -87,20 +87,20 @@ fun ImExport(
                 Text(stringResource(R.string.planner_backup_title))
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Export Data", style = AppTypography.headlineMedium)
+            Text(text = stringResource(R.string.attendance_backup_export), style = AppTypography.headlineMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Export your attendance data to a JSON file for backup or analysis. Later, you can import this data back into the app if needed.",
+                text = stringResource(R.string.attendance_backup_private),
                 style = AppTypography.bodyMedium
             )
             Text(
-                text = "Pro-tip: Share this file with your friends and save them the trouble of setting up their schedule from scratch!",
+                text = stringResource(R.string.attendance_backup_contents),
                 style = AppTypography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
             Text(
-                "Select Data to Export:",
+                stringResource(R.string.attendance_backup_select),
                 style = AppTypography.titleMedium,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
@@ -116,7 +116,7 @@ fun ImExport(
                     }
                 })
                 Spacer(Modifier.width(8.dp))
-                Text("Subjects", style = AppTypography.bodyMedium)
+                Text(stringResource(R.string.attendance_backup_subjects), style = AppTypography.bodyMedium)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -130,7 +130,7 @@ fun ImExport(
                     }
                 })
                 Spacer(Modifier.width(8.dp))
-                Text("Schedule", style = AppTypography.bodyMedium)
+                Text(stringResource(R.string.attendance_backup_schedule), style = AppTypography.bodyMedium)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -144,7 +144,7 @@ fun ImExport(
                         }
                     })
                 Spacer(Modifier.width(8.dp))
-                Text("Attendance", style = AppTypography.bodyMedium)
+                Text(stringResource(R.string.attendance_backup_marks), style = AppTypography.bodyMedium)
             }
 
             Button(
@@ -160,7 +160,7 @@ fun ImExport(
                 Icon(painterResource(R.drawable.export_data), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Export Data", style = AppTypography.labelMedium
+                    stringResource(R.string.attendance_backup_export), style = AppTypography.labelMedium
                 )
             }
 
@@ -181,7 +181,7 @@ fun ImExport(
                 Icon(painterResource(R.drawable.import_data), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Import Data", style = AppTypography.labelMedium
+                    stringResource(R.string.attendance_backup_import), style = AppTypography.labelMedium
                 )
             }
         }
@@ -195,7 +195,7 @@ fun ImExport(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Processing...", style = AppTypography.titleMedium)
+                    Text(stringResource(R.string.attendance_backup_processing), style = AppTypography.titleMedium)
                 }
             }
         }
