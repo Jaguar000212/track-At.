@@ -11,6 +11,7 @@ enum class Destinations(
     val label: Int, val icon: Any, val route: String, val showInDrawer: Boolean = true
 ) {
     TODAY(R.string.nav_today, Icons.Outlined.Home, "/today"),
+    AGENDA(R.string.agenda_title, Icons.Outlined.Check, "/agenda", false),
     BOARD(R.string.board_title, Icons.Outlined.Check, "/board"),
     DAYVIEW(R.string.nav_day, R.drawable.day_view, "/dayview"),
     DASHBOARD(R.string.nav_dashboard, Icons.AutoMirrored.Outlined.List, "/dashboard"),

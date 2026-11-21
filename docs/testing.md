@@ -603,3 +603,9 @@ v1/v2 files over a populated Board and verify the omission note and no change
 to existing pins/checklists. The API 29 suite exercises Board interactions and
 actual Room writes, extreme-position append and review UI. Actual Android
 file-picker/provider, TalkBack and launcher behavior remain manual.
+
+### Calendar agenda (dev)
+
+- `AgendaProjectionTest` covers the local-date week boundary, open-task filtering, dated versus undated entries, and stable keys across Board and Exams.
+- The existing API 29 `TodayContentTest` suite includes one agenda UI fixture. It checks date selection, next week and return to Today, while an undated exam remains separately visible. The Today entry action is covered without a timetable.
+- On a device, open **Today → Calendar agenda** with no timetable; verify Board tasks with due dates and saved dated exams appear on their selected days, completed tasks stay out, and undated items remain visible. Try the controls at large font size and with TalkBack. Back returns to Today. Use Board or Exams to edit; the agenda never writes planner or attendance records or uses device calendars or reminders.

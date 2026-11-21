@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.jaguar.attendancetracker.ui.agenda.AgendaScreen
 import com.jaguar.attendancetracker.ui.board.BoardScreen
 import com.jaguar.attendancetracker.ui.dashboard.Dashboard
 import com.jaguar.attendancetracker.ui.dayView.DayView
@@ -68,6 +69,7 @@ fun Navigation(
         }) {
         composable(Destinations.TODAY.route) {
             Today(
+                openAgenda = { navController.navigate(Destinations.AGENDA.route) { launchSingleTop = true } },
                 openDayView = {
                     // The Today shortcut opens today's date rather than restoring a historical tab.
                     navController.navigate(Destinations.DAYVIEW.route) { launchSingleTop = true }
@@ -86,6 +88,7 @@ fun Navigation(
                 },
             )
         }
+        composable(Destinations.AGENDA.route) { AgendaScreen(onBack = { navController.popBackStack() }) }
         composable(Destinations.INSIGHTS.route) { InsightsScreen() }
         composable(Destinations.LEAVE.route) { LeaveScreen() }
         composable(Destinations.EXAMS.route) { ExamsScreen() }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agenda_title">Calendar agenda</string>
+    <string name="agenda_description">See open Board tasks and saved exams by date. Edit them in Board or Exams.</string>
+    <string name="agenda_back">Back to Today</string>
+    <string name="agenda_previous_week">Previous week</string>
+    <string name="agenda_next_week">Next week</string>
+    <string name="agenda_jump_today">Back to today\'s date</string>
+    <string name="agenda_today_short">Today</string>
+    <string name="agenda_today_date">Today, %1$s</string>
+    <string name="agenda_unavailable">Couldn\'t load your agenda. Go back and try opening it again.</string>
+    <string name="agenda_day_empty">No open tasks or exams dated for this day.</string>
+    <string name="agenda_undated">No date yet</string>
+    <string name="agenda_undated_description">These items are saved but don\'t have a date.</string>
+    <string name="agenda_task">Open task</string>
+    <string name="agenda_exam">Exam</string>
+</resources>
