@@ -18,7 +18,9 @@ class PlannerBackupContentTest {
     @Test fun previewRequiresApplyAndNoChangePreviewCannotApply() {
         val withChanges = PlannerBackupState.Review(listOf(PlannerBackupCounts(
             R.string.exams_title, insert = 1, identical = 2, conflict = 3, blocked = 4,
-        )), includesExams = true)
+        ), PlannerBackupCounts(
+            R.string.board_checklist_title, insert = 2, identical = 1, conflict = 0, blocked = 1,
+        )), includesExams = true, includesBoardDetails = true)
         val state = mutableStateOf<PlannerBackupState>(withChanges)
         var applies = 0
         var discards = 0
@@ -38,7 +40,10 @@ class PlannerBackupContentTest {
         compose.onNodeWithText(preview).assertIsDisplayed()
         compose.onNodeWithText(resources.getString(R.string.planner_backup_row,
             resources.getString(R.string.exams_title), 1, 2, 3, 4)).assertIsDisplayed()
+        compose.onNodeWithText(resources.getString(R.string.planner_backup_row,
+            resources.getString(R.string.board_checklist_title), 2, 1, 0, 1)).assertIsDisplayed()
         compose.onNodeWithText(resources.getString(R.string.planner_backup_no_exam_section)).assertDoesNotExist()
+        compose.onNodeWithText(resources.getString(R.string.planner_backup_no_board_details)).assertDoesNotExist()
         compose.runOnIdle { assertEquals(0, applies) }
         compose.onNodeWithText(cancel).performClick()
         compose.runOnIdle {
@@ -54,5 +59,6 @@ class PlannerBackupContentTest {
         compose.onNodeWithText(resources.getString(R.string.planner_backup_close)).assertIsDisplayed()
         compose.onNodeWithText(apply).assertDoesNotExist()
         compose.onNodeWithText(resources.getString(R.string.planner_backup_no_exam_section)).assertIsDisplayed()
+        compose.onNodeWithText(resources.getString(R.string.planner_backup_no_board_details)).assertIsDisplayed()
     }
 }

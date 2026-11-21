@@ -28,7 +28,9 @@ internal sealed interface PlannerBackupState {
     data object Idle : PlannerBackupState
     data class Picking(val kind: PlannerPicker) : PlannerBackupState
     data class Busy(@param:StringRes val message: Int) : PlannerBackupState
-    data class Review(val counts: List<PlannerBackupCounts>, val includesExams: Boolean) : PlannerBackupState
+    data class Review(
+        val counts: List<PlannerBackupCounts>, val includesExams: Boolean, val includesBoardDetails: Boolean = false,
+    ) : PlannerBackupState
     data class Notice(@param:StringRes val message: Int, val isError: Boolean = false) : PlannerBackupState
 }
 
@@ -46,7 +48,7 @@ internal class PlannerBackupViewModel @Inject constructor(
     @param:ApplicationContext context: Context,
 ) : ViewModel() {
     private val resolver = context.contentResolver
-    private val files = PlannerBackupFiles(PlannerRestoreRepository(database), PlannerBackupVersion.V2)
+    private val files = PlannerBackupFiles(PlannerRestoreRepository(database), PlannerBackupVersion.V3)
     private val state = MutableStateFlow<PlannerBackupState>(PlannerBackupState.Idle)
     val uiState = state.asStateFlow()
     private var reading: Job? = null
@@ -94,8 +96,9 @@ internal class PlannerBackupViewModel @Inject constructor(
                 currentCoroutineContext().ensureActive()
                 if (readingRequest !== request) return@launch
                 pending = checked
-                val includesExams = checked.version == PlannerBackupVersion.V2
-                state.value = PlannerBackupState.Review(checked.preview.toCounts(includesExams), includesExams)
+                val version = checked.version
+                state.value = PlannerBackupState.Review(checked.preview.toCounts(version), version.includesExams,
+                    version.includesBoardPortability)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: CharacterCodingException) {
@@ -175,13 +178,14 @@ internal class PlannerBackupViewModel @Inject constructor(
     }
 }
 
-private fun PlannerMergePreview.toCounts(includesExams: Boolean): List<PlannerBackupCounts> = buildList {
+internal fun PlannerMergePreview.toCounts(version: PlannerBackupVersion): List<PlannerBackupCounts> = buildList {
     add(semesters.counts(R.string.planner_backup_semesters))
     add(subjects.counts(R.string.planner_backup_subjects))
     add(schedule.counts(R.string.planner_backup_schedule))
     add(attendance.counts(R.string.planner_backup_attendance))
     add(board.counts(R.string.planner_backup_board))
-    if (includesExams) add(exams.counts(R.string.exams_title))
+    if (version.includesExams) add(exams.counts(R.string.exams_title))
+    if (version.includesBoardPortability) add(boardChecklist.counts(R.string.board_checklist_title))
 }
 
 private fun List<PlannerMergeRow<*>>.counts(@StringRes label: Int): PlannerBackupCounts = PlannerBackupCounts(

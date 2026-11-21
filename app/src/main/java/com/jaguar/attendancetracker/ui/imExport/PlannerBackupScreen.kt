@@ -92,7 +92,7 @@ internal fun PlannerBackupContent(
             )
             Text(stringResource(R.string.planner_backup_scope))
             Text(stringResource(R.string.planner_backup_privacy))
-            Text(stringResource(R.string.planner_backup_v2_compatibility))
+            Text(stringResource(R.string.planner_backup_v3_compatibility))
             Button(onClick = save, enabled = ready, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.planner_backup_save))
             }
@@ -135,6 +135,7 @@ internal fun PlannerBackupContent(
                         ))
                     }
                     if (!state.includesExams) Text(stringResource(R.string.planner_backup_no_exam_section))
+                    if (!state.includesBoardDetails) Text(stringResource(R.string.planner_backup_no_board_details))
                     if (state.counts.any { it.blocked > 0 }) {
                         Text(stringResource(R.string.planner_backup_block_explanation))
                     }
