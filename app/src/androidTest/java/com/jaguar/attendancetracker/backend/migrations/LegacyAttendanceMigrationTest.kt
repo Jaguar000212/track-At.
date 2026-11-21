@@ -7,8 +7,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
+import com.jaguar.attendancetracker.backend.DB_VERSION
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import com.jaguar.attendancetracker.backend.entities.Exam
+import com.jaguar.attendancetracker.backend.repositories.PlannerRestoreRepository
+import com.jaguar.attendancetracker.backend.repositories.PlannerRestoreResult
+import com.jaguar.attendancetracker.ui.imExport.PlannerBackupFormat
+import com.jaguar.attendancetracker.ui.imExport.PlannerBackupVersion
+import com.jaguar.attendancetracker.ui.imExport.PlannerMergeOutcome
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -54,25 +61,25 @@ class LegacyAttendanceMigrationTest {
                     legacy.version = 10
                     val schema = legacy.rawQuery(oldSchema, null).use(::snapshot)
                     val rows = oldTables.associateWith { table ->
-                        legacy.rawQuery("SELECT * FROM $table ORDER BY id", null).use(::snapshot)
+                        legacy.rawQuery(rowsSql(table), null).use(::snapshot)
                             .also { assertTrue("Fixture $table must be populated", it.isNotEmpty()) }
                     }
                     schema to rows
                 }
 
             fun open() = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
-                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12).build()
+                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12, Migration12TO13).build()
 
             val migrated = open()
             try {
                 val db = migrated.openHelper.writableDatabase
-                assertEquals(12, db.version)
+                assertEquals(DB_VERSION, db.version)
                 assertRows(db, "SELECT id FROM Exams", emptyList())
                 assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
                 assertRows(db, "PRAGMA foreign_key_check", emptyList())
                 assertEquals(expectedSchema, db.query(oldSchema).use(::snapshot))
                 expectedRows.forEach { (table, rows) ->
-                    assertEquals(table, rows, db.query("SELECT * FROM $table ORDER BY id").use(::snapshot))
+                    assertEquals(table, rows, db.query(rowsSql(table)).use(::snapshot))
                 }
                 assertRows(db, "SELECT id FROM BoardItems", emptyList())
                 runBlocking {
@@ -82,7 +89,7 @@ class LegacyAttendanceMigrationTest {
                 }
                 // Planner writes should not alter records in the legacy tables either.
                 expectedRows.forEach { (table, rows) ->
-                    assertEquals(table, rows, db.query("SELECT * FROM $table ORDER BY id").use(::snapshot))
+                    assertEquals(table, rows, db.query(rowsSql(table)).use(::snapshot))
                 }
             } finally {
                 migrated.close()
@@ -109,14 +116,14 @@ class LegacyAttendanceMigrationTest {
         val oldTables = listOf("Semesters", "Subjects", "SessionRecords", "AttendanceRecords", "BoardItems")
         val oldSchema = """
             SELECT name, sql FROM sqlite_master WHERE tbl_name IN
-                ('Semesters','Subjects','SessionRecords','AttendanceRecords','BoardItems') ORDER BY name
+                ('Semesters','Subjects','SessionRecords','AttendanceRecords') ORDER BY name
         """.trimIndent()
         val linked = Exam(title = "Math final", date = LocalDate.of(2026, 12, 1), semesterId = UUID(0, 1))
         val undated = Exam(title = "Presentation")
         val archiveLinked = Exam(title = "Retake", semesterId = UUID(0, 2))
 
         fun open() = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
-            .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12).build()
+            .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12, Migration12TO13).build()
 
         try {
             val file = context.getDatabasePath(name)
@@ -133,7 +140,7 @@ class LegacyAttendanceMigrationTest {
                     legacy.version = 11
                     val schema = legacy.rawQuery(oldSchema, null).use(::snapshot)
                     val rows = oldTables.associateWith { table ->
-                        legacy.rawQuery("SELECT * FROM $table ORDER BY id", null).use(::snapshot)
+                        legacy.rawQuery(rowsSql(table), null).use(::snapshot)
                             .also { assertTrue("Fixture $table must be populated", it.isNotEmpty()) }
                     }
                     schema to rows
@@ -142,10 +149,10 @@ class LegacyAttendanceMigrationTest {
             val migrated = open()
             try {
                 val db = migrated.openHelper.writableDatabase
-                assertEquals(12, db.version)
+                assertEquals(DB_VERSION, db.version)
                 assertEquals(expectedSchema, db.query(oldSchema).use(::snapshot))
                 expectedRows.forEach { (table, rows) ->
-                    assertEquals(table, rows, db.query("SELECT * FROM $table ORDER BY id").use(::snapshot))
+                    assertEquals(table, rows, db.query(rowsSql(table)).use(::snapshot))
                 }
                 assertRows(db, "SELECT id FROM Exams", emptyList())
                 assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
@@ -173,7 +180,7 @@ class LegacyAttendanceMigrationTest {
                 val exams = runBlocking { reopened.examDao().observeAll().first().toSet() }
                 assertEquals(setOf(linked.copy(semesterId = null), undated, archiveLinked), exams)
                 assertEquals(expectedRows.getValue("BoardItems"),
-                    reopened.openHelper.writableDatabase.query("SELECT * FROM BoardItems ORDER BY id").use(::snapshot))
+                    reopened.openHelper.writableDatabase.query(rowsSql("BoardItems")).use(::snapshot))
             } finally {
                 reopened.close()
             }
@@ -198,6 +205,92 @@ class LegacyAttendanceMigrationTest {
         }
     }
 
+    @Test
+    fun populatedV12AddsDormantBoardPortabilityWithoutChangingOldBackups() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val name = "board-portability-${UUID.randomUUID()}.db"
+        val oldTables = listOf("Semesters", "Subjects", "SessionRecords", "AttendanceRecords", "BoardItems", "Exams")
+        try {
+            val file = context.getDatabasePath(name)
+            file.parentFile?.mkdirs()
+            val expected = SQLiteDatabase.openOrCreateDatabase(file, null).use { legacy ->
+                legacy.setForeignKeyConstraintsEnabled(true)
+                for (asset in listOf("attendance-v10.sql", "board-v11.sql", "exams-v12.sql")) {
+                    instrumentation.context.assets.open("room/$asset").bufferedReader().use {
+                        it.readText().split(';').map(String::trim).filter(String::isNotEmpty)
+                            .forEach { statement -> legacy.execSQL(statement) }
+                    }
+                }
+                legacy.version = 12
+                oldTables.associateWith { table ->
+                    legacy.rawQuery(rowsSql(table), null).use(::snapshot)
+                        .also { assertTrue("Fixture $table must be populated", it.isNotEmpty()) }
+                }
+            }
+            val migrated = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
+                .addMigrations(Migration12TO13).build()
+            try {
+                val db = migrated.openHelper.writableDatabase
+                assertEquals(13, db.version)
+                for ((table, rows) in expected) assertEquals(table, rows, db.query(rowsSql(table)).use(::snapshot))
+                assertRows(db, "SELECT isPinned FROM BoardItems ORDER BY id", listOf(listOf("0"), listOf("0")))
+                assertRows(db, "SELECT id FROM BoardChecklistItems", emptyList())
+                assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))
+                assertRows(db, "PRAGMA foreign_key_check", emptyList())
+                assertRows(db, "SELECT \"table\", \"from\", \"to\", on_delete FROM pragma_foreign_key_list('BoardChecklistItems')",
+                    listOf(listOf("BoardItems", "boardItemId", "id", "CASCADE")))
+                assertRows(db, "SELECT name FROM pragma_index_info('index_BoardChecklistItems_boardItemId_position')",
+                    listOf(listOf("boardItemId"), listOf("position")))
+
+                runBlocking {
+                    val dao = migrated.boardItemDao()
+                    val parent = UUID(0, 0x21)
+                    val first = BoardChecklistItem(boardItemId = parent, position = 0, text = "First")
+                    val second = BoardChecklistItem(boardItemId = parent, position = 1, text = "Second", isDone = true)
+                    assertEquals(1, dao.setPinned(parent, true))
+                    dao.insertChecklistItem(second)
+                    dao.insertChecklistItem(first)
+                    assertEquals(1, dao.editDetails(parent, "Edited title", null))
+                    assertEquals(1, dao.setDone(parent, true))
+                    val retained = dao.observeAll().first().single { it.id == parent }
+                    assertTrue(retained.isPinned && retained.isDone)
+                    assertEquals(listOf(first, second), dao.checklistItems(parent))
+
+                    val repo = PlannerRestoreRepository(migrated)
+                    for (version in listOf(PlannerBackupVersion.V1, PlannerBackupVersion.V2)) {
+                        val legacyWire = repo.createBackup(version)
+                        assertFalse(legacyWire.contains("isPinned"))
+                        assertFalse(legacyWire.contains("BoardChecklistItems"))
+                        val decoded = PlannerBackupFormat.decode(legacyWire.reader())
+                        assertEquals(version, decoded.version)
+                        assertFalse(decoded.board.single { it.id == parent }.isPinned)
+                        val newTask = BoardItem(title = "From old backup")
+                        val incoming = PlannerBackupFormat.encode(decoded.copy(board = decoded.board + newTask))
+                        val pending = repo.prepare(incoming.reader(), version)
+                        assertEquals(PlannerMergeOutcome.UNCHANGED, pending.preview.board.single { it.incoming.id == parent }.outcome)
+                        assertEquals(PlannerRestoreResult.APPLIED, pending.apply())
+                        assertEquals(retained, dao.observeAll().first().single { it.id == parent })
+                        assertEquals(newTask, dao.observeAll().first().single { it.id == newTask.id })
+                        assertEquals(listOf(first, second), dao.checklistItems(parent))
+                    }
+                }
+                assertRows(db, "PRAGMA foreign_key_check", emptyList())
+            } finally {
+                migrated.close()
+            }
+        } finally {
+            assertTrue("Temporary fixture database must be removed", context.deleteDatabase(name) ||
+                !context.getDatabasePath(name).exists())
+        }
+    }
+
+    private fun rowsSql(table: String): String = if (table == "BoardItems") {
+        "SELECT id, title, dueDate, isDone FROM BoardItems ORDER BY id"
+    } else {
+        "SELECT * FROM $table ORDER BY id"
+    }
+
     private fun verifyMigration(fromVersion: Int, expectedOrder: Int) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val name = "legacy-migration-${UUID.randomUUID()}.db"
@@ -211,12 +304,12 @@ class LegacyAttendanceMigrationTest {
             }
 
             val room = Room.databaseBuilder(context, AttendanceDatabase::class.java, name)
-                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12)
+                .addMigrations(Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12, Migration12TO13)
                 .build()
             try {
                     // Opening through Room runs its actual migration transaction and schema validation.
                     val db = room.openHelper.writableDatabase
-                    assertEquals(12, db.version)
+                    assertEquals(DB_VERSION, db.version)
                     assertRows(db, "SELECT id FROM Exams", emptyList())
                     assertRows(db, "SELECT id FROM BoardItems", emptyList())
                     assertRows(db, "PRAGMA foreign_keys", listOf(listOf("1")))

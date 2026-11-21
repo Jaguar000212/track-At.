@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.backend.migrations.Migration10TO11
 import com.jaguar.attendancetracker.backend.migrations.Migration11TO12
+import com.jaguar.attendancetracker.backend.migrations.Migration12TO13
 import com.jaguar.attendancetracker.backend.migrations.Migration8TO9
 import com.jaguar.attendancetracker.backend.migrations.Migration9TO10
 import dagger.Module
@@ -24,6 +25,6 @@ object DatabaseModule {
     ): AttendanceDatabase = Room.databaseBuilder(
         context, AttendanceDatabase::class.java, "AttendanceDB"
     ).addMigrations(
-        Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12
+        Migration8TO9, Migration9TO10, Migration10TO11, Migration11TO12, Migration12TO13
     ).build()
 }

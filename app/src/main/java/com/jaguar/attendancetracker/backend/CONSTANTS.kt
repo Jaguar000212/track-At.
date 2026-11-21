@@ -1,3 +1,3 @@
 package com.jaguar.attendancetracker.backend
 
-const val DB_VERSION = 12
+const val DB_VERSION = 13

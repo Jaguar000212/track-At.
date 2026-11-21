@@ -12,6 +12,7 @@ import com.jaguar.attendancetracker.backend.daos.SessionRecordDao
 import com.jaguar.attendancetracker.backend.daos.SubjectDao
 import com.jaguar.attendancetracker.backend.daos.SemesterDao
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
@@ -22,7 +23,8 @@ import com.jaguar.attendancetracker.backend.typeConverters.UUIDConverter
 
 @TypeConverters(DateTimeConverter::class, UUIDConverter::class)
 @Database(
-    entities = [AttendanceRecord::class, SessionRecord::class, Subject::class, Semester::class, BoardItem::class, Exam::class],
+    entities = [AttendanceRecord::class, SessionRecord::class, Subject::class, Semester::class,
+        BoardItem::class, Exam::class, BoardChecklistItem::class],
     version = DB_VERSION,
     exportSchema = false
 )

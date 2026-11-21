@@ -64,8 +64,12 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             schedule = dao.schedule(),
             attendance = dao.attendance(),
         ),
-        board = dao.board(),
-        exams = if (version == PlannerBackupVersion.V2) dao.exams() else null,
+        // The v1/v2 projections intentionally exclude dormant Board portability fields.
+        board = dao.board().let { rows ->
+            if (version.includesBoardPortability) rows else rows.map { it.copy(isPinned = false) }
+        },
+        exams = if (version.includesExams) dao.exams() else null,
+        boardChecklist = if (version.includesBoardPortability) dao.boardChecklist() else null,
     )
 
     private inner class Pending(
@@ -89,8 +93,9 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             val attendance = fresh.attendance.inserts()
             val board = fresh.board.inserts()
             val exams = fresh.exams.inserts()
+            val checklist = fresh.boardChecklist.inserts()
             if (semesters.isEmpty() && subjects.isEmpty() && sessions.isEmpty() &&
-                attendance.isEmpty() && board.isEmpty() && exams.isEmpty()
+                attendance.isEmpty() && board.isEmpty() && exams.isEmpty() && checklist.isEmpty()
             ) return@withTransaction PlannerRestoreResult.NOTHING_TO_APPLY
 
             if (semesters.isNotEmpty()) dao.insertSemesters(semesters)
@@ -106,6 +111,7 @@ internal class PlannerRestoreRepository(private val db: AttendanceDatabase) {
             // A failure in any write propagates out of withTransaction and rolls back everything.
             if (board.isNotEmpty()) dao.insertBoard(board)
             if (exams.isNotEmpty()) dao.insertExams(exams)
+            if (checklist.isNotEmpty()) dao.insertBoardChecklist(checklist)
             PlannerRestoreResult.APPLIED
         }
     }

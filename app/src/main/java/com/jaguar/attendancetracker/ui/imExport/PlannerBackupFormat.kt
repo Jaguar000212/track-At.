@@ -8,7 +8,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.MAX_BOARD_CHECKLIST_TEXT
 import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.enums.AttendanceStatus
 import com.jaguar.attendancetracker.backend.enums.ClassType
@@ -17,15 +19,27 @@ import java.io.StringReader
 import java.time.LocalDate
 import java.util.UUID
 
-internal enum class PlannerBackupVersion(val wireVersion: Int) { V1(1), V2(2) }
+internal enum class PlannerBackupVersion(val wireVersion: Int) {
+    V1(1), V2(2), V3(3);
 
-/** Null exams means a v1 snapshot; an empty array is valid v2 and does not delete local exams. */
+    val includesExams get() = this != V1
+    val includesBoardPortability get() = this == V3
+}
+
+/** Null means the section is absent in that wire version; an empty array never requests deletion. */
 internal data class PlannerBackup(
     val attendance: BackupData,
     val board: List<BoardItem>,
     val exams: List<Exam>? = null,
+    val boardChecklist: List<BoardChecklistItem>? = null,
 ) {
-    val version: PlannerBackupVersion get() = if (exams == null) PlannerBackupVersion.V1 else PlannerBackupVersion.V2
+    init { require(boardChecklist == null || exams != null) { "Planner v3 requires exams" } }
+
+    val version: PlannerBackupVersion get() = when {
+        boardChecklist != null -> PlannerBackupVersion.V3
+        exams != null -> PlannerBackupVersion.V2
+        else -> PlannerBackupVersion.V1
+    }
 }
 
 internal object PlannerBackupFormat {
@@ -48,9 +62,21 @@ internal object PlannerBackupFormat {
                         addProperty("title", item.title)
                         item.dueDate?.let { addProperty("dueDate", it.toString()) }
                         addProperty("isDone", item.isDone)
+                        if (backup.version.includesBoardPortability) addProperty("isPinned", item.isPinned)
                     })
                 }
             })
+            backup.boardChecklist?.let { checklist ->
+                add("boardChecklist", JsonArray().apply {
+                    for (row in checklist) add(JsonObject().apply {
+                        addProperty("id", row.id.toString())
+                        addProperty("boardItemId", row.boardItemId.toString())
+                        addProperty("position", row.position)
+                        addProperty("text", row.text)
+                        addProperty("isDone", row.isDone)
+                    })
+                })
+            }
             backup.exams?.let { exams ->
                 add("exams", JsonArray().apply {
                     for (exam in exams) {
@@ -82,6 +108,7 @@ internal object PlannerBackupFormat {
                 title = item["title"].string(),
                 dueDate = item.nullable("dueDate")?.date(),
                 isDone = item["isDone"].flag(),
+                isPinned = item["isPinned"]?.flag() ?: false,
             )
         }
         val exams = root["exams"]?.asJsonArray?.map {
@@ -93,7 +120,17 @@ internal object PlannerBackupFormat {
                 semesterId = item.nullable("semesterId")?.uuid(),
             )
         }
-        return PlannerBackup(attendance, board, exams)
+        val checklist = root["boardChecklist"]?.asJsonArray?.map {
+            val item = it.obj()
+            BoardChecklistItem(
+                id = item["id"].uuid(),
+                boardItemId = item["boardItemId"].uuid(),
+                position = item["position"].int(),
+                text = item["text"].string(),
+                isDone = item["isDone"].flag(),
+            )
+        }
+        return PlannerBackup(attendance, board, exams, checklist)
     }
 
     private fun validate(root: JsonObject) {
@@ -103,9 +140,14 @@ internal object PlannerBackupFormat {
         val version = when (root["version"].integer()) {
             1L -> PlannerBackupVersion.V1
             2L -> PlannerBackupVersion.V2
+            3L -> PlannerBackupVersion.V3
             else -> errorFormat("Unsupported planner backup version")
         }
-        root.fields(if (version == PlannerBackupVersion.V2) baseFields + "exams" else baseFields)
+        root.fields(buildSet {
+            addAll(baseFields)
+            if (version.includesExams) add("exams")
+            if (version.includesBoardPortability) add("boardChecklist")
+        })
         val attendance = root["attendance"].obj()
         attendance.fields(setOf("version", "timestamp", "semesters", "subjects", "schedule", "attendance"))
         require(attendance["version"].integer() == ATTENDANCE_BACKUP_VERSION.toLong()) {
@@ -165,12 +207,26 @@ internal object PlannerBackupFormat {
             it.nullable("status")?.let { status -> AttendanceStatus.valueOf(status.string()) }
             ClassType.valueOf(it["classType"].string())
         }
-        root["board"].rows(required = setOf("id", "title", "isDone"), optional = setOf("dueDate")) {
+        val boardFields = setOf("id", "title", "isDone")
+        val boardIds = root["board"].rows(
+            required = if (version.includesBoardPortability) boardFields + "isPinned" else boardFields,
+            optional = setOf("dueDate"),
+        ) {
             require(it["title"].string().isNotBlank()) { "Board item title is required" }
             it.nullable("dueDate")?.date()
             it["isDone"].flag()
+            if (version.includesBoardPortability) it["isPinned"].flag()
         }
-        if (version == PlannerBackupVersion.V2) {
+        if (version.includesBoardPortability) {
+            root["boardChecklist"].rows(required = setOf("id", "boardItemId", "position", "text", "isDone")) {
+                require(it["boardItemId"].uuid() in boardIds) { "Checklist item is missing its Board task" }
+                require(it["position"].int() >= 0) { "Invalid checklist position" }
+                val text = it["text"].string()
+                require(text.isNotBlank() && text.length <= MAX_BOARD_CHECKLIST_TEXT) { "Invalid checklist text" }
+                it["isDone"].flag()
+            }
+        }
+        if (version.includesExams) {
             root["exams"].rows(required = setOf("id", "title"), optional = setOf("date", "semesterId")) {
                 require(it["title"].string().isNotBlank()) { "Exam title is required" }
                 it.nullable("date")?.date()
