@@ -57,7 +57,7 @@ timeout 90 adb shell am instrument -w -r \
     "$runner" \
     | tr -d '\r' | tee "$results/instrumentation.txt"
 # adb can return zero on assertion failure or a runner startup error.
-grep -Eq '^OK \(37 tests\)$' "$results/instrumentation.txt"
+grep -Eq '^OK \(38 tests\)$' "$results/instrumentation.txt"
 grep -Fxq 'INSTRUMENTATION_CODE: -1' "$results/instrumentation.txt"
 for fixture in populatedV8PreservesAttendanceAndScheduleWithDefaultOrder \
     populatedV9PreservesAttendanceAndScheduleWithExistingOrder \
@@ -66,6 +66,7 @@ for fixture in populatedV8PreservesAttendanceAndScheduleWithDefaultOrder \
     restoresConservativelyUpdatesOnlyDerivedTotalsAndRepeatsAsNoOp \
     stalePreviewWritesNothingAndInconsistentLocalTotalsDoNotBlockBoard \
     lateBoardInsertFailureRollsBackEarlierWritesAndKeepsExistingData \
+    partialLegacyBackupCountsCannotInventMarksDuringPlannerRestore \
     completeUtf8FileRoundTripWaitsForExplicitApplyAndClosesOutput \
     badUtf8NullStreamsAndCloseFailuresCannotReportSuccess \
     previewRequiresApplyAndNoChangePreviewCannotApply \

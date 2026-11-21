@@ -521,3 +521,20 @@ The API 29 focused suite adds a dated-card review and denied-not-scheduled
 fixture. JVM tests pin past-suggestion input and live permission token
 matching; test the physical picker, rotation, channel, and real delivery
 separately. Existing Room schemas and backup formats are unchanged.
+
+### Private attendance exports and partial legacy files
+
+In Import/Export and its Help topic, verify both screens describe a private,
+unencrypted JSON backup, not a timetable-sharing file. Turn off Attendance
+while leaving Schedule selected. Schedule keeps Subjects selected: a private
+export can still contain saved totals, notes, instructors and rooms even
+without individual marks.
+
+The API 29 fixture reads a synthetic v9 JSON backup with a dated subject,
+cached totals (1 present of 2), and a scheduled slot but no marks. Legacy
+import keeps the totals and leaves the marks table empty. A subsequent
+Planner v2 export and restore into a separate clean database previews and
+keeps the semester and an unrelated Board item, but blocks the subject
+(inconsistent incoming totals) and its dependent slot. It never fabricates
+individual marks, resets the original totals, or changes either backup
+format. This is not an end-to-end system file-picker test.

@@ -251,4 +251,24 @@
     <string name="exam_reminder_after_exam">The reminder date must not be after the exam date.</string>
     <string name="exam_reminder_gap">That local time does not exist in this time zone. Choose another time.</string>
     <string name="exam_reminder_invalid_date">Choose another reminder date or time.</string>
+    <string name="attendance_backup_export">Export data</string>
+    <string name="attendance_backup_import">Import data</string>
+    <string name="attendance_backup_processing">Processing…</string>
+    <string name="attendance_backup_private">This is an unencrypted JSON backup for your own use. Save it somewhere private. It is not a timetable-sharing file.</string>
+    <string name="attendance_backup_contents">Turning off Attendance excludes individual marks, not saved totals. Subjects can still include attendance totals, notes, instructor and room details. Schedule always includes Subjects.</string>
+    <string name="attendance_backup_select">Select data to export:</string>
+    <string name="attendance_backup_subjects">Subjects</string>
+    <string name="attendance_backup_schedule">Schedule</string>
+    <string name="attendance_backup_marks">Attendance</string>
+    <string name="help_attendance_backup_steps">Choose what to include, then tap Export data and choose where to save the file. Use Import data to open your attendance backup again.</string>
+    <string name="help_attendance_backup_planner">To back up or restore Board and Exams along with attendance, use Planner backup instead.</string>
+    <string name="help_topic_dashboard_title">Dashboard</string>
+    <string name="help_topic_dashboard_summary">This is where you can see all your subjects and their attendance details. You can also add new subjects here.</string>
+    <string name="help_topic_schedule_title">Schedule Details</string>
+    <string name="help_topic_schedule_summary">Here you can see your schedule for the week. You can also add new classes to your schedule.</string>
+    <string name="help_topic_day_title">Day View</string>
+    <string name="help_topic_day_summary">This page shows you the attendance details for a specific day. You can see which classes you attended and which ones you missed.</string>
+    <string name="help_topic_subject_title">Subject Details</string>
+    <string name="help_topic_subject_summary">This page shows you detailed information about a specific subject, including attendance records and statistics.</string>
+    <string name="help_topic_backup_summary">Save and restore your own attendance backups. The files can contain private information.</string>
 </resources>
