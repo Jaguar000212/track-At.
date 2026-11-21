@@ -3,6 +3,7 @@ package com.jaguar.attendancetracker.ui.imExport
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
@@ -46,6 +47,46 @@ class PlannerBackupFormatTest {
         assertEquals(full, PlannerBackupFormat.decode(json.reader()))
         assertEquals(json, PlannerBackupFormat.encode(PlannerBackupFormat.decode(json.reader())))
         assertEquals(legacyBefore, legacyExport())
+    }
+
+    @Test fun v3RequiresExamsExplicitPinsAndStrictChecklistRowsWhileOldShapesOmitPortability() {
+        val pinned = full.board.first().copy(isPinned = true)
+        val exam = Exam(id(11), "Current exam", date, id(1))
+        val line = BoardChecklistItem(id(12), pinned.id, 0, "A step", true)
+        val rich = full.copy(board = listOf(pinned, full.board[1]), exams = listOf(exam), boardChecklist = listOf(line))
+        val wire = PlannerBackupFormat.encode(rich)
+        val root = JsonParser.parseString(wire).asJsonObject
+        assertEquals(setOf("format", "version", "attendance", "board", "exams", "boardChecklist"), root.keySet())
+        assertEquals(3, root["version"].asInt)
+        assertEquals(rich, PlannerBackupFormat.decode(wire.reader()))
+        assertEquals(emptyList<BoardChecklistItem>(),
+            PlannerBackupFormat.decode(PlannerBackupFormat.encode(rich.copy(boardChecklist = emptyList())).reader()).boardChecklist)
+
+        fun rejectV3(change: (JsonObject) -> Unit) {
+            val invalid = root.deepCopy().apply(change)
+            assertThrows(IllegalArgumentException::class.java) { PlannerBackupFormat.decode(invalid.toString().reader()) }
+        }
+        rejectV3 { it.remove("exams") }
+        rejectV3 { it.remove("boardChecklist") }
+        rejectV3 { it.addProperty("version", 4) }
+        rejectV3 { it.getAsJsonArray("board")[0].asJsonObject.remove("isPinned") }
+        rejectV3 { it.getAsJsonArray("board")[0].asJsonObject.addProperty("isPinned", "false") }
+        rejectV3 { it.getAsJsonArray("boardChecklist").add(it.getAsJsonArray("boardChecklist")[0]) }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("boardItemId", id(99).toString()) }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("position", -1) }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("position", 2147483648L) }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("text", " ") }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("text", "x".repeat(201)) }
+        rejectV3 { it.getAsJsonArray("boardChecklist")[0].asJsonObject.addProperty("isDone", 1) }
+
+        for (old in listOf(rich.copy(exams = null, boardChecklist = null), rich.copy(boardChecklist = null))) {
+            val legacyWire = PlannerBackupFormat.encode(old)
+            val legacyJson = JsonParser.parseString(legacyWire).asJsonObject
+            assertEquals(false, legacyJson.has("boardChecklist"))
+            assertEquals(false, legacyJson.getAsJsonArray("board")[0].asJsonObject.has("isPinned"))
+            assertEquals(old.copy(board = old.board.map { it.copy(isPinned = false) }),
+                PlannerBackupFormat.decode(legacyWire.reader()))
+        }
     }
 
     @Test fun emptyCollectionsAreCompleteButMissingCollectionsAreNot() {

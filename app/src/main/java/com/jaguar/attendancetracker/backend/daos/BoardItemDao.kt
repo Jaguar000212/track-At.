@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -22,6 +23,15 @@ interface BoardItemDao {
 
     @Query("UPDATE BoardItems SET isDone = :isDone WHERE id = :id")
     suspend fun setDone(id: UUID, isDone: Boolean): Int
+
+    @Query("UPDATE BoardItems SET isPinned = :isPinned WHERE id = :id")
+    suspend fun setPinned(id: UUID, isPinned: Boolean): Int
+
+    @Insert
+    suspend fun insertChecklistItem(item: BoardChecklistItem)
+
+    @Query("SELECT * FROM BoardChecklistItems WHERE boardItemId = :boardItemId ORDER BY position, id")
+    suspend fun checklistItems(boardItemId: UUID): List<BoardChecklistItem>
 
     @Query("SELECT * FROM BoardItems ORDER BY id")
     fun observeAll(): Flow<List<BoardItem>>

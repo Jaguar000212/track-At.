@@ -1,6 +1,7 @@
 package com.jaguar.attendancetracker.ui.imExport
 
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
 import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
@@ -14,6 +15,7 @@ internal enum class PlannerMergeOutcome {
 }
 
 internal enum class PlannerMergeBlockReason {
+    BOARD_PARENT_CONFLICT,
     SEMESTER_CONFLICT,
     SUBJECT_CONFLICT,
     SUBJECT_BLOCKED,
@@ -48,6 +50,7 @@ internal data class PlannerMergePreview(
     val board: List<PlannerMergeRow<BoardItem>>,
     val exams: List<PlannerMergeRow<Exam>>,
     val totalsAfterAcceptedAttendance: Map<UUID, PlannerSubjectTotals>,
+    val boardChecklist: List<PlannerMergeRow<BoardChecklistItem>> = emptyList(),
 )
 
 /**
@@ -132,7 +135,18 @@ internal object PlannerMergePlanner {
                 }
             }
         }
-        val board = plan(incoming.board, local.board.byId(BoardItem::id), BoardItem::id)
+        val hasPortability = incoming.version.includesBoardPortability
+        val board = plan(incoming.board, local.board.byId(BoardItem::id), BoardItem::id,
+            same = { a, b -> if (hasPortability) a == b else a.copy(isPinned = false) == b.copy(isPinned = false) })
+        val boardChecklist = incoming.boardChecklist?.let { incomingChecklist ->
+            val parentOutcomes = board.associate { it.incoming.id to it.outcome }
+            plan(incomingChecklist, requireNotNull(local.boardChecklist).byId(BoardChecklistItem::id), BoardChecklistItem::id) { row ->
+                when (parentOutcomes[row.boardItemId]) {
+                    PlannerMergeOutcome.INSERT, PlannerMergeOutcome.UNCHANGED -> null
+                    else -> PlannerMergeBlock(PlannerMergeBlockReason.BOARD_PARENT_CONFLICT, row.boardItemId)
+                }
+            }
+        }.orEmpty()
         val exams = incoming.exams?.let { incomingExams ->
             val localExams = requireNotNull(local.exams).byId(Exam::id)
             plan(incomingExams, localExams, Exam::id) { item -> item.semesterId?.let(::semesterBlock) }
@@ -140,7 +154,7 @@ internal object PlannerMergePlanner {
         val acceptedMarks = attendance.filter { it.outcome == PlannerMergeOutcome.INSERT }
             .map { it.incoming }.countedTotals()
         val updates = acceptedMarks.mapValues { (id, counts) -> localTotals.totals(id).plus(counts) }
-        return PlannerMergePreview(semesters, subjects, schedule, attendance, board, exams, updates)
+        return PlannerMergePreview(semesters, subjects, schedule, attendance, board, exams, updates, boardChecklist)
     }
 
     private fun Subject.authoredFields() = copy(totalClasses = 0, attendedClasses = 0)

@@ -553,3 +553,34 @@ text is never written to saved state. Exercise actual
 launcher rendering/focus on a device; API 29 fixtures cover registered
 metadata, a real warm route/Back, and explicit Save/Cancel against Room,
 not a real launcher tap or its RemoteViews layout.
+
+### Board portability storage (internal only)
+
+The populated API 29 v12 fixture opens through the additive v12-to-v13
+migration and verifies existing semesters, subjects, attendance, timetable,
+Board items and exams. Existing tasks start unpinned, and checklists start
+empty. The fixture tests narrow edits, ordered checklist reads and foreign
+key integrity. It also captures and restores old Planner v1 and v2 files to
+verify their shape stays unchanged and they cannot overwrite local pins
+or checklist items. The storage is not user-visible; do not enable pinning
+or checklist editing before Planner v3 can preserve them. The legacy
+attendance-only export is unchanged.
+
+### Planner v3 Board portability (internal only)
+
+The codec adds an explicit pin on each Board task and a checklist collection
+alongside Exams. Old Planner v1 and v2 files still omit both portability
+fields and keep local pins and checklists on restore. The attendance-only
+format and the visible Planner backup screen remain unchanged in this slice.
+
+The existing API 29 harness covers restore into a separate database and
+reopen, explicit false vs. local true pins, insert-only keep-local behavior
+for checklist IDs and conflicting parents, checklist-only Apply, stale
+changes to a pin or checklist, and transaction rollback if the final
+checklist insert fails. JVM fixtures verify strict versioned wire shapes,
+parent membership, ID uniqueness, and checklist value bounds. The same
+8-million-character parser limits the full snapshot. Checklist text is
+limited to 200 UTF-16 code units and position to a non-negative Int; ties
+sort by stable UUID. There is no independent per-task count limit in the
+codec (otherwise repeated keep-local imports could make local data
+unexportable despite valid individual files).

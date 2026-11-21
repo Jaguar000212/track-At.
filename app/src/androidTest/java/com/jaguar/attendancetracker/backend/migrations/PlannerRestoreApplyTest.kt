@@ -7,7 +7,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.backend.daos.PlannerRestoreDao
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
+import com.jaguar.attendancetracker.backend.entities.BoardChecklistItem
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import com.jaguar.attendancetracker.backend.entities.Exam
 import com.jaguar.attendancetracker.backend.entities.Semester
 import com.jaguar.attendancetracker.backend.entities.SessionRecord
 import com.jaguar.attendancetracker.backend.entities.Subject
@@ -192,6 +194,107 @@ class PlannerRestoreApplyTest {
             target.close()
         }
     }
+
+    @Test
+    fun plannerV3RoundTripKeepsExamsAndBoardPortabilityAcrossReopen() = withDb { source, dao ->
+        val pinned = added.copy(isPinned = true)
+        val line = BoardChecklistItem(id(9), pinned.id, 3, "Write summary", true)
+        val exam = Exam(id(10), "Exam retained", date, term.id)
+        dao.insertSemesters(listOf(term))
+        dao.insertExams(listOf(exam))
+        dao.insertBoard(listOf(pinned))
+        dao.insertBoardChecklist(listOf(line))
+        val wire = PlannerRestoreRepository(source).createBackup(PlannerBackupVersion.V3)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val name = "planner-v3-${UUID.randomUUID()}.db"
+        fun open() = Room.databaseBuilder(context, AttendanceDatabase::class.java, name).build()
+        try {
+            val target = open()
+            try {
+                val repo = PlannerRestoreRepository(target)
+                try {
+                    repo.prepare(wire.reader(), PlannerBackupVersion.V2)
+                    fail("Existing v2 transport must not accept v3")
+                } catch (_: IllegalArgumentException) {
+                    assertTrue(target.plannerRestoreDao().board().isEmpty())
+                }
+                val pending = repo.prepare(wire.reader(), PlannerBackupVersion.V3)
+                assertEquals(PlannerMergeOutcome.INSERT, pending.preview.exams.single().outcome)
+                assertEquals(PlannerMergeOutcome.INSERT, pending.preview.boardChecklist.single().outcome)
+                assertTrue(target.plannerRestoreDao().boardChecklist().isEmpty())
+                assertEquals(PlannerRestoreResult.APPLIED, pending.apply())
+            } finally { target.close() }
+            val reopened = open()
+            try {
+                assertEquals(listOf(pinned), reopened.plannerRestoreDao().board())
+                assertEquals(listOf(line), reopened.plannerRestoreDao().boardChecklist())
+                assertEquals(listOf(exam), reopened.plannerRestoreDao().exams())
+                val again = PlannerRestoreRepository(reopened).prepare(wire.reader(), PlannerBackupVersion.V3)
+                assertEquals(PlannerMergeOutcome.UNCHANGED, again.preview.boardChecklist.single().outcome)
+                assertEquals(PlannerRestoreResult.NOTHING_TO_APPLY, again.apply())
+            } finally { reopened.close() }
+        } finally { context.deleteDatabase(name) }
+    }
+
+    @Test
+    fun plannerV3KeepsConflictingParentsAndChildrenAndCanApplyOnlyChecklistRows() = withDb { db, dao ->
+        val pinned = kept.copy(isPinned = true)
+        dao.insertBoard(listOf(pinned, added))
+        val existing = BoardChecklistItem(id(9), pinned.id, 0, "Kept")
+        dao.insertBoardChecklist(listOf(existing))
+        val blocked = BoardChecklistItem(id(10), pinned.id, 1, "Blocked")
+        val accepted = BoardChecklistItem(id(11), added.id, 0, "Accepted")
+        val conflicting = existing.copy(boardItemId = added.id, text = "Never reparent")
+        val wire = v3(board = listOf(kept, added), checklist = listOf(conflicting, blocked, accepted))
+        val pending = PlannerRestoreRepository(db).prepare(wire.reader(), PlannerBackupVersion.V3)
+        assertEquals(PlannerMergeOutcome.KEEP_LOCAL_CONFLICT,
+            pending.preview.board.single { it.incoming.id == kept.id }.outcome)
+        val rows = pending.preview.boardChecklist.associateBy { it.incoming.id }
+        assertEquals(PlannerMergeOutcome.KEEP_LOCAL_CONFLICT, rows.getValue(existing.id).outcome)
+        assertEquals(PlannerMergeBlockReason.BOARD_PARENT_CONFLICT, rows.getValue(blocked.id).dependency?.reason)
+        assertEquals(PlannerMergeOutcome.INSERT, rows.getValue(accepted.id).outcome)
+        assertEquals(PlannerRestoreResult.APPLIED, pending.apply())
+        assertEquals(setOf(existing, accepted), dao.boardChecklist().toSet())
+        assertEquals(setOf(pinned, added), dao.board().toSet())
+    }
+
+    @Test
+    fun plannerV3PinOrChecklistChangeStalesPreviewAndLateChildFailureRollsBack() = withDb { db, dao ->
+        dao.insertBoard(listOf(kept))
+        val line = BoardChecklistItem(id(9), added.id, 0, "Insert last")
+        val exam = Exam(id(10), "Roll back too")
+        val wire = v3(board = listOf(added), checklist = listOf(line), exams = listOf(exam))
+        val repo = PlannerRestoreRepository(db)
+        val beforePin = repo.prepare(wire.reader(), PlannerBackupVersion.V3)
+        db.boardItemDao().setPinned(kept.id, true)
+        assertEquals(PlannerRestoreResult.STALE_PREVIEW, beforePin.apply())
+        val beforeChecklist = repo.prepare(wire.reader(), PlannerBackupVersion.V3)
+        val retained = BoardChecklistItem(id(12), kept.id, 0, "Existing edit")
+        dao.insertBoardChecklist(listOf(retained))
+        assertEquals(PlannerRestoreResult.STALE_PREVIEW, beforeChecklist.apply())
+        assertEquals(listOf(kept.copy(isPinned = true)), dao.board())
+        assertTrue(dao.exams().isEmpty())
+
+        db.openHelper.writableDatabase.execSQL("""
+            CREATE TRIGGER fail_late_checklist_insert BEFORE INSERT ON BoardChecklistItems
+            BEGIN SELECT RAISE(ABORT, 'test late checklist failure'); END
+        """.trimIndent())
+        val beforeFailure = repo.prepare(wire.reader(), PlannerBackupVersion.V3)
+        try {
+            beforeFailure.apply()
+            fail("Expected late checklist failure")
+        } catch (_: SQLiteConstraintException) {
+            assertEquals(listOf(kept.copy(isPinned = true)), dao.board())
+            assertEquals(listOf(retained), dao.boardChecklist())
+            assertTrue(dao.exams().isEmpty())
+        }
+    }
+
+    private fun v3(board: List<BoardItem>, checklist: List<BoardChecklistItem>, exams: List<Exam> = emptyList()) =
+        PlannerBackupFormat.encode(PlannerBackup(
+            BackupData(timestamp = 42L, semesters = emptyList(), subjects = emptyList(), schedule = emptyList(), attendance = emptyList()),
+            board, exams, checklist,
+        ))
 
     private fun backup(subject: Subject, attendance: List<AttendanceRecord>, board: List<BoardItem>) =
         PlannerBackupFormat.encode(PlannerBackup(BackupData(timestamp = 42L, semesters = listOf(term),
