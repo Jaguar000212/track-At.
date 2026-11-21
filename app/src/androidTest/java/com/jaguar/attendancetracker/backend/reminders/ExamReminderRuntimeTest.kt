@@ -6,6 +6,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -78,8 +79,13 @@ class ExamReminderRuntimeTest {
         assertNull(reminderDelayMillis(now, now))
         assertNull(reminderDelayMillis(now, Instant.MAX))
         try {
-            jobs.replace(ReminderTicket(id, UUID.randomUUID()), future)
-            jobs.replace(ReminderTicket(id, UUID.randomUUID()), future)
+            val first = ReminderTicket(id, UUID.randomUUID())
+            val second = ReminderTicket(id, UUID.randomUUID())
+            jobs.replace(first, future)
+            assertTrue(jobs.pending(first))
+            jobs.replace(second, future)
+            assertFalse(jobs.pending(first))
+            assertTrue(jobs.pending(second))
             val results = manager.getWorkInfosForUniqueWork("exam-reminder:$id").get(10, TimeUnit.SECONDS)
             assertEquals(1, results.count { it.state == WorkInfo.State.ENQUEUED })
             assertEquals(0, results.count { it.state == WorkInfo.State.RUNNING })
@@ -96,6 +102,7 @@ class ExamReminderRuntimeTest {
         var ticket: ReminderTicket? = null
         var failCancel = false
         override suspend fun replace(ticket: ReminderTicket, scheduled: Instant) { this.ticket = ticket }
+        override suspend fun pending(ticket: ReminderTicket) = this.ticket == ticket
         override suspend fun cancel(examId: UUID) { if (failCancel) error("Simulated scheduler cancellation failure") }
     }
 
