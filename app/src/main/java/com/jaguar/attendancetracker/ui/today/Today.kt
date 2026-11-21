@@ -40,10 +40,11 @@ internal fun Today(
     openExams: () -> Unit,
     openLeave: () -> Unit,
     openInsights: () -> Unit,
+    openAgenda: () -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    TodayContent(state, openDayView, openDashboard, openExams, openLeave, openInsights)
+    TodayContent(state, openDayView, openDashboard, openExams, openLeave, openInsights, openAgenda)
 }
 
 @Composable
@@ -54,6 +55,7 @@ internal fun TodayContent(
     openExams: () -> Unit,
     openLeave: () -> Unit,
     openInsights: () -> Unit,
+    openAgenda: () -> Unit,
 ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
@@ -97,6 +99,11 @@ internal fun TodayContent(
             item {
                 Button(onClick = openDayView, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.today_open_day_view))
+                }
+            }
+            item {
+                OutlinedButton(onClick = openAgenda, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.agenda_title))
                 }
             }
             item {
