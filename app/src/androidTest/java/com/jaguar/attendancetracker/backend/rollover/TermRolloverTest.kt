@@ -109,6 +109,83 @@ class TermRolloverTest {
         assertEquals(listOf(f.mark), dao.attendance())
     }
 
+    @Test fun selectedTimetableCopiesAppendWithFreshIdsAndKeepOtherRowsIntact() = withFixture { db, f ->
+        val dao = db.plannerRestoreDao()
+        val duplicate = f.slot.copy(id = UUID.randomUUID(), orderNo = 2)
+        val skipped = f.slot.copy(id = UUID.randomUUID(), orderNo = 8)
+        val other = f.slot.copy(id = UUID.randomUUID(), subjectId = f.second.id, orderNo = 5)
+        val active = f.source.copy(id = UUID.randomUUID(), isArchived = false)
+        val activeSubject = f.first.copy(id = UUID.randomUUID(), semesterId = active.id)
+        val activeSlot = f.slot.copy(id = UUID.randomUUID(), subjectId = activeSubject.id, orderNo = 7)
+        dao.insertSemesters(listOf(active))
+        dao.insertSubjects(listOf(activeSubject))
+        dao.insertSchedule(listOf(duplicate, skipped, other, activeSlot))
+        val original = dao.schedule()
+        val repo = TermRolloverRepository(db)
+        val choices = requireNotNull(repo.readSource(f.source.id)).slots
+        val picked = choices.filter { it.row.id in setOf(f.slot.id, duplicate.id) }
+        val preview = repo.prepare(f.source.id, f.destination, listOf(f.first.id), picked) as RolloverPreparation.Ready
+        val first = f.destination.startDate.plusDays(
+            ((f.slot.dayOfWeek - f.destination.startDate.dayOfWeek.value + 7) % 7).toLong(),
+        )
+        assertEquals(listOf(first, first), preview.confirmation.preview.slots.map { it.firstDate })
+        assertEquals(listOf(1, 2), preview.confirmation.preview.slots.map { it.ordinal })
+        assertEquals(listOf(f.first.name, f.first.name), preview.confirmation.preview.slots.map { it.courseName })
+        assertEquals(original, dao.schedule())
+        assertEquals(RolloverResult.CREATED, preview.confirmation.apply())
+        assertEquals(RolloverResult.ALREADY_CREATED, preview.confirmation.apply())
+        val newTerm = dao.semesters().single { it.id !in setOf(f.source.id, active.id) }
+        val newCourse = dao.subjects().single { it.semesterId == newTerm.id }
+        val created = dao.schedule().filter { it.subjectId == newCourse.id }.sortedBy { it.orderNo }
+        assertEquals(listOf(9, 10), created.map { it.orderNo }) // active 7; archived 8 is reserved
+        assertEquals(listOf(f.slot.dayOfWeek, f.slot.dayOfWeek), created.map { it.dayOfWeek })
+        assertTrue(created.all { it.startDate == newTerm.startDate })
+        assertTrue(created.none { it.id in original.map { old -> old.id } })
+        assertEquals(original, dao.schedule().filter { it.subjectId != newCourse.id })
+        assertEquals(listOf(f.mark), dao.attendance())
+        assertEquals(listOf(f.exam), dao.exams())
+        assertEquals(listOf(f.task), dao.board())
+    }
+
+    @Test fun invalidOrStaleTimetableIsRejectedAndLateSlotFailureRollsBack() = withFixture { db, f ->
+        val dao = db.plannerRestoreDao()
+        val repo = TermRolloverRepository(db)
+        val second = f.slot.copy(id = UUID.randomUUID(), orderNo = 2)
+        dao.insertSchedule(listOf(second))
+        val source = requireNotNull(repo.readSource(f.source.id))
+        val picked = source.slots.filter { it.row.subjectId == f.first.id }
+        val wrongDay = f.destination.startDate.plusDays(
+            ((f.slot.dayOfWeek - f.destination.startDate.dayOfWeek.value + 8) % 7).toLong(),
+        )
+        val invalid = repo.prepare(f.source.id, f.destination.copy(startDate = wrongDay, endDate = wrongDay),
+            listOf(f.first.id), picked)
+        assertEquals(RolloverPreparation.Invalid(RolloverInputIssue.INVALID_SLOT_DATES), invalid)
+        val stale = repo.prepare(f.source.id, f.destination, listOf(f.first.id), picked) as RolloverPreparation.Ready
+        db.sessionRecordDao().update(second.copy(orderNo = 4))
+        assertEquals(RolloverResult.STALE_PREVIEW, stale.confirmation.apply())
+        assertEquals(RolloverPreparation.Invalid(RolloverInputIssue.SOURCE_CHANGED),
+            repo.prepare(f.source.id, f.destination, listOf(f.first.id), picked))
+        assertEquals(listOf(f.source), dao.semesters())
+
+        val refreshed = requireNotNull(repo.readSource(f.source.id)).slots
+        val pending = repo.prepare(f.source.id, f.destination, listOf(f.first.id), refreshed) as RolloverPreparation.Ready
+        val before = dao.schedule()
+        db.openHelper.writableDatabase.execSQL("""
+            CREATE TRIGGER fail_second_copied_slot BEFORE INSERT ON SessionRecords
+            WHEN (SELECT COUNT(*) FROM SessionRecords) = 3
+                AND (SELECT COUNT(*) FROM Semesters) = 2
+                AND (SELECT COUNT(*) FROM Subjects) = 3
+            BEGIN SELECT RAISE(ABORT, 'late rollover slot test'); END
+        """.trimIndent())
+        var rejected = false
+        try { pending.confirmation.apply() } catch (_: SQLiteConstraintException) { rejected = true }
+        assertTrue(rejected)
+        assertEquals(listOf(f.source), dao.semesters())
+        assertEquals(setOf(f.first, f.second), dao.subjects().toSet())
+        assertEquals(before, dao.schedule())
+        assertEquals(listOf(f.mark), dao.attendance())
+    }
+
     private fun withFixture(test: suspend (AttendanceDatabase, Fixture) -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val db = Room.inMemoryDatabaseBuilder(context, AttendanceDatabase::class.java).build()

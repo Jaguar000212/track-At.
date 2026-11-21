@@ -425,8 +425,8 @@ returns to the draft without writes. After confirmation, the new semester is
 in Active. The old term is never archived or edited.
 
 Use active and archived source fixtures; include notes, schedules, marks,
-a custom target and exams/tasks on the original. Check that only selected
-names and colors transfer, with fresh course and term IDs, new start date
+a custom target and exams/tasks on the original. Leave the optional timetable
+slots unchecked for this check. Verify that only selected names and colors transfer, with fresh course and term IDs, new start date
 and target, zero attendance, and no other copied fields. Same names remain
 legal. Verify navigation including Back/cancel, portrait/landscape and large
 text/TalkBack; open both date pickers, cancel and clear an optional date, and
@@ -609,3 +609,19 @@ file-picker/provider, TalkBack and launcher behavior remain manual.
 - `AgendaProjectionTest` covers the local-date week boundary, open-task filtering, dated versus undated entries, and stable keys across Board and Exams.
 - The existing API 29 `TodayContentTest` suite includes one agenda UI fixture. It checks date selection, next week and return to Today, while an undated exam remains separately visible. The Today entry action is covered without a timetable.
 - On a device, open **Today → Calendar agenda** with no timetable; verify Board tasks with due dates and saved dated exams appear on their selected days, completed tasks stay out, and undated items remain visible. Try the controls at large font size and with TalkBack. Back returns to Today. Use Board or Exams to edit; the agenda never writes planner or attendance records or uses device calendars or reminders.
+
+
+### Optional timetable rollover
+
+Choose subjects first. Their timetable slots start unchecked and are identified
+by weekday, subject and ordinal, even if multiple rows share the same weekday.
+With no slots checked the existing course-only rollover is unchanged.
+Review selected slots and the first matching dates before creating the term;
+a first occurrence outside the optional end date cannot be copied. This is
+a rollover validation, not an end-date cutoff for Day View. Slots start at the
+new term baseline and are appended in source order after active slots for that
+weekday without rewriting existing or archived rows. They have fresh IDs and
+no saved marks. The API 29 test checks unchecked/default rollover, selected
+subsets, reserved archived values, stale order rejection and late rollback.
+Hands-on checks include selecting then deselecting a subject, distinguishing
+duplicate weekdays, and verifying the date in preview.

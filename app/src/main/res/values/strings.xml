@@ -198,7 +198,7 @@
     <string name="rollover_pick_courses">Choose subjects to reuse</string>
     <string name="rollover_no_courses">There are no named subjects to reuse in this semester.</string>
     <string name="rollover_review_action">Review selected subjects</string>
-    <string name="rollover_copy_scope">Only the listed names and colors are copied. The new subjects will use this semester’s start date and target, starting with zero attendance. No marks, timetable, instructor, room, notes, exams or tasks are copied. The original semester stays unchanged.</string>
+    <string name="rollover_copy_scope">For subjects, only the listed names and colors carry over. The new subjects will use this semester’s start date and target, starting with zero attendance. No marks, instructor, room, notes, exams or tasks are copied. The original semester stays unchanged.</string>
     <string name="rollover_course_color">%1$s · %2$s</string>
     <string name="rollover_edit">Back to editing</string>
     <string name="rollover_create">Create new semester</string>
@@ -293,4 +293,12 @@
     <string name="board_checklist_mark_named">Checklist item: %1$s</string>
     <string name="board_checklist_edit_named">Edit checklist item %1$s</string>
     <string name="board_checklist_limit">Use at most %1$d characters.</string>
+    <string name="rollover_timetable_optional">Optional timetable slots</string>
+    <string name="rollover_timetable_explanation">Only checked slots will copy. Their weekdays stay the same and they start from the new semester’s start date.</string>
+    <string name="rollover_slot_label">%1$s · %2$s · slot %3$d</string>
+    <string name="rollover_timetable_review">Selected timetable slots</string>
+    <string name="rollover_timetable_first">%1$s · first date %2$s</string>
+    <string name="rollover_no_timetable_copy">No timetable slots will be copied.</string>
+    <string name="rollover_invalid_slot_dates">A selected slot has no first day within the new dates. Change the dates or uncheck that slot.</string>
+    <string name="rollover_timetable_full">There is no room at the end of a weekday’s timetable. No semester was created. Edit your selections and try again.</string>
 </resources>
