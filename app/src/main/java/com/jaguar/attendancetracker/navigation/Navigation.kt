@@ -8,11 +8,14 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.jaguar.attendancetracker.ui.board.BoardScreen
 import com.jaguar.attendancetracker.ui.dashboard.Dashboard
@@ -29,7 +32,16 @@ import com.jaguar.attendancetracker.ui.subject.Subject
 import com.jaguar.attendancetracker.ui.today.Today
 
 @Composable
-fun Navigation(navController: NavHostController, modifier: Modifier) {
+fun Navigation(
+    navController: NavHostController,
+    modifier: Modifier,
+    quickCaptureEntry: NavBackStackEntry? = null,
+    onQuickCaptureHandled: (NavBackStackEntry) -> Unit = {},
+) {
+    // NavHost remembers the graph builder. Its destination must observe updated request
+    // state rather than closing over the request value from graph construction.
+    val latestCapture = rememberUpdatedState(quickCaptureEntry)
+    val latestHandled = rememberUpdatedState(onQuickCaptureHandled)
     NavHost(
         navController = navController,
         startDestination = Destinations.TODAY.route,
@@ -77,7 +89,13 @@ fun Navigation(navController: NavHostController, modifier: Modifier) {
         composable(Destinations.INSIGHTS.route) { InsightsScreen() }
         composable(Destinations.LEAVE.route) { LeaveScreen() }
         composable(Destinations.EXAMS.route) { ExamsScreen() }
-        composable(Destinations.BOARD.route) { BoardScreen() }
+        composable(Destinations.BOARD.route) { entry ->
+            val current = navController.currentBackStackEntryAsState().value
+            BoardScreen(
+                quickCapture = latestCapture.value == entry && current == entry,
+                onQuickCaptureHandled = { latestHandled.value(entry) },
+            )
+        }
         composable(Destinations.DASHBOARD.route) {
             Dashboard(navController = navController)
         }

@@ -271,4 +271,8 @@
     <string name="help_topic_subject_title">Subject Details</string>
     <string name="help_topic_subject_summary">This page shows you detailed information about a specific subject, including attendance records and statistics.</string>
     <string name="help_topic_backup_summary">Save and restore your own attendance backups. The files can contain private information.</string>
+    <string name="quick_pin_title">Quick Pin</string>
+    <string name="quick_pin_add">Add task</string>
+    <string name="quick_pin_description">Open Board to add a task. No tasks are shown on the home screen.</string>
+    <string name="quick_pin_composer_title">Quick add task</string>
 </resources>

@@ -11,9 +11,15 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.backend.entities.BoardItem
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -59,5 +65,38 @@ class BoardScreenTest {
         compose.onNodeWithText(resources.getString(R.string.board_done_empty)).assertIsDisplayed()
         compose.onNodeWithText(resources.getString(R.string.board_open_tasks)).performClick()
         compose.onNodeWithText(edited).assertIsDisplayed()
+    }
+    @Test fun quickPinCancelDoesNotWriteAndExplicitSaveMakesOneUndatedBoardTask() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.inMemoryDatabaseBuilder(context, AttendanceDatabase::class.java).build()
+        val model = BoardViewModel(db)
+        val capture = mutableStateOf(true)
+        try {
+            compose.setContent {
+                MaterialTheme {
+                    BoardContent(
+                        BoardState.Ready(emptyList()), model::save, model::setDone,
+                        quickCapture = capture.value, onQuickCaptureHandled = { capture.value = false },
+                    )
+                }
+            }
+            val title = context.getString(R.string.quick_pin_composer_title)
+            val save = context.getString(R.string.board_save)
+            compose.onNodeWithText(title).assertIsDisplayed()
+            compose.onNodeWithText(save).assertIsNotEnabled()
+            compose.onNode(hasSetTextAction()).performTextInput("Canceled capture")
+            compose.onNodeWithText(context.getString(R.string.board_cancel)).performClick()
+            compose.onNodeWithText(title).assertDoesNotExist()
+            assertTrue(runBlocking { db.plannerRestoreDao().board() }.isEmpty())
+
+            compose.runOnIdle { capture.value = true }
+            compose.onNodeWithText(title).assertIsDisplayed()
+            compose.onNode(hasSetTextAction()).performTextInput("Saved capture")
+            compose.onNodeWithText(save).performClick()
+            compose.waitUntil(timeoutMillis = 5000) { runBlocking { db.plannerRestoreDao().board() }.isNotEmpty() }
+            val stored = runBlocking { db.plannerRestoreDao().board() }.single()
+            assertEquals("Saved capture", stored.title)
+            assertNull(stored.dueDate)
+        } finally { db.close() }
     }
 }

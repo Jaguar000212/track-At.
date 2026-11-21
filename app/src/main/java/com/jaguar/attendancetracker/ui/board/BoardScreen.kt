@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -55,12 +58,18 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.UUID
 
-private data class BoardEditor(val id: UUID? = null, val title: String = "", val dueDate: LocalDate? = null)
+private data class BoardEditor(
+    val id: UUID? = null, val title: String = "", val dueDate: LocalDate? = null, val titleOnly: Boolean = false,
+)
 
 @Composable
-internal fun BoardScreen(viewModel: BoardViewModel = hiltViewModel()) {
+internal fun BoardScreen(
+    quickCapture: Boolean = false,
+    onQuickCaptureHandled: () -> Unit = {},
+    viewModel: BoardViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    BoardContent(state, viewModel::save, viewModel::setDone)
+    BoardContent(state, viewModel::save, viewModel::setDone, quickCapture, onQuickCaptureHandled)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -69,12 +78,24 @@ internal fun BoardContent(
     state: BoardState,
     saveTask: suspend (UUID?, String, LocalDate?) -> Boolean,
     changeDone: suspend (UUID, Boolean) -> Boolean,
+    quickCapture: Boolean = false,
+    onQuickCaptureHandled: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     var showDone by rememberSaveable { mutableStateOf(false) }
     var editor by remember { mutableStateOf<BoardEditor?>(null) }
     var writeFailed by remember { mutableStateOf(false) }
     var changing by remember { mutableStateOf<UUID?>(null) }
+    val loading = state is BoardState.Loading
+    LaunchedEffect(quickCapture, loading) {
+        if (quickCapture && !loading) {
+            if (editor == null && state is BoardState.Ready) {
+                showDone = false
+                editor = BoardEditor(titleOnly = true)
+            }
+            onQuickCaptureHandled()
+        }
+    }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
@@ -180,6 +201,7 @@ private fun BoardEditorDialog(
     var showDatePicker by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
+    val titleFocus = remember { FocusRequester() }
 
     if (showDatePicker) {
         val selectableYears = 1900..2100
@@ -199,21 +221,30 @@ private fun BoardEditorDialog(
     } else {
         AlertDialog(
             onDismissRequest = { if (!saving) close() },
-            title = { Text(stringResource(if (initial.id == null) R.string.board_add else R.string.board_edit)) },
+            title = { Text(stringResource(when {
+                initial.titleOnly -> R.string.quick_pin_composer_title
+                initial.id == null -> R.string.board_add
+                else -> R.string.board_edit
+            })) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = title, onValueChange = { title = it }, enabled = !saving, singleLine = true,
                         label = { Text(stringResource(R.string.board_task_title)) },
+                        modifier = if (initial.titleOnly) Modifier.focusRequester(titleFocus) else Modifier,
                     )
-                    Text(dueDate?.let { stringResource(R.string.board_due_display, it.displayDate()) }
-                        ?: stringResource(R.string.board_no_due))
-                    TextButton(enabled = !saving, onClick = { showDatePicker = true }) {
-                        Text(stringResource(R.string.board_pick_date))
-                    }
-                    if (dueDate != null) {
-                        TextButton(enabled = !saving, onClick = { dueDate = null }) {
-                            Text(stringResource(R.string.board_remove_date))
+                    if (initial.titleOnly) {
+                        LaunchedEffect(Unit) { titleFocus.requestFocus() }
+                    } else {
+                        Text(dueDate?.let { stringResource(R.string.board_due_display, it.displayDate()) }
+                            ?: stringResource(R.string.board_no_due))
+                        TextButton(enabled = !saving, onClick = { showDatePicker = true }) {
+                            Text(stringResource(R.string.board_pick_date))
+                        }
+                        if (dueDate != null) {
+                            TextButton(enabled = !saving, onClick = { dueDate = null }) {
+                                Text(stringResource(R.string.board_remove_date))
+                            }
                         }
                     }
                     if (failed) BoardWriteError()
