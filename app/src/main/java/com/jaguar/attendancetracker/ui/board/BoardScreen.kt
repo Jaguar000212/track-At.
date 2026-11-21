@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -69,7 +70,11 @@ internal fun BoardScreen(
     viewModel: BoardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    BoardContent(state, viewModel::save, viewModel::setDone, quickCapture, onQuickCaptureHandled)
+    val portable = remember(viewModel) {
+        BoardPortabilityActions(viewModel::setPinned, viewModel::observeChecklist,
+            viewModel::saveChecklist, viewModel::setChecklistDone)
+    }
+    BoardContent(state, viewModel::save, viewModel::setDone, quickCapture, onQuickCaptureHandled, portable)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -80,16 +85,18 @@ internal fun BoardContent(
     changeDone: suspend (UUID, Boolean) -> Boolean,
     quickCapture: Boolean = false,
     onQuickCaptureHandled: () -> Unit = {},
+    portability: BoardPortabilityActions? = null,
 ) {
     val scope = rememberCoroutineScope()
     var showDone by rememberSaveable { mutableStateOf(false) }
     var editor by remember { mutableStateOf<BoardEditor?>(null) }
     var writeFailed by remember { mutableStateOf(false) }
     var changing by remember { mutableStateOf<UUID?>(null) }
+    var checklistParent by remember { mutableStateOf<UUID?>(null) }
     val loading = state is BoardState.Loading
     LaunchedEffect(quickCapture, loading) {
         if (quickCapture && !loading) {
-            if (editor == null && state is BoardState.Ready) {
+            if (editor == null && checklistParent == null && state is BoardState.Ready) {
                 showDone = false
                 editor = BoardEditor(titleOnly = true)
             }
@@ -99,7 +106,7 @@ internal fun BoardContent(
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
-            Modifier.widthIn(max = 620.dp).fillMaxWidth(),
+            Modifier.widthIn(max = 620.dp).fillMaxWidth().testTag("board-list"),
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -135,7 +142,8 @@ internal fun BoardContent(
                 }
                 if (writeFailed) item { BoardWriteError() }
                 val visible = state.items.filter { it.isDone == showDone }
-                    .sortedWith(compareBy<BoardItem> { it.dueDate == null }.thenBy { it.dueDate }.thenBy { it.id })
+                    .sortedWith(compareByDescending<BoardItem> { it.isPinned }
+                        .thenBy { it.dueDate == null }.thenBy { it.dueDate }.thenBy { it.id })
                 if (visible.isEmpty()) item {
                     Text(stringResource(if (showDone) R.string.board_done_empty else R.string.board_open_empty))
                 }
@@ -144,6 +152,7 @@ internal fun BoardContent(
                         shape = MaterialTheme.shapes.large) {
                         Column(Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(task.title, style = MaterialTheme.typography.titleLarge)
+                            if (task.isPinned) Text(stringResource(R.string.board_pinned), style = MaterialTheme.typography.labelMedium)
                             task.dueDate?.let {
                                 Text(stringResource(R.string.board_due_display, it.displayDate()))
                             }
@@ -156,6 +165,33 @@ internal fun BoardContent(
                                 modifier = Modifier.semantics { contentDescription = editDescription },
                             ) {
                                 Text(stringResource(R.string.board_edit))
+                            }
+                            if (portability != null) {
+                                val pinResource = if (task.isPinned) R.string.board_unpin else R.string.board_pin
+                                val pinLabel = stringResource(
+                                    if (task.isPinned) R.string.board_unpin_named else R.string.board_pin_named, task.title,
+                                )
+                                val checklistLabel = stringResource(R.string.board_checklist_named, task.title)
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(
+                                        enabled = changing == null,
+                                        modifier = Modifier.semantics { contentDescription = pinLabel },
+                                        onClick = {
+                                            if (changing == null) {
+                                                changing = task.id
+                                                writeFailed = false
+                                                scope.launch {
+                                                    try { writeFailed = !portability.setPinned(task.id, !task.isPinned) }
+                                                    finally { changing = null }
+                                                }
+                                            }
+                                        },
+                                    ) { Text(stringResource(pinResource)) }
+                                    TextButton(
+                                        onClick = { checklistParent = task.id },
+                                        modifier = Modifier.semantics { contentDescription = checklistLabel },
+                                    ) { Text(stringResource(R.string.board_checklist_title)) }
+                                }
                             }
                             TextButton(
                                 enabled = changing == null,
@@ -185,6 +221,9 @@ internal fun BoardContent(
     }
     editor?.let { item ->
         BoardEditorDialog(item, close = { editor = null }, save = { title, due -> saveTask(item.id, title, due) })
+    }
+    checklistParent?.let { id ->
+        if (portability != null) BoardChecklistDialog(id, close = { checklistParent = null }, actions = portability)
     }
 }
 
@@ -273,7 +312,7 @@ private fun BoardEditorDialog(
 }
 
 @Composable
-private fun BoardWriteError() {
+internal fun BoardWriteError() {
     Text(stringResource(R.string.board_write_error), color = MaterialTheme.colorScheme.error,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
 }

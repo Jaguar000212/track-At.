@@ -33,6 +33,18 @@ interface BoardItemDao {
     @Query("SELECT * FROM BoardChecklistItems WHERE boardItemId = :boardItemId ORDER BY position, id")
     suspend fun checklistItems(boardItemId: UUID): List<BoardChecklistItem>
 
+    @Query("SELECT * FROM BoardChecklistItems WHERE boardItemId = :parent ORDER BY position, id")
+    fun observeChecklist(parent: UUID): Flow<List<BoardChecklistItem>>
+
+    @Query("UPDATE BoardChecklistItems SET position = :position WHERE id = :id AND boardItemId = :parent")
+    suspend fun setChecklistPosition(parent: UUID, id: UUID, position: Int): Int
+
+    @Query("UPDATE BoardChecklistItems SET text = :text WHERE id = :id AND boardItemId = :parent")
+    suspend fun editChecklistItem(parent: UUID, id: UUID, text: String): Int
+
+    @Query("UPDATE BoardChecklistItems SET isDone = :done WHERE id = :id AND boardItemId = :parent")
+    suspend fun setChecklistDone(parent: UUID, id: UUID, done: Boolean): Int
+
     @Query("SELECT * FROM BoardItems ORDER BY id")
     fun observeAll(): Flow<List<BoardItem>>
 }

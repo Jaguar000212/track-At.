@@ -28,7 +28,7 @@
         <item quantity="other">%d classes to mark</item>
     </plurals>
     <string name="planner_backup_title">Planner backup</string>
-    <string name="planner_backup_scope">Save or restore a complete planner backup. It includes active and archived semesters, subjects, timetable, attendance, Board items and exams. It is separate from the attendance transfer options.</string>
+    <string name="planner_backup_scope">Save or restore a complete planner backup. It includes active and archived semesters, subjects, timetable, attendance, Board tasks, pins, checklist items and exams. It is separate from the attendance transfer options.</string>
     <string name="planner_backup_privacy">The file is not encrypted and may contain personal information. You choose where to save it. Track-At does not share or upload it automatically.</string>
     <string name="planner_backup_save">Save planner backup</string>
     <string name="planner_backup_open">Choose backup to restore</string>
@@ -80,7 +80,8 @@
     <string name="board_cancel">Cancel</string>
     <string name="board_load_error">Could not load Board tasks.</string>
     <string name="board_write_error">Could not save that change. Try again.</string>
-    <string name="planner_backup_v2_compatibility">New Planner backups use version 2 to include exams. Older Dev builds cannot restore version 2 files. This build can still restore Planner version 1 files.</string>
+    <string name="planner_backup_v3_compatibility">New Planner backups use version 3 to include task pins and checklists. Older builds that do not support version 3 cannot open these files. You can still restore Planner version 1 and 2 files.</string>
+    <string name="planner_backup_no_board_details">This older file does not contain pins or checklists. Existing pins and checklists stay unchanged.</string>
     <string name="planner_backup_no_exam_section">This older backup has no exams section. Your exams will not change.</string>
     <string name="exams_title">Exams</string>
     <string name="exams_intro">Add an exam as soon as you know its title. A date and semester are optional.</string>
@@ -275,4 +276,21 @@
     <string name="quick_pin_add">Add task</string>
     <string name="quick_pin_description">Open Board to add a task. No tasks are shown on the home screen.</string>
     <string name="quick_pin_composer_title">Quick add task</string>
+    <string name="board_pinned">Pinned</string>
+    <string name="board_pin">Pin</string>
+    <string name="board_unpin">Unpin</string>
+    <string name="board_pin_named">Pin task %1$s</string>
+    <string name="board_unpin_named">Unpin task %1$s</string>
+    <string name="board_checklist_title">Checklist</string>
+    <string name="board_checklist_named">Checklist for %1$s</string>
+    <string name="board_checklist_empty">No checklist items yet.</string>
+    <string name="board_checklist_new">New checklist item</string>
+    <string name="board_checklist_edit_text">Edit checklist item</string>
+    <string name="board_checklist_add">Add item</string>
+    <string name="board_checklist_save">Save item</string>
+    <string name="board_checklist_close">Close checklist</string>
+    <string name="board_checklist_cancel_edit">Cancel edit</string>
+    <string name="board_checklist_mark_named">Checklist item: %1$s</string>
+    <string name="board_checklist_edit_named">Edit checklist item %1$s</string>
+    <string name="board_checklist_limit">Use at most %1$d characters.</string>
 </resources>

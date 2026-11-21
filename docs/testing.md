@@ -200,12 +200,12 @@ real system picker or a third-party file provider.
 
 ## Planner v2 exam compatibility
 
-The visible Planner backup screen writes v2 and accepts both v1 and v2.
+The visible Planner backup screen writes v3 and accepts v1, v2 and v3.
 Its attendance section remains legacy v10 JSON. V2 shows exam preview counts
 and v1 states that it has no exams section. V2 keeps the same
 `track-at-planner` discriminator, requires a complete exams array, and cannot
 be opened by older builds that only understand Planner v1. The legacy
-attendance-transfer importer recognizes both planner versions as separate.
+attendance-transfer importer recognizes planner files as separate.
 
 The API 29 gate validates that Planner v1 adds attendance and Board data
 without modifying dated or undated local exams, and that exam-only changes
@@ -230,8 +230,8 @@ No reminder settings or scheduling are added.
    during ordinary configuration recreation. The active date/semester chooser
    can return to the editor. Drafts are not written to disk or recovered after
    process death. Cancel/Back should not save an editing draft.
-4. Save a Planner backup and verify its warning that older Dev builds cannot
-   open v2. Restore a v2 file and review the Exam counts before Apply; restore
+4. Save a Planner backup and verify its warning that older builds without
+   Planner v3 cannot open the new file. Restore a v2 or v3 file and review the Exam counts before Apply; restore
    a v1 file and verify it explicitly says exams stay unchanged. Check the
    real Android DocumentsUI, selected provider, TalkBack, large fonts, narrow
    navigation and Back, and a date selection west of UTC.
@@ -562,16 +562,15 @@ Board items and exams. Existing tasks start unpinned, and checklists start
 empty. The fixture tests narrow edits, ordered checklist reads and foreign
 key integrity. It also captures and restores old Planner v1 and v2 files to
 verify their shape stays unchanged and they cannot overwrite local pins
-or checklist items. The storage is not user-visible; do not enable pinning
-or checklist editing before Planner v3 can preserve them. The legacy
-attendance-only export is unchanged.
+or checklist items. The legacy attendance-only export is unchanged.
 
-### Planner v3 Board portability (internal only)
+### Planner v3 Board portability
 
 The codec adds an explicit pin on each Board task and a checklist collection
 alongside Exams. Old Planner v1 and v2 files still omit both portability
 fields and keep local pins and checklists on restore. The attendance-only
-format and the visible Planner backup screen remain unchanged in this slice.
+format is unchanged. The Planner screen previews checklist counts for v3 and
+explicitly points out omission for both earlier versions.
 
 The existing API 29 harness covers restore into a separate database and
 reopen, explicit false vs. local true pins, insert-only keep-local behavior
@@ -584,3 +583,23 @@ limited to 200 UTF-16 code units and position to a non-negative Int; ties
 sort by stable UUID. There is no independent per-task count limit in the
 codec (otherwise repeated keep-local imports could make local data
 unexportable despite valid individual files).
+
+
+### Pin tasks and use checklists on Board
+
+Create a title-only task normally or through Quick Pin. Pin/unpin saved tasks
+in both Open and Done. Pinned tasks sort first in each group, preserving
+due-date order in each pin bucket. Open a task’s Checklist, add a nonblank
+step, edit it or mark it done. Marking steps must not change task completion;
+task completion must not change any checklist fields. No remove/reorder in
+this slice. A newly added step goes at the end; if an imported step uses the
+maximum position, append keeps existing visible order without overflow.
+Close or Back discards only the unsaved checklist draft. Test large text,
+landscape, multiple rows, and TalkBack labels.
+
+Save a Planner v3 file and restore it on a clean test install, including pins,
+checklists and Exams. Review the checklist count before Apply. Restore older
+v1/v2 files over a populated Board and verify the omission note and no change
+to existing pins/checklists. The API 29 suite exercises Board interactions and
+actual Room writes, extreme-position append and review UI. Actual Android
+file-picker/provider, TalkBack and launcher behavior remain manual.
