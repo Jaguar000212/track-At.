@@ -87,6 +87,12 @@ interface SessionRecordDao {
     @Query("SELECT * FROM SessionRecords")
     fun getAll(): Flow<List<SessionRecord>>
 
+    @Query("SELECT r.* FROM SessionRecords r JOIN Subjects s ON r.subjectId = s.id WHERE s.semesterId = :term")
+    suspend fun rolloverSchedule(term: UUID): List<SessionRecord>
+
+    @Query("SELECT r.* FROM SessionRecords r JOIN Subjects s ON r.subjectId = s.id WHERE s.semesterId = :term AND r.id IN (:ids)")
+    suspend fun rolloverSelectedSchedule(term: UUID, ids: List<UUID>): List<SessionRecord>
+
     @Query("SELECT * FROM SessionRecords WHERE subjectId = :subjectId order by dayOfWeek")
     suspend fun getBySubject(subjectId: UUID): List<SessionRecord>
 

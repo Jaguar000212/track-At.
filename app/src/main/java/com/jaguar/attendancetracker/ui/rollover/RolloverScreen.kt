@@ -50,9 +50,12 @@ import com.jaguar.attendancetracker.backend.enums.SubjectColor
 import com.jaguar.attendancetracker.ui.components.fromPickerDateMillis
 import com.jaguar.attendancetracker.ui.components.toPickerDateMillis
 import com.jaguar.attendancetracker.ui.theme.AppTypography
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -131,6 +134,16 @@ internal fun RolloverContent(
                             Text(stringResource(R.string.rollover_course_color, course.name, stringResource(course.color.label())))
                         }
                     }
+                    if (review.slots.isEmpty()) {
+                        item { Text(stringResource(R.string.rollover_no_timetable_copy)) }
+                    } else {
+                        item { Text(stringResource(R.string.rollover_timetable_review), Modifier.semantics { heading() }) }
+                        items(review.slots) { slot ->
+                            Text(stringResource(R.string.rollover_timetable_first,
+                                stringResource(R.string.rollover_slot_label, slot.courseName, weekdayName(slot.weekday), slot.ordinal),
+                                slot.firstDate.format(formatter)))
+                        }
+                    }
                     item {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = onEdit, enabled = !state.working) { Text(stringResource(R.string.rollover_edit)) }
@@ -191,6 +204,32 @@ internal fun RolloverContent(
                             Text(course.name)
                         }
                     }
+                    val offered = source.slots.filter { it.row.subjectId in draft.selected }
+                    val courseNames = source.courses.associate { it.id to it.name }
+                    if (offered.isNotEmpty()) {
+                        item {
+                            Text(stringResource(R.string.rollover_timetable_optional), Modifier.semantics { heading() })
+                            Text(stringResource(R.string.rollover_timetable_explanation))
+                        }
+                        items(offered, key = { "slot:${it.row.id}" }) { slot ->
+                            val checked = slot.row.id in draft.selectedSlots
+                            Row(
+                                Modifier.fillMaxWidth().toggleable(
+                                    value = checked, enabled = !state.working, role = Role.Checkbox,
+                                    onValueChange = { selected ->
+                                        val id = slot.row.id
+                                        onChange(draft.copy(selectedSlots = if (selected) draft.selectedSlots + id else draft.selectedSlots - id))
+                                    },
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(checked, onCheckedChange = null, enabled = !state.working)
+                                Text(stringResource(R.string.rollover_slot_label, courseNames.getValue(slot.row.subjectId),
+                                    weekdayName(slot.row.dayOfWeek), slot.ordinal))
+                            }
+                        }
+                    }
                     item {
                         Button(onClick = onReview, enabled = !state.working && details.name.isNotBlank() && draft.selected.isNotEmpty()) {
                             Text(stringResource(R.string.rollover_review_action))
@@ -207,6 +246,8 @@ private fun RolloverNotice.label(): Int = when (this) {
     RolloverNotice.UNAVAILABLE -> R.string.rollover_source_unavailable
     RolloverNotice.INVALID_TERM -> R.string.rollover_invalid_term
     RolloverNotice.INVALID_SELECTION -> R.string.rollover_invalid_selection
+    RolloverNotice.INVALID_SLOT_DATES -> R.string.rollover_invalid_slot_dates
+    RolloverNotice.TIMETABLE_FULL -> R.string.rollover_timetable_full
     RolloverNotice.STALE -> R.string.rollover_stale
     RolloverNotice.READ_FAILED -> R.string.rollover_read_failed
     RolloverNotice.WRITE_FAILED -> R.string.rollover_write_failed
@@ -223,3 +264,5 @@ private fun SubjectColor.label(): Int = when (this) {
     SubjectColor.ORANGE -> R.string.rollover_orange
     SubjectColor.GRAY -> R.string.rollover_gray
 }
+
+private fun weekdayName(day: Int): String = DayOfWeek.of(day).getDisplayName(TextStyle.FULL, Locale.getDefault())

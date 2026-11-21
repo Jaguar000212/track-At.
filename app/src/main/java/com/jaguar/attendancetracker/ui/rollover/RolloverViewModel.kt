@@ -23,9 +23,10 @@ import javax.inject.Inject
 internal data class RolloverDraft(
     val details: RolloverTermDetails = RolloverTermDetails("", LocalDate.now(), null, 75),
     val selected: Set<UUID> = emptySet(),
+    val selectedSlots: Set<UUID> = emptySet(),
 )
 
-internal enum class RolloverNotice { UNAVAILABLE, INVALID_TERM, INVALID_SELECTION, STALE, READ_FAILED, WRITE_FAILED }
+internal enum class RolloverNotice { UNAVAILABLE, INVALID_TERM, INVALID_SELECTION, INVALID_SLOT_DATES, STALE, READ_FAILED, WRITE_FAILED, TIMETABLE_FULL }
 internal data class RolloverState(
     val source: RolloverSource? = null,
     val draft: RolloverDraft = RolloverDraft(),
@@ -56,8 +57,10 @@ internal class RolloverViewModel @Inject constructor(
             val source = id?.let { repository.readSource(it) }
             val current = mutable.value
             val allowed = source?.courses?.map { it.id }?.toSet().orEmpty()
+            val selected = current.draft.selected.intersect(allowed)
+            val slots = source?.slots.orEmpty().filter { it.row.subjectId in selected }.mapTo(HashSet()) { it.row.id }
             mutable.value = current.copy(source = source, loading = false, working = false,
-                draft = current.draft.copy(selected = current.draft.selected.intersect(allowed)),
+                draft = current.draft.copy(selected = selected, selectedSlots = current.draft.selectedSlots.intersect(slots)),
                 notice = if (source == null) RolloverNotice.UNAVAILABLE else notice)
         } catch (e: CancellationException) {
             throw e
@@ -70,7 +73,9 @@ internal class RolloverViewModel @Inject constructor(
     fun change(draft: RolloverDraft) {
         val current = mutable.value
         if (!current.loading && !current.working && current.review == null && !current.created) {
-            mutable.value = current.copy(draft = draft, notice = null)
+            val allowed = current.source?.slots.orEmpty().filter { it.row.subjectId in draft.selected }
+                .mapTo(HashSet()) { it.row.id }
+            mutable.value = current.copy(draft = draft.copy(selectedSlots = draft.selectedSlots.intersect(allowed)), notice = null)
         }
     }
 
@@ -83,7 +88,8 @@ internal class RolloverViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 when (val prepared = repository.prepare(termId, current.draft.details,
-                    source.courses.filter { it.id in current.draft.selected }.map { it.id })) {
+                    source.courses.filter { it.id in current.draft.selected }.map { it.id },
+                    source.slots.filter { it.row.id in current.draft.selectedSlots })) {
                     is RolloverPreparation.Ready -> {
                         pending = prepared.confirmation
                         mutable.value = current.copy(working = false, review = prepared.confirmation.preview, notice = null)
@@ -94,6 +100,8 @@ internal class RolloverViewModel @Inject constructor(
                             current.copy(working = false, notice = RolloverNotice.INVALID_TERM)
                         RolloverInputIssue.INVALID_SELECTION -> mutable.value =
                             current.copy(working = false, notice = RolloverNotice.INVALID_SELECTION)
+                        RolloverInputIssue.INVALID_SLOT_DATES -> mutable.value =
+                            current.copy(working = false, notice = RolloverNotice.INVALID_SLOT_DATES)
                     }
                 }
             } catch (e: CancellationException) {
@@ -123,6 +131,8 @@ internal class RolloverViewModel @Inject constructor(
                     RolloverResult.CREATED, RolloverResult.ALREADY_CREATED ->
                         mutable.value = current.copy(working = false, review = null, notice = null, created = true)
                     RolloverResult.STALE_PREVIEW -> reload(RolloverNotice.STALE)
+                    RolloverResult.TIMETABLE_FULL ->
+                        mutable.value = current.copy(working = false, review = null, notice = RolloverNotice.TIMETABLE_FULL)
                 }
             } catch (e: CancellationException) {
                 throw e
