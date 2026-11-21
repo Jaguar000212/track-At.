@@ -538,3 +538,18 @@ keeps the semester and an unrelated Board item, but blocks the subject
 (inconsistent incoming totals) and its dependent slot. It never fabricates
 individual marks, resets the original totals, or changes either backup
 format. This is not an end-to-end system file-picker test.
+
+### Quick Pin, the Add task launcher widget
+
+Add **Quick Pin** separately from Campus Brief and the original Tracker.
+The launcher shows only **Add task**; it never displays saved or draft
+titles. Tap from a cold start, Today, Exams, or a warm Board. The same Board
+opens its title-only composer. A tap while a composer is already open must
+keep its draft; Cancel or Back must not save or reopen the composer, and
+one explicit Save creates one open, undated task. The normal Board editor
+still offers its date picker. Verify Board Back navigation, repeated taps,
+rotation and TalkBack. Quick Pin requests are not replayed on rotation, and draft
+text is never written to saved state. Exercise actual
+launcher rendering/focus on a device; API 29 fixtures cover registered
+metadata, a real warm route/Back, and explicit Save/Cancel against Room,
+not a real launcher tap or its RemoteViews layout.

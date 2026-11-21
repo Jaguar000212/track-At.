@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.room.Room
@@ -14,6 +16,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.jaguar.attendancetracker.CampusBriefWidgetReceiver
 import com.jaguar.attendancetracker.MainActivity
 import com.jaguar.attendancetracker.R
+import com.jaguar.attendancetracker.QuickPinWidgetReceiver
+import com.jaguar.attendancetracker.OPEN_QUICK_PIN
+import com.jaguar.attendancetracker.quickPinIntent
 import com.jaguar.attendancetracker.WidgetReceiver
 import com.jaguar.attendancetracker.backend.AttendanceDatabase
 import com.jaguar.attendancetracker.backend.entities.AttendanceRecord
@@ -121,6 +126,42 @@ class CampusBriefWidgetTest {
         }
         compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.exams_intro)).assertDoesNotExist()
+    }
+
+    @Test fun quickPinWarmIntentKeepsExistingDraftAndReturnsThroughSingleBoard() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val receiver = context.packageManager.getReceiverInfo(
+            ComponentName(context, QuickPinWidgetReceiver::class.java), PackageManager.GET_META_DATA,
+        )
+        assertFalse(receiver.exported)
+        assertTrue(receiver.metaData.getInt(AppWidgetManager.META_DATA_APPWIDGET_PROVIDER) != 0)
+        val launch = quickPinIntent(context)
+        assertEquals(ComponentName(context, MainActivity::class.java), launch.component)
+        assertEquals(OPEN_QUICK_PIN, launch.action)
+        assertNull(launch.data)
+        assertNull(launch.extras)
+        val activity = compose.activity
+        val originalLaunch = Intent(activity.intent)
+        val title = context.getString(R.string.quick_pin_composer_title)
+        val cancel = context.getString(R.string.board_cancel)
+        val chooseDate = context.getString(R.string.board_pick_date)
+        compose.runOnIdle { activity.startActivity(launch) }
+        compose.onNodeWithText(title).assertIsDisplayed()
+        compose.onNodeWithText(chooseDate).assertDoesNotExist()
+        compose.onNode(hasSetTextAction()).performTextInput("Keep this draft")
+        compose.runOnIdle { activity.startActivity(launch) }
+        compose.onNodeWithText("Keep this draft").assertIsDisplayed()
+        compose.onNodeWithText(cancel).performClick()
+        compose.onNodeWithText(title).assertDoesNotExist()
+        compose.onNodeWithText("Keep this draft").assertDoesNotExist()
+        assertSame(activity, compose.activity)
+        compose.runOnIdle {
+            assertEquals(Lifecycle.State.RESUMED, activity.lifecycle.currentState)
+            assertTrue(originalLaunch.filterEquals(activity.intent))
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
+        compose.onNodeWithText(context.getString(R.string.today_open_day_view)).assertIsDisplayed()
+        compose.onNodeWithText(title).assertDoesNotExist()
     }
 
     private fun record(subjectId: UUID, date: LocalDate, status: AttendanceStatus?) =
