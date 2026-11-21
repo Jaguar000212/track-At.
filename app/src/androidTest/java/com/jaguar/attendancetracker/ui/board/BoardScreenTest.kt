@@ -3,6 +3,7 @@ package com.jaguar.attendancetracker.ui.board
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasContentDescription
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -136,25 +138,33 @@ class BoardScreenTest {
             compose.waitUntil(timeoutMillis = 5000) {
                 runBlocking { db.plannerRestoreDao().board().single { it.id == task.id }.isPinned }
             }
+            val unpin = context.getString(R.string.board_unpin_named, task.title)
             val openChecklist = context.getString(R.string.board_checklist_named, task.title)
-            compose.onNodeWithTag("board-list").performScrollToNode(hasContentDescription(openChecklist))
-            compose.onNodeWithContentDescription(openChecklist).performClick()
+            val list = compose.onNodeWithTag("board-list")
+            list.performScrollToNode(hasContentDescription(unpin))
+            compose.onNodeWithContentDescription(unpin).assertIsDisplayed()
+            list.performScrollToNode(hasContentDescription(openChecklist))
+            compose.onNodeWithContentDescription(openChecklist).assertIsDisplayed()
+                .performSemanticsAction(SemanticsActions.OnClick)
+            compose.onNodeWithTag("board-checklist-dialog").assertIsDisplayed()
             compose.waitUntil(timeoutMillis = 5000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             compose.onNode(hasSetTextAction()).performTextInput("Second step")
             compose.onNodeWithText(context.getString(R.string.board_checklist_add)).performClick()
             val edit = context.getString(R.string.board_checklist_edit_named, "Second step")
             compose.waitUntil(timeoutMillis = 5000) {
-                compose.onAllNodesWithContentDescription(edit).fetchSemanticsNodes().isNotEmpty()
+                runBlocking { db.boardItemDao().checklistItems(task.id).size == 2 }
             }
-            compose.onNodeWithContentDescription(edit).performClick()
+            compose.onNodeWithTag("board-checklist-items").performScrollToNode(hasContentDescription(edit))
+            compose.onNodeWithContentDescription(edit).performSemanticsAction(SemanticsActions.OnClick)
             compose.onNode(hasSetTextAction()).performTextClearance()
             compose.onNode(hasSetTextAction()).performTextInput("Edited step")
             compose.onNodeWithText(context.getString(R.string.board_checklist_save)).performClick()
             val checked = context.getString(R.string.board_checklist_mark_named, "Edited step")
             compose.waitUntil(timeoutMillis = 5000) {
-                compose.onAllNodesWithContentDescription(checked).fetchSemanticsNodes().isNotEmpty()
+                runBlocking { db.boardItemDao().checklistItems(task.id).last().text == "Edited step" }
             }
-            compose.onNodeWithContentDescription(checked).performClick()
+            compose.onNodeWithTag("board-checklist-items").performScrollToNode(hasContentDescription(checked))
+            compose.onNodeWithContentDescription(checked).performSemanticsAction(SemanticsActions.OnClick)
             compose.waitUntil(timeoutMillis = 5000) {
                 runBlocking { db.boardItemDao().checklistItems(task.id).last().isDone }
             }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -74,6 +75,7 @@ internal fun BoardChecklistDialog(parent: UUID, close: () -> Unit, actions: Boar
     }
 
     AlertDialog(
+        modifier = Modifier.testTag("board-checklist-dialog"),
         onDismissRequest = { if (!saving) close() },
         title = { Text(stringResource(R.string.board_checklist_title)) },
         text = {
@@ -83,7 +85,7 @@ internal fun BoardChecklistDialog(parent: UUID, close: () -> Unit, actions: Boar
                     ChecklistLoad.Loading -> CircularProgressIndicator()
                     is ChecklistLoad.Ready -> {
                         if (current.rows.isEmpty()) Text(stringResource(R.string.board_checklist_empty))
-                        else LazyColumn(Modifier.heightIn(max = 220.dp)) {
+                        else LazyColumn(Modifier.heightIn(max = 220.dp).testTag("board-checklist-items")) {
                             items(current.rows, key = { it.id.toString() }) { row ->
                                 val mark = stringResource(R.string.board_checklist_mark_named, row.text)
                                 val editLabel = stringResource(R.string.board_checklist_edit_named, row.text)
